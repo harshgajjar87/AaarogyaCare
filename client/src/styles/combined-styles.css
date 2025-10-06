@@ -1,0 +1,26 @@
+/* Combined Styles File */
+
+/* Import global styles */
+@import './index.css';
+
+/* Import component-specific styles */
+@import './Dashboard.css';
+@import './Forms.css';
+@import './Navigation.css';
+@import './Tables.css';
+@import './Modals.css';
+@import './Animations.css';
+
+/* Import component styles */
+@import './components/Footer.css';
+@import './components/Header.css';
+@import './components/About.css';
+@import './components/DoctorCard.css';
+@import './components/DoctorSearchFilter.css';
+@import './components/Profile.css';
+
+/* Import page styles */
+@import './pages/Home.css';
+@import './pages/Register.css';
+@import './pages/DoctorUploadReport.css';
+@import './pages/DoctorReviews.css';

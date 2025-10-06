@@ -1,0 +1,422 @@
+/* Table and List Styles */
+
+/* Table Styles */
+.table-container {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.table-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.table-header .table-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.table-header .search-box {
+  position: relative;
+  width: 250px;
+}
+
+.table-header .search-box input {
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  font-size: 0.9rem;
+}
+
+.table-header .search-box i {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--secondary-color);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.table thead th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background-color var(--transition-speed) ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(74, 108, 247, 0.05);
+}
+
+.table tbody td {
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table .status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-active {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: var(--success-color);
+}
+
+.status-inactive {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--danger-color);
+}
+
+.status-pending {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: var(--warning-color);
+}
+
+.status-completed {
+  background-color: rgba(74, 108, 247, 0.1);
+  color: var(--primary-color);
+}
+
+/* Table Actions */
+.table-actions-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.table-actions-cell .btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: transparent;
+  color: var(--secondary-color);
+  transition: all var(--transition-speed) ease;
+}
+
+.table-actions-cell .btn-icon:hover {
+  transform: scale(1.1);
+}
+
+.table-actions-cell .btn-icon.edit {
+  color: var(--primary-color);
+}
+
+.table-actions-cell .btn-icon.delete {
+  color: var(--danger-color);
+}
+
+.table-actions-cell .btn-icon.view {
+  color: var(--info-color);
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.pagination {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pagination .page-link {
+  width: 36px;
+  height: 36px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+  transition: all var(--transition-speed) ease;
+}
+
+.pagination .page-link:hover {
+  background-color: rgba(74, 108, 247, 0.1);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.pagination .page-item.disabled .page-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  margin: 0 1rem;
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
+
+/* List Styles */
+.list-container {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.list-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 1.25rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background-color var(--transition-speed) ease;
+}
+
+.list-item:hover {
+  background-color: rgba(74, 108, 247, 0.05);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item-content {
+  flex: 1;
+}
+
+.list-item-title {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.list-item-subtitle {
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
+
+.list-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.list-item-meta .meta-item {
+  display: flex;
+  align-items: center;
+}
+
+.list-item-meta .meta-item i {
+  margin-right: 0.25rem;
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
+
+.list-item-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Card List Styles */
+.card-list-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card-list-item {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+
+.card-list-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-list-item-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card-list-item-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.card-list-item-header .status {
+  display: inline-block;
+}
+
+.card-list-item-body {
+  padding: 1.5rem;
+}
+
+.card-list-item-footer {
+  padding: 1rem 1.5rem;
+  background-color: rgba(0, 0, 0, 0.02);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-list-item-footer .card-list-item-date {
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .table-header .search-box {
+    width: 100%;
+  }
+
+  .pagination-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .pagination .page-info {
+    margin: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .card-list-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark Mode Table Styles */
+.dark .table-container,
+.dark .list-container,
+.dark .card-list-item {
+  background-color: #16213e;
+  color: #f1f1f1;
+}
+
+.dark .table-header,
+.dark .table thead th,
+.dark .list-header h3,
+.dark .card-list-item-header {
+  color: #f1f1f1;
+}
+
+.dark .table thead {
+  background-color: #0f3460;
+}
+
+.dark .table tbody tr:hover {
+  background-color: rgba(74, 108, 247, 0.1);
+}
+
+.dark .table tbody td,
+.dark .list-item,
+.dark .list-item-title {
+  color: #f1f1f1;
+}
+
+.dark .list-item-subtitle,
+.dark .list-item-meta .meta-item i,
+.dark .card-list-item-footer .card-list-item-date {
+  color: #aaa;
+}
+
+.dark .table-actions-cell .btn-icon {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .pagination .page-link {
+  background-color: #0f3460;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f1f1;
+}
+
+.dark .pagination .page-link:hover {
+  background-color: rgba(74, 108, 247, 0.2);
+  color: #4a6cf7;
+  border-color: #4a6cf7;
+}
+
+.dark .pagination .page-item.active .page-link {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}

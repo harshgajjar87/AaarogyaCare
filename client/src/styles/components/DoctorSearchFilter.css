@@ -1,0 +1,231 @@
+/* Doctor Search Filter Enhanced Styling */
+
+.doctor-search-filter {
+  width: 100%;
+  margin: 0 auto;
+  transition: all 0.3s ease;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+  background: white;
+  position: relative;
+  border: none;
+}
+
+.doctor-search-filter:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2), 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.doctor-search-filter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #4a6cf7, #6a11cb);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.doctor-search-filter:hover::before {
+  transform: scaleX(1);
+}
+
+.doctor-search-filter .card-header {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-bottom: 1px solid #dee2e6;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.doctor-search-filter .card-header h5 {
+  color: #2c3e50;
+  font-weight: 600;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.doctor-search-filter:hover .card-header h5 {
+  color: #4a6cf7;
+}
+
+.doctor-search-filter .card-body {
+  padding: 2rem;
+}
+
+.doctor-search-filter .form-label {
+  color: #495057;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.doctor-search-filter:hover .form-label {
+  color: #4a6cf7;
+}
+
+.doctor-search-filter .input-group-text {
+  background: linear-gradient(135deg, #4a6cf7, #6a11cb);
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.doctor-search-filter .form-control,
+.doctor-search-filter .form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.doctor-search-filter .form-control:focus,
+.doctor-search-filter .form-select:focus {
+  border-color: #4a6cf7;
+  box-shadow: 0 0 0 0.2rem rgba(74, 108, 247, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Enhanced dropdown styling for specialization */
+.doctor-search-filter .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-size: 1.5em 1.5em;
+  background-repeat: no-repeat;
+  padding-right: 2.5rem;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.doctor-search-filter .form-select:hover {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234a6cf7' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e%3c/svg%3e");
+}
+
+.doctor-search-filter .form-select:focus {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%234a6cf7' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e%3c/svg%3e");
+}
+
+/* Custom dropdown arrow styling */
+.doctor-search-filter .form-select::after {
+  content: '';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 0.3em solid transparent;
+  border-right: 0.3em solid transparent;
+  border-top: 0.3em solid #6c757d;
+  pointer-events: none;
+  transition: border-color 0.3s ease;
+}
+
+.doctor-search-filter .form-select:hover::after {
+  border-top-color: #4a6cf7;
+}
+
+.doctor-search-filter .form-select:focus::after {
+  border-top-color: #4a6cf7;
+}
+
+.doctor-search-filter .btn {
+  border-radius: 25px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  padding: 0.75rem 1.5rem;
+}
+
+.doctor-search-filter .btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: left 0.3s ease;
+}
+
+.doctor-search-filter .btn:hover::before {
+  left: 100%;
+}
+
+.doctor-search-filter .btn-secondary {
+  background: linear-gradient(135deg, #175c98, #2fa7e3);
+  border: none;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  color: white;
+}
+
+.doctor-search-filter .btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  background: linear-gradient(135deg, #175c98, #2fa7e3);
+}
+
+/* Enhanced input group styling */
+.doctor-search-filter .input-group {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.doctor-search-filter .input-group:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .doctor-search-filter {
+    margin: 0 1rem;
+  }
+
+  .doctor-search-filter .card-body {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .doctor-search-filter {
+    margin: 0 0.5rem;
+  }
+
+  .doctor-search-filter .card-body {
+    padding: 1rem;
+  }
+}
+
+/* Loading state animation */
+.doctor-search-filter.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.doctor-search-filter.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #4a6cf7;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

@@ -1,0 +1,246 @@
+/* Dashboard Styles - Common to All Dashboard Types */
+
+.dashboard-container {
+  padding: 1.5rem;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 64px);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-header h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.dashboard-header h2 i {
+  margin-right: 10px;
+  color: var(--primary-color);
+}
+
+.dashboard-header p {
+  color: var(--secondary-color);
+  margin: 0;
+}
+
+/* Stats Cards */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(to bottom, var(--primary-color), #6a11cb);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-card h3 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--secondary-color);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card .stat-icon {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 2rem;
+  opacity: 0.1;
+  color: var(--primary-color);
+}
+
+/* Charts Section */
+.chart-container {
+  background-color: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chart-header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.chart-header .dropdown {
+  position: relative;
+}
+
+.chart-header .dropdown button {
+  background-color: transparent;
+  border: 1px solid #e0e0e0;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+}
+
+.chart-header .dropdown button:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Recent Activity */
+.recent-activity {
+  background-color: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.recent-activity h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.activity-icon i {
+  font-size: 1.2rem;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-content h4 {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.activity-content p {
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.activity-time {
+  color: var(--secondary-color);
+  font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .stats-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard-header h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Dark Mode Dashboard Styles */
+.dark .dashboard-container {
+  background-color: #1a1a2e;
+}
+
+.dark .stat-card,
+.dark .chart-container,
+.dark .recent-activity {
+  background-color: #16213e;
+  color: #f1f1f1;
+}
+
+.dark .stat-card::before {
+  background: linear-gradient(to bottom, #4a6cf7, #6a11cb);
+}
+
+.dark .chart-header button {
+  background-color: transparent;
+  border-color: #533483;
+  color: #f1f1f1;
+}
+
+.dark .chart-header button:hover {
+  border-color: var(--primary-color);
+}
+
+.dark .activity-item {
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .activity-content p,
+.dark .activity-time {
+  color: #aaa;
+}

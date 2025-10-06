@@ -1,0 +1,196 @@
+/* Header Styles - Classic Healthcare Blue Theme */
+
+.header {
+  background: linear-gradient(135deg, #175c98, #2fa7e3);
+  /* color: #0d6efd; Dark blue text for contrast */
+  padding: 1rem 0;
+  box-shadow: 0 2px 10px rgba(13, 110, 253, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-radius: 10px;;
+  transition: all 0.3s ease;
+}
+
+.header .navbar-brand {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.header .navbar-brand:hover {
+  color: #0558bd !important; /* Light blue on hover */
+}
+
+.header .navbar-brand i {
+  margin-right: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.header .nav-link {
+  color: white !important; /* White for links */
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  margin: 0 0.25rem;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.header .nav-link:hover {
+  background-color: #2365df;
+  color: #f4f9ff !important;
+  transform: translateY(-1px);
+}
+
+.header .nav-link.active {
+  background-color: #2365df;
+  color: #f4f9ff !important;
+  transform: translateY(-1px);
+}
+
+.header .navbar-toggler {
+  border: 1px solid #f4f9ff;
+  color: #f4f9ff;
+  padding: 0.25rem 0.5rem;
+}
+
+.header .navbar-toggler:focus {
+  box-shadow: 0 0 0 0.25rem rgba(244, 249, 255, 0.25);
+}
+
+.header .btn {
+  border-radius: 10px;
+}
+
+.header .btn-outline-light {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+.header .btn-outline-light:hover {
+  background-color: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+}
+
+.header .btn-light {
+  background-color: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+}
+
+.header .btn-light:hover {
+  background-color: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
+
+.header .notification-bell {
+  color: #f4f9ff;
+  margin-right: 1rem;
+}
+
+.header .notification-bell:hover {
+  color: white;
+}
+
+/* Accent color for special elements */
+.header .accent-highlight {
+  color: #20c997; /* Teal/green accent */
+}
+
+.header .accent-highlight:hover {
+  color: #17a085;
+}
+
+/* User profile in header */
+.header .user-profile {
+  display: flex;
+  align-items: center;
+  color: #f4f9ff;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.header .user-profile:hover {
+  background-color: rgba(244, 249, 255, 0.1);
+}
+
+.header .user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 0.75rem;
+  border: 2px solid #f4f9ff;
+}
+
+.header .user-info .user-name {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.header .user-info .user-role {
+  font-size: 0.8rem;
+  color: rgba(244, 249, 255, 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.5rem 0;
+  }
+
+  .header .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  .header .nav-link {
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+  }
+}
+
+/* Animation for header load */
+@keyframes headerSlideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.header {
+  animation: headerSlideIn 0.5s ease-out;
+}
+
+/* Logout button styling */
+.header .logout-btn {
+  background-color: #ed4242;
+  color: #f2eaea;
+  border: 1px solid #ffcccc;
+  border-radius: 20px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.header .logout-btn:hover {
+  background-color: #ff9999;
+  color: #333;
+  border-color: #ff9999;
+}
+
+/* Custom responsive for 400px width */
+@media (max-width: 400px) {
+  /* Allow Bootstrap's responsive behavior for navbar collapse */
+}

@@ -1,0 +1,153 @@
+/* ===========================
+   Logout Confirmation Modal
+   =========================== */
+
+.logout-alert-popup {
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  background-color: #fff;
+  animation: fadeInScale var(--transition-speed) ease-out;
+}
+
+.logout-alert-popup .modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.logout-alert-popup .modal-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.logout-alert-popup .btn-close {
+  outline: none;
+  box-shadow: none;
+}
+
+.logout-alert-popup .modal-body {
+  font-size: 1rem;
+  color: var(--dark-color);
+  padding: 1.25rem;
+}
+
+.logout-alert-popup .modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 1rem 1.25rem;
+}
+
+.logout-alert-popup .btn {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  transition: all var(--transition-speed) ease;
+  font-weight: 500;
+}
+
+.logout-alert-popup .btn-secondary {
+  background-color: var(--secondary-color);
+  color: #fff;
+  border: none;
+}
+
+.logout-alert-popup .btn-secondary:hover {
+  background-color: #6c757d;
+}
+
+.logout-alert-popup .btn-primary {
+  background-color: var(--primary-color);
+  border: none;
+  color: #fff;
+}
+
+.logout-alert-popup .btn-primary:hover {
+  background-color: #3a56d4;
+}
+
+.modal.show.d-block {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* ===== Animation ===== */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===========================
+   Dark Mode
+   =========================== */
+
+.dark .logout-alert-popup {
+  background-color: #16213e;
+  color: #f1f1f1;
+}
+
+.dark .logout-alert-popup .modal-header {
+  background-color: #1f2a48;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark .logout-alert-popup .modal-title {
+  color: #4a6cf7;
+}
+
+.dark .logout-alert-popup .modal-body {
+  color: #ddd;
+}
+
+.dark .logout-alert-popup .modal-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark .logout-alert-popup .btn-secondary {
+  background-color: #444;
+  color: #f1f1f1;
+}
+
+.dark .logout-alert-popup .btn-secondary:hover {
+  background-color: #666;
+}
+
+.dark .logout-alert-popup .btn-primary {
+  background-color: #4a6cf7;
+}
+
+.dark .logout-alert-popup .btn-primary:hover {
+  background-color: #324ed9;
+}
+
+.modal-backdrop.show{
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  }
+
+  /* Kill default Bootstrap white */
+.modal-dialog {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Remove Bootstrap default white box */
+.modal-content {
+  background:transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+
+/* Your custom box */
+.logout-alert-popup {
+  background: #fff !important; /* or gradient if you want */
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
