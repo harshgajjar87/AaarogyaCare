@@ -1,10 +1,21 @@
-# Task: Fix Appointment Booking and Report Upload Issues
+# Deployment TODO List
 
-## Issues to Fix:
-1. Prevent selection of past dates in appointment booking.
-2. Fix PDF file selection in report upload.
+## Frontend Deployment on Vercel
+- [x] Create vercel.json configuration file in client directory
+- [x] Update axios baseURL in client/src/utils/axios.js to use environment variable
+- [ ] Deploy client directory on Vercel
+- [ ] Set REACT_APP_API_URL environment variable on Vercel
 
-## Steps:
-- [ ] Update AppointmentForm.js to set min attribute on date input to today's date.
-- [ ] Update DoctorUploadReport.js to properly associate file input with label using id and htmlFor.
-- [ ] Test the changes to ensure functionality works as expected.
+## Backend Deployment on Render
+- [x] Create Procfile in server directory for Render deployment
+- [ ] Deploy server directory on Render
+- [ ] Set environment variables on Render (MONGO_URI, PORT, JWT_SECRET, etc.)
+- [ ] Update frontend REACT_APP_API_URL with Render backend URL
+
+## Documentation
+- [x] Create DEPLOYMENT.md with detailed deployment instructions
+- [x] Update README.md to include deployment section
+
+## Testing
+- [ ] Test deployed frontend and backend integration
+- [ ] Verify all API calls work correctly

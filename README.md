@@ -74,6 +74,10 @@ A comprehensive healthcare management system built with React for the frontend a
 
 The application will be running on `http://localhost:3000` for the client and `http://localhost:5000` for the server (adjust ports as needed).
 
+## Deployment
+
+For deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Usage
 
 - Register as a patient, doctor, or admin.
