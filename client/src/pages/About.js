@@ -49,6 +49,10 @@ const About = () => {
 
   return (
     <>
+      {user?.role === 'patient' && <PatientNavbar />}
+      {user?.role === 'doctor' && <DoctorNavbar />}
+      {user?.role === 'admin' && <AdminNavbar />}
+      {!user && <PublicNavbar />}
       <div className="container mt-5 about-container">
         <div className="row">
           <div className="col-lg-8 mx-auto">

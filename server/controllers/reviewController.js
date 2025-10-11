@@ -7,7 +7,7 @@ const Appointment = require('../models/Appointment');
 const createReview = async (req, res) => {
   try {
     const { rating, description, doctorId, appointmentId, isAnonymous } = req.body;
-    
+
     // Check if user has already reviewed this doctor
     const existingReview = await Review.findOne({
       patientId: req.user.id,
@@ -15,8 +15,8 @@ const createReview = async (req, res) => {
     });
 
     if (existingReview) {
-      return res.status(400).json({ 
-        message: 'You have already reviewed this doctor' 
+      return res.status(400).json({
+        message: 'You have already reviewed this doctor'
       });
     }
 
@@ -33,18 +33,21 @@ const createReview = async (req, res) => {
     }
 
     // Verify appointment exists and belongs to patient (if provided)
+    // This is now optional - reviews can be submitted without an appointment
     if (appointmentId) {
-      const appointment = await Appointment.findOne({
-        _id: appointmentId,
-        patientId: req.user.id,
-        doctorId: doctorId,
-        status: 'approved'
-      });
-
-      if (!appointment) {
-        return res.status(400).json({ 
-          message: 'Invalid appointment or appointment not completed' 
+      try {
+        const appointment = await Appointment.findOne({
+          _id: appointmentId,
+          patientId: req.user.id,
+          doctorId: doctorId,
+          status: 'approved'
         });
+
+        if (!appointment) {
+          console.log('Invalid appointment provided, but continuing with review submission');
+        }
+      } catch (appointmentError) {
+        console.log('Error validating appointment, but continuing with review submission:', appointmentError.message);
       }
     }
 
