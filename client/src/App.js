@@ -70,10 +70,10 @@ function Layout() {
   const userRole = user?.role;
 
   const isPatientRoute = location.pathname.startsWith('/patient') ||
-    (location.pathname.match(/^\/doctor\/\d+$/) && user?.role === 'patient') || // Show patient navbar on doctor profile pages for patients
-    (location.pathname.match(/^\/doctor\/\d+\/.*$/) && user?.role === 'patient') || // Also include sub-routes like /doctor/123/reviews for patients
+    (location.pathname.match(/^\/doctor\/\d+$/) && user?.role === 'patient') || 
+    (location.pathname.match(/^\/doctor\/\d+\/.*$/) && user?.role === 'patient') || 
     (user?.role === 'patient' && (
-      // Exclude /about from layout navbar rendering to avoid duplication
+      
       location.pathname !== '/about' &&
       (location.pathname === '/profile' ||
       location.pathname === '/notifications' ||
@@ -83,7 +83,7 @@ function Layout() {
   const isDoctorRoute = location.pathname.startsWith('/doctor') &&
     !location.pathname.match(/^\/doctor\/\d+$/) &&
     !location.pathname.match(/^\/doctor\/\d+\/.*$/) &&
-    user?.role === 'doctor' || // Only show doctor navbar if user is actually a doctor
+    user?.role === 'doctor' || 
     (user?.role === 'doctor' && (
       location.pathname === '/about' ||
       location.pathname === '/profile' ||
