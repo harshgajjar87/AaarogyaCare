@@ -80,10 +80,10 @@ function Layout() {
       location.pathname.startsWith('/chats'))
     ));
 
-  const isDoctorRoute = location.pathname.startsWith('/doctor') &&
+    const isDoctorRoute = (location.pathname.startsWith('/doctor') &&
     !location.pathname.match(/^\/doctor\/\d+$/) &&
     !location.pathname.match(/^\/doctor\/\d+\/.*$/) &&
-    user?.role === 'doctor' || 
+    user?.role === 'doctor') || 
     (user?.role === 'doctor' && (
       location.pathname === '/about' ||
       location.pathname === '/profile' ||
