@@ -14,6 +14,7 @@ export const getAllDoctors = async (filters = {}) => {
     const response = await axios.get(`/doctors?${params}`);
     return response.data;
   } catch (error) {
+    console.error('Error details from doctorAPI:', error);
     throw error.response?.data?.message || 'Failed to fetch doctors';
   }
 };

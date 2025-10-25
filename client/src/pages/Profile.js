@@ -56,7 +56,7 @@ const fetchUserProfile = async () => {
           phone: res.data.profile?.phone || '',
           address: res.data.profile?.address || '',
           bloodGroup: res.data.profile?.bloodGroup || '',
-          emergencyContact: res.data.profile?.emergencyContact || ''
+          emergencyContact: res.data.profile?.emergencyContact || res.data.emergencyContact || ''
         }
       };
 

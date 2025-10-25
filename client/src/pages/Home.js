@@ -27,6 +27,19 @@ const Home = () => {
     fetchDoctors();
   }, []);
 
+  // Redirect logged-in users to their dashboard
+  useEffect(() => {
+    if (user && user.role) {
+      if (user.role === 'doctor') {
+        navigate('/doctor/dashboard');
+      } else if (user.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/patient/dashboard');
+      }
+    }
+  }, [user, navigate]);
+
   const handleBookAppointment = () => {
     if (!user) {
       navigate('/login');

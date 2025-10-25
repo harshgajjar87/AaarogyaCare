@@ -41,6 +41,19 @@ exports.getUserProfile = async (req, res) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
+    // Ensure profile exists for existing users
+    if (!user.profile) {
+      user.profile = {
+        age: null,
+        gender: '',
+        phone: '',
+        address: '',
+        bloodGroup: '',
+        emergencyContact: ''
+      };
+      await user.save();
+    }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ msg: 'Server Error', error: err.message });

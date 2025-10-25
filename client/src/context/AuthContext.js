@@ -33,9 +33,9 @@ export const AuthProvider = ({ children }) => {
   });
 
   const login = (userData) => {
-    setUser(userData.user); // ✅ save only the user object, not the full response
-    localStorage.setItem('user', JSON.stringify(userData.user));
-  };
+    setUser(userData); // ✅ FIX
+    localStorage.setItem('user', JSON.stringify(userData)); // ✅ FIX
+  };
 
   const logout = () => {
     localStorage.removeItem('user');

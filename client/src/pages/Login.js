@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import axios from '../utils/axios';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
 const Login = () => {
-  const { login } = useContext(AuthContext);
+  const { user, login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -18,39 +18,44 @@ const Login = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const res = await axios.post('/auth/login', {
-      email: form.email,
-      password: form.password
-    });
+    try {
+      const res = await axios.post('/auth/login', {
+        email: form.email,
+        password: form.password
+      });
 
-    const fullUser = {
-      ...res.data.user,
-      token: res.data.token,
-    };
+      const fullUser = {
+        ...res.data.user,
+        token: res.data.token,
+      };
 
-    login(fullUser);
+      login(fullUser);
 
-    // Set userRole in localStorage for backward compatibility
-    localStorage.setItem('userRole', fullUser.role);
+      // Set userRole in localStorage for backward compatibility
+      localStorage.setItem('userRole', fullUser.role);
 
-    toast.success('Login Successful');
-    console.log('logged in user role:', fullUser.role);
-
-    if (fullUser.role === 'doctor') {
-      navigate('/doctor/dashboard');
-    } else if (fullUser.role === 'admin') {
-      navigate('/admin-dashboard');
-    } else {
-      navigate('/patient/dashboard');
+      toast.success('Login Successful');
+      console.log('logged in user role:', fullUser.role);
+    } catch (err) {
+      toast.error(err.response?.data?.msg || 'Login Failed');
     }
-  } catch (err) {
-    toast.error(err.response?.data?.msg || 'Login Failed');
-  }
-};
+  };
+
+  // Navigate after user state is updated
+  useEffect(() => {
+    if (user && user.role) {
+      if (user.role === 'doctor') {
+        navigate('/doctor/dashboard');
+      } else if (user.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/patient/dashboard');
+      }
+    }
+  }, [user, navigate]);
 
 
 

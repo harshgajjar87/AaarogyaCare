@@ -46,8 +46,26 @@ const userSchema = new mongoose.Schema({
 // Create geospatial index for location-based queries
 userSchema.index({ location: '2dsphere' });
 
-// Add pre-save hook to ensure doctorDetails is initialized
+// Add pre-save hook to ensure profile and doctorDetails are initialized
 userSchema.pre('save', function(next) {
+  // Initialize profile for all users if not exists
+  if (!this.profile) {
+    this.profile = {
+      age: null,
+      gender: '',
+      phone: '',
+      address: '',
+      bloodGroup: '',
+      emergencyContact: ''
+    };
+    console.log('Initialized profile for user:', this._id);
+  }
+
+  // Normalize gender to lowercase if present
+  if (this.profile && this.profile.gender) {
+    this.profile.gender = this.profile.gender.toLowerCase();
+  }
+
   // If user is a doctor but doesn't have doctorDetails, initialize it
   if (this.role === 'doctor' && !this.doctorDetails) {
     this.doctorDetails = {
@@ -69,13 +87,13 @@ userSchema.pre('save', function(next) {
     };
     console.log('Initialized doctorDetails for user:', this._id);
   }
-  
+
   // Ensure clinicImages array exists
   if (this.role === 'doctor' && this.doctorDetails && !Array.isArray(this.doctorDetails.clinicImages)) {
     this.doctorDetails.clinicImages = [];
     console.log('Initialized clinicImages array for user:', this._id);
   }
-  
+
   next();
 });
 
