@@ -154,10 +154,66 @@
 }
 
 /* Responsive adjustments */
+@media (max-width: 1024px) {
+  .doctor-card {
+    max-width: 90%;
+    margin: 0 auto;
+  }
+
+  .clinic-images-carousel {
+    max-height: 160px;
+  }
+
+  .clinic-image {
+    width: 140px;
+    height: 140px;
+  }
+
+  .doctor-card .card-body {
+    padding: 1.25rem;
+  }
+
+  .doctor-card .card-title {
+    font-size: 1.1rem;
+  }
+}
+
 @media (max-width: 768px) {
   .doctor-card {
     max-width: 100%;
     margin: 0 1rem;
+  }
+
+  .clinic-images-carousel {
+    max-height: 140px;
+  }
+
+  .clinic-image {
+    width: 120px;
+    height: 120px;
+  }
+
+  .doctor-photo {
+    width: 45px;
+    height: 45px;
+  }
+
+  .doctor-card .card-body {
+    padding: 1rem;
+  }
+
+  .doctor-card .card-title {
+    font-size: 1rem;
+  }
+
+  .doctor-card .badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .doctor-card .btn {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -166,7 +222,111 @@
     margin: 0 0.5rem;
   }
 
+  .clinic-images-carousel {
+    max-height: 120px;
+  }
+
+  .clinic-image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .doctor-photo {
+    width: 40px;
+    height: 40px;
+  }
+
   .doctor-card .card-body {
-    padding: 1rem;
+    padding: 0.75rem;
+  }
+
+  .doctor-card .card-title {
+    font-size: 0.95rem;
+  }
+
+  .doctor-card .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .doctor-card .btn {
+    padding: 0.5rem 1.2rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .doctor-card {
+    margin: 0 0.25rem;
+  }
+
+  .clinic-images-carousel {
+    max-height: 100px;
+  }
+
+  .clinic-image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .doctor-photo {
+    width: 35px;
+    height: 35px;
+  }
+
+  .doctor-card .card-body {
+    padding: 0.5rem;
+  }
+
+  .doctor-card .card-title {
+    font-size: 0.9rem;
+  }
+
+  .doctor-card .badge {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .doctor-card .btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .doctor-card {
+    margin: 0 0.1rem;
+  }
+
+  .clinic-images-carousel {
+    max-height: 80px;
+  }
+
+  .clinic-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .doctor-photo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .doctor-card .card-body {
+    padding: 0.4rem;
+  }
+
+  .doctor-card .card-title {
+    font-size: 0.85rem;
+  }
+
+  .doctor-card .badge {
+    font-size: 0.55rem;
+    padding: 0.15rem 0.3rem;
+  }
+
+  .doctor-card .btn {
+    padding: 0.35rem 0.8rem;
+    font-size: 0.75rem;
   }
 }

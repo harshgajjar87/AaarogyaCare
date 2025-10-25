@@ -492,6 +492,48 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .chat-list-container {
+    padding: 18px;
+    max-width: 1000px;
+  }
+
+  .chat-list-header h2 {
+    font-size: 1.8rem;
+  }
+
+  .refresh-button {
+    padding: 9px 18px;
+    font-size: 13px;
+  }
+
+  .tab-button {
+    padding: 11px 22px;
+    font-size: 15px;
+  }
+
+  .chat-item {
+    padding: 18px;
+  }
+
+  .participant .avatar {
+    width: 42px;
+    height: 42px;
+  }
+
+  .participant-details .name {
+    font-size: 15px;
+  }
+
+  .participant-details .role {
+    font-size: 11px;
+  }
+
+  .guidance-card {
+    padding: 18px;
+  }
+}
+
 @media (max-width: 768px) {
   .chat-list-container {
     padding: 15px;
@@ -505,6 +547,11 @@
 
   .chat-list-header h2 {
     font-size: 1.5rem;
+  }
+
+  .refresh-button {
+    padding: 8px 16px;
+    font-size: 12px;
   }
 
   .chat-tabs {
@@ -521,6 +568,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 15px;
+    padding: 16px;
   }
 
   .chat-participants {
@@ -551,6 +599,10 @@
   .participant-details .role {
     font-size: 10px;
   }
+
+  .guidance-card {
+    padding: 16px;
+  }
 }
 
 @media (max-width: 576px) {
@@ -563,15 +615,115 @@
   }
 
   .refresh-button {
+    padding: 7px 14px;
+    font-size: 11px;
+  }
+
+  .tab-button {
+    padding: 9px 18px;
+    font-size: 13px;
+  }
+
+  .chat-item {
+    padding: 14px;
+  }
+
+  .participant .avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .participant-details .name {
+    font-size: 13px;
+  }
+
+  .participant-details .role {
+    font-size: 9px;
+  }
+
+  .guidance-card {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-list-container {
+    padding: 8px;
+  }
+
+  .chat-list-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .refresh-button {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+
+  .tab-button {
     padding: 8px 16px;
     font-size: 12px;
   }
 
   .chat-item {
-    padding: 15px;
+    padding: 12px;
+  }
+
+  .participant .avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .participant-details .name {
+    font-size: 12px;
+  }
+
+  .participant-details .role {
+    font-size: 8px;
   }
 
   .guidance-card {
-    padding: 15px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 320px) {
+  .chat-list-container {
+    padding: 6px;
+  }
+
+  .chat-list-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .refresh-button {
+    padding: 5px 10px;
+    font-size: 9px;
+  }
+
+  .tab-button {
+    padding: 7px 14px;
+    font-size: 11px;
+  }
+
+  .chat-item {
+    padding: 10px;
+  }
+
+  .participant .avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .participant-details .name {
+    font-size: 11px;
+  }
+
+  .participant-details .role {
+    font-size: 7px;
+  }
+
+  .guidance-card {
+    padding: 10px;
   }
 }

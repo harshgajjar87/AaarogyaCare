@@ -300,3 +300,319 @@
   font-size: 14px;
   font-weight: 500;
 }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .chat-container {
+    max-width: 95%;
+    margin: 0 auto;
+  }
+
+  .chat-header {
+    padding: 15px;
+    font-size: 1.1rem;
+  }
+
+  .chat-participants {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .participant {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .participant .avatar {
+    width: 35px;
+    height: 35px;
+  }
+
+  .participant .info .name {
+    font-size: 14px;
+  }
+
+  .participant .info .role {
+    font-size: 11px;
+  }
+
+  .vs {
+    margin: 5px 0;
+  }
+
+  .chat-info {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .appointment-info div {
+    margin-right: 0;
+    margin-bottom: 5px;
+  }
+
+  .chat-actions {
+    justify-content: center;
+  }
+
+  .extend-btn, .end-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    max-width: 100%;
+    height: 90vh;
+    border-radius: 0;
+    margin: 0;
+  }
+
+  .chat-header {
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  .messages-container {
+    padding: 15px;
+  }
+
+  .message {
+    max-width: 85%;
+  }
+
+  .message.patient {
+    align-self: flex-start;
+  }
+
+  .message.doctor {
+    align-self: flex-end;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .message-content {
+    padding: 10px 15px;
+    font-size: 13px;
+  }
+
+  .message-header {
+    margin-bottom: 3px;
+  }
+
+  .sender-name {
+    font-size: 12px;
+  }
+
+  .message-time {
+    font-size: 10px;
+  }
+
+  .message-text {
+    font-size: 13px;
+  }
+
+  .message-form {
+    padding: 15px;
+  }
+
+  .message-form input {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  .message-form button {
+    padding: 10px 25px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-container {
+    height: 85vh;
+  }
+
+  .chat-header {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .participant .avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .participant .info .name {
+    font-size: 13px;
+  }
+
+  .participant .info .role {
+    font-size: 10px;
+  }
+
+  .vs {
+    font-size: 16px;
+  }
+
+  .appointment-info {
+    font-size: 12px;
+  }
+
+  .expiration {
+    font-size: 12px;
+  }
+
+  .extend-btn, .end-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .messages-container {
+    padding: 10px;
+  }
+
+  .message {
+    max-width: 90%;
+  }
+
+  .message-content {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .message-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sender-name {
+    font-size: 11px;
+  }
+
+  .message-time {
+    font-size: 9px;
+  }
+
+  .message-text {
+    font-size: 12px;
+  }
+
+  .message-form {
+    padding: 10px;
+  }
+
+  .message-form input {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .message-form button {
+    padding: 8px 20px;
+    font-size: 13px;
+  }
+
+  .read-only-notice {
+    padding: 10px;
+  }
+
+  .read-only-message {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 320px) {
+  .chat-container {
+    height: 80vh;
+  }
+
+  .chat-header {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  .participant .avatar {
+    width: 25px;
+    height: 25px;
+  }
+
+  .participant .info .name {
+    font-size: 12px;
+  }
+
+  .participant .info .role {
+    font-size: 9px;
+  }
+
+  .vs {
+    font-size: 14px;
+  }
+
+  .appointment-info {
+    font-size: 11px;
+  }
+
+  .expiration {
+    font-size: 11px;
+  }
+
+  .extend-btn, .end-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .messages-container {
+    padding: 8px;
+  }
+
+  .message {
+    max-width: 95%;
+  }
+
+  .message-content {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .message-avatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  .sender-name {
+    font-size: 10px;
+  }
+
+  .message-time {
+    font-size: 8px;
+  }
+
+  .message-text {
+    font-size: 11px;
+  }
+
+  .message-form {
+    padding: 8px;
+  }
+
+  .message-form input {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .message-form button {
+    padding: 6px 15px;
+    font-size: 12px;
+  }
+
+  .read-only-notice {
+    padding: 8px;
+  }
+
+  .read-only-message {
+    font-size: 11px;
+  }
+}

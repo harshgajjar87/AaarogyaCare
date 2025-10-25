@@ -216,7 +216,60 @@
   font-weight: 500;
 }
 
+/* Profile Image Styling */
+.profile-image {
+  width: 120px !important;
+  height: 120px !important;
+  object-fit: cover;
+  border-radius: 50% !important;
+  border: 3px solid #4a6cf7;
+  box-shadow: 0 4px 12px rgba(74, 108, 247, 0.3);
+}
+
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .profile-form-section {
+    padding: 1.75rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .profile-section-header {
+    padding: 0.9rem 1.25rem;
+    font-size: 1.1rem;
+  }
+
+  .profile-input {
+    padding: 0.6rem 1.1rem;
+    font-size: 0.95rem;
+  }
+
+  .profile-label {
+    font-size: 0.95rem;
+  }
+
+  .profile-btn {
+    padding: 0.7rem 1.8rem;
+    font-size: 0.95rem;
+  }
+
+  .time-input-group {
+    gap: 0.6rem;
+  }
+
+  .availability-card {
+    padding: 1.1rem;
+  }
+
+  .clinic-image-container img {
+    height: 140px;
+  }
+
+  .clinic-delete-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
 @media (max-width: 768px) {
   .profile-form-section {
     padding: 1.5rem;
@@ -228,6 +281,20 @@
     font-size: 1rem;
   }
 
+  .profile-input {
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .profile-label {
+    font-size: 0.9rem;
+  }
+
+  .profile-btn {
+    padding: 0.6rem 1.6rem;
+    font-size: 0.9rem;
+  }
+
   .time-input-group {
     flex-direction: column;
     gap: 0.25rem;
@@ -235,6 +302,15 @@
 
   .availability-card {
     padding: 0.75rem;
+  }
+
+  .clinic-image-container img {
+    height: 130px;
+  }
+
+  .clinic-delete-btn {
+    width: 26px;
+    height: 26px;
   }
 }
 
@@ -244,9 +320,114 @@
     margin-bottom: 1rem;
   }
 
+  .profile-section-header {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.95rem;
+  }
+
+  .profile-input {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .profile-label {
+    font-size: 0.85rem;
+  }
+
   .profile-btn {
     padding: 0.5rem 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  .availability-card {
+    padding: 0.6rem;
+  }
+
+  .clinic-image-container img {
+    height: 120px;
+  }
+
+  .clinic-delete-btn {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-form-section {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .profile-section-header {
+    padding: 0.5rem 0.7rem;
     font-size: 0.9rem;
+  }
+
+  .profile-input {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .profile-label {
+    font-size: 0.8rem;
+  }
+
+  .profile-btn {
+    padding: 0.45rem 1.3rem;
+    font-size: 0.8rem;
+  }
+
+  .availability-card {
+    padding: 0.5rem;
+  }
+
+  .clinic-image-container img {
+    height: 110px;
+  }
+
+  .clinic-delete-btn {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (max-width: 320px) {
+  .profile-form-section {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .profile-section-header {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .profile-input {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+  }
+
+  .profile-label {
+    font-size: 0.75rem;
+  }
+
+  .profile-btn {
+    padding: 0.4rem 1.1rem;
+    font-size: 0.75rem;
+  }
+
+  .availability-card {
+    padding: 0.4rem;
+  }
+
+  .clinic-image-container img {
+    height: 100px;
+  }
+
+  .clinic-delete-btn {
+    width: 20px;
+    height: 20px;
   }
 }
 

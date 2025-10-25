@@ -179,10 +179,12 @@
   max-height: calc(100vh - 120px);
 }
 
-/* Responsive Modal */
-@media (max-width: 768px) {
+/* Responsive Modal - Mobile First */
+@media (max-width: 767px) {
   .modal-dialog {
     width: 95%;
+    margin: 0.5rem;
+    max-height: calc(100vh - 1rem);
   }
 
   .modal-lg .modal-dialog {
@@ -190,24 +192,101 @@
   }
 
   .modal-header {
-    padding: 1rem;
+    padding: 1rem 1.25rem;
+    position: sticky;
+    top: 0;
+    background-color: inherit;
+    z-index: 10;
+  }
+
+  .modal-header h3 {
+    font-size: 1.1rem;
   }
 
   .modal-body {
-    padding: 1rem;
+    padding: 1rem 1.25rem;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
   }
 
   .modal-footer {
-    padding: 1rem;
+    padding: 1rem 1.25rem;
     flex-direction: column-reverse;
+    gap: 0.75rem;
+    position: sticky;
+    bottom: 0;
+    background-color: inherit;
   }
 
   .modal-footer .btn {
     width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
   }
 
   .modal-footer .btn + .btn {
-    margin-top: 0.5rem;
+    margin-top: 0;
+  }
+}
+
+/* Small devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .modal-dialog {
+    max-width: 600px;
+    margin: 1rem auto;
+  }
+
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .modal-body {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .modal-footer {
+    padding: 1.25rem 1.5rem;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  .modal-footer .btn {
+    width: auto;
+    min-width: 100px;
+  }
+}
+
+/* Medium devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .modal-dialog {
+    max-width: 700px;
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .modal-dialog {
+    max-width: 800px;
+  }
+}
+
+/* Full screen modal for very small screens */
+@media (max-width: 480px) {
+  .modal-dialog {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    max-height: 100vh;
+  }
+
+  .modal-body {
+    max-height: calc(100vh - 120px);
   }
 }
 

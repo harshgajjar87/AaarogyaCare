@@ -140,19 +140,93 @@
   color: rgba(244, 249, 255, 0.8);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Responsive adjustments - Mobile First */
+@media (max-width: 767px) {
   .header {
     padding: 0.5rem 0;
+    position: relative;
   }
 
   .header .navbar-brand {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+  }
+
+  .header .navbar-brand i {
+    font-size: 1.5rem;
   }
 
   .header .nav-link {
-    padding: 0.5rem;
+    padding: 0.75rem 1rem;
     margin: 0.25rem 0;
+    font-size: 0.9rem;
+    text-align: center;
+    border-radius: 8px;
+  }
+
+  .header .navbar-toggler {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .header .user-profile {
+    padding: 0.5rem;
+  }
+
+  .header .user-profile img {
+    width: 35px;
+    height: 35px;
+  }
+
+  .header .user-info .user-name {
+    font-size: 0.85rem;
+  }
+
+  .header .user-info .user-role {
+    font-size: 0.75rem;
+  }
+
+  .header .notification-bell {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .header .logout-btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* Small devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .header .navbar-brand {
+    font-size: 1.3rem;
+  }
+
+  .header .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Medium devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .header .navbar-brand {
+    font-size: 1.4rem;
+  }
+
+  .header .nav-link {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+  .header .navbar-brand {
+    font-size: 1.5rem;
+  }
+
+  .header .nav-link {
+    padding: 0.5rem 1.25rem;
   }
 }
 

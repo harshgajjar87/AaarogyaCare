@@ -142,8 +142,7 @@ const DoctorProfile = () => {
             <img
               src={getFullImageUrl(doctor.profileImage) || '/images/default-avtar.jpg'}
               alt={doctor.name}
-              className="img-fluid rounded-start"
-              style={{ height: '100%', objectFit: 'cover' }}
+              className="img-fluid"
               onError={(e) => {
                 e.target.src = '/images/default-avtar.jpg';
               }}
