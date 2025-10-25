@@ -13,22 +13,28 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('user');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // ✅ One-time fix: migrate id → _id
-      if (parsed.id && !parsed._id) {
-        parsed._id = parsed.id;
-        delete parsed.id;
-        localStorage.setItem('user', JSON.stringify(parsed));
+    if (saved && saved !== 'undefined') {
+      try {
+        const parsed = JSON.parse(saved);
+        // ✅ One-time fix: migrate id → _id
+        if (parsed.id && !parsed._id) {
+          parsed._id = parsed.id;
+          delete parsed.id;
+          localStorage.setItem('user', JSON.stringify(parsed));
+        }
+        return parsed;
+      } catch (e) {
+        // If parsing fails, remove the invalid data
+        localStorage.removeItem('user');
+        return null;
       }
-      return parsed;
     }
     return null;
   });
 
   const login = (userData) => {
-    setUser(userData); // ✅ save full data (token + user)
-    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData.user); // ✅ save only the user object, not the full response
+    localStorage.setItem('user', JSON.stringify(userData.user));
   };
 
   const logout = () => {

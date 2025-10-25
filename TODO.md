@@ -1,21 +1,21 @@
-# Deployment TODO List
+# TODO: Fix App Issues
 
-## Frontend Deployment on Vercel
-- [x] Create vercel.json configuration file in client directory
-- [x] Update axios baseURL in client/src/utils/axios.js to use environment variable
-- [ ] Deploy client directory on Vercel
-- [ ] Set REACT_APP_API_URL environment variable on Vercel
+## Issues Identified
+- [x] userRole undefined causing navbar routing issues
+- [x] Server not running (ERR_CONNECTION_REFUSED for notifications API)
+- [x] Corrupted manifest.json file
+- [x] React Router v7 future flag warnings
+- [x] Notification routes not mounted in server.js
 
-## Backend Deployment on Render
-- [x] Create Procfile in server directory for Render deployment
-- [ ] Deploy server directory on Render
-- [ ] Set environment variables on Render (MONGO_URI, PORT, JWT_SECRET, etc.)
-- [ ] Update frontend REACT_APP_API_URL with Render backend URL
+## Plan
+1. [x] Fix manifest.json: Create proper JSON structure
+2. [x] Add notification routes to server.js
+3. [x] Fix userRole undefined: Ensure role is properly set in AuthContext
+4. [x] Add React Router future flags to suppress warnings
+5. [ ] Start the server to resolve network errors
 
-## Documentation
-- [x] Create DEPLOYMENT.md with detailed deployment instructions
-- [x] Update README.md to include deployment section
-
-## Testing
-- [ ] Test deployed frontend and backend integration
-- [ ] Verify all API calls work correctly
+## Followup Steps
+- [ ] Test the app after fixes
+- [ ] Verify navbar shows correctly based on user role
+- [ ] Confirm notifications API works
+- [ ] Check console for no more warnings/errors

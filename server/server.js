@@ -19,7 +19,6 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/dev', require('./routes/devRoutes'));
-app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/patients', require('./routes/patientRoutes'));
 app.use('/api/otp', require('./routes/otpRoutes'));
 app.use('/api/profile', require('./routes/profileRoutes'));
@@ -31,6 +30,7 @@ app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/verification', require('./routes/doctorVerificationRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/upload', require('./routes/imageRoutes'));
 
 // DB & Start
@@ -43,4 +43,3 @@ mongoose.connect(process.env.MONGO_URI)
     });
   })
   .catch(err => console.error('❌ MongoDB connection error:', err));
-

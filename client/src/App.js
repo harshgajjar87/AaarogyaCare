@@ -66,6 +66,9 @@ function Layout() {
     userRole: user?.role
   });
 
+  // Fix: Ensure userRole is properly set
+  const userRole = user?.role;
+
   const isPatientRoute = location.pathname.startsWith('/patient') ||
     (location.pathname.match(/^\/doctor\/\d+$/) && user?.role === 'patient') || // Show patient navbar on doctor profile pages for patients
     (location.pathname.match(/^\/doctor\/\d+\/.*$/) && user?.role === 'patient') || // Also include sub-routes like /doctor/123/reviews for patients
@@ -148,7 +151,7 @@ function Layout() {
               <ul>
                 <li><a href="/">Home</a></li>
                 <li><a href="/about">About</a></li>
-              
+
                 <li><a href="/privacy">Privacy Policy</a></li>
               </ul>
             </div>
@@ -181,7 +184,10 @@ function App() {
   }, [darkMode]);
 
   return (
-    <Router>
+    <Router future={{
+      v7_startTransition: true,
+      v7_relativeSplatPath: true
+    }}>
       <AuthProvider>
         <ThemeProvider>
           <div className={`App ${darkMode ? 'dark' : ''} ${sidebarOpen ? 'sidebar-open' : ''} fade-in`}>
@@ -189,12 +195,12 @@ function App() {
               <ToastContainer />
               {/* Sidebar Overlay */}
               {sidebarOpen && (
-                <div 
-                  className="sidebar-overlay" 
+                <div
+                  className="sidebar-overlay"
                   onClick={() => setSidebarOpen(false)}
                 ></div>
               )}
-              
+
               <Routes>
                 {/* Protected routes with layout */}
                 <Route element={<Layout />}>
@@ -204,7 +210,7 @@ function App() {
                   <Route path='/register' element={<Register />} />
                   <Route path='/forgot-password' element={<ForgotPassword />} />
                   <Route path='/reset-password' element={<ResetPassword />} />
-                  
+
                   <Route path='/patient/dashboard' element={<PatientDashboard />} />
                   <Route path='/patient/appointments' element={<AppointmentForm />} />
                   <Route path='/patient/my-appointments' element={<MyAppointments />} />
@@ -216,7 +222,7 @@ function App() {
                   <Route path='/doctor/reports' element={<DoctorReports />} />
                   <Route path='/doctor/reviews' element={<DoctorReviews />} />
                   <Route path='/doctor/upload' element={<DoctorUploadReport />} />
-                  
+
                   <Route path='/admin-dashboard' element={<ProtectedRoute allowedRole='admin'><AdminDashboard /></ProtectedRoute>} />
                   <Route path='/admin-doctors' element={<ProtectedRoute allowedRole='admin'><AdminDoctors /></ProtectedRoute>} />
                   <Route path='/admin-patients' element={<ProtectedRoute allowedRole='admin'><AdminPatients /></ProtectedRoute>} />
