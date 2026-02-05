@@ -14,6 +14,34 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve static files from the public directory as well
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'AarogyaCare Server is running',
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Configuration check endpoint
+app.get('/api/config/check', (req, res) => {
+  const config = {
+    database: !!process.env.MONGO_URI,
+    jwt: !!process.env.JWT_SECRET,
+    mailjet: !!(process.env.MAILJET_API_KEY && process.env.MAILJET_SECRET_KEY),
+    razorpay: !!(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
+    openai: !!process.env.OPENAI_API_KEY,
+    groq: !!process.env.GROQ_API_KEY
+  };
+  
+  res.json({
+    message: 'Configuration status',
+    services: config,
+    allConfigured: Object.values(config).every(Boolean)
+  });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));

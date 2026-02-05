@@ -8,16 +8,36 @@ const Notification = require('../models/Notification');
 const transporter = require('../config/mail');
 const { protect } = require('../middleware/authMiddleware');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Initialize Razorpay lazily
+let razorpay = null;
+
+const getRazorpayInstance = () => {
+  if (!razorpay) {
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      throw new Error('Razorpay credentials not configured');
+    }
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET
+    });
+  }
+  return razorpay;
+};
 
 // Create Razorpay Order
 router.post('/order', protect, async (req, res) => {
   try {
     const { amount } = req.body;
+
+    // Check if Razorpay is configured
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({
+        success: false,
+        message: 'Payment service not configured'
+      });
+    }
+
+    const razorpayInstance = getRazorpayInstance();
 
     // Convert to paise (Razorpay expects amount in smallest currency unit)
     const amountInPaise = amount * 100;
@@ -29,7 +49,7 @@ router.post('/order', protect, async (req, res) => {
       payment_capture: 1
     };
 
-    const order = await razorpay.orders.create(options);
+    const order = await razorpayInstance.orders.create(options);
 
     res.json({ 
       success: true,
@@ -61,6 +81,14 @@ router.post('/verify-and-book', protect, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Missing required payment information'
+      });
+    }
+
+    // Check if Razorpay is configured
+    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({
+        success: false,
+        message: 'Payment service not configured'
       });
     }
 
