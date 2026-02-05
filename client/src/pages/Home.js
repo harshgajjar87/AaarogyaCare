@@ -4,7 +4,7 @@ import ReviewsCarousel from '../components/ReviewsCarousel';
 import DoctorCard from '../components/DoctorCard';
 import { getAllDoctors } from '../api/doctorAPI';
 import { AuthContext } from '../context/AuthContext';
-import { ArrowDown, Stethoscope, Activity, Heart } from 'lucide-react';
+import { ArrowDown, Stethoscope, Activity, Heart, MessageCircle, Calendar, Shield } from 'lucide-react';
 
 
 const Home = () => {
