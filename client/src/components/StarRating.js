@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaStar, FaStarHalfAlt, FaRegStar } from 'react-icons/fa';
+import { Star } from 'lucide-react';
 
 const StarRating = ({ 
   rating, 
@@ -12,72 +12,35 @@ const StarRating = ({
   const [hoverRating, setHoverRating] = useState(0);
 
   const handleClick = (newRating) => {
-    if (editable && onRatingChange) {
-      onRatingChange(newRating);
-    }
+    if (editable && onRatingChange) onRatingChange(newRating);
   };
 
   const handleMouseEnter = (starIndex) => {
-    if (editable) {
-      setHoverRating(starIndex);
-    }
+    if (editable) setHoverRating(starIndex);
   };
 
   const handleMouseLeave = () => {
-    if (editable) {
-      setHoverRating(0);
-    }
-  };
-
-  const renderStar = (index) => {
-    const displayRating = hoverRating || rating;
-    const fullStars = Math.floor(displayRating);
-    const hasHalfStar = displayRating % 1 !== 0;
-    
-    if (index < fullStars) {
-      return (
-        <FaStar
-          className="text-warning"
-          style={{ cursor: editable ? 'pointer' : 'default', fontSize: size }}
-          onClick={() => handleClick(index + 1)}
-          onMouseEnter={() => handleMouseEnter(index + 1)}
-        />
-      );
-    } else if (hasHalfStar && index === fullStars) {
-      return (
-        <FaStarHalfAlt
-          className="text-warning"
-          style={{ cursor: editable ? 'pointer' : 'default', fontSize: size }}
-          onClick={() => handleClick(index + 1)}
-          onMouseEnter={() => handleMouseEnter(index + 1)}
-        />
-      );
-    } else {
-      return (
-        <FaRegStar
-          className="text-warning"
-          style={{ cursor: editable ? 'pointer' : 'default', fontSize: size }}
-          onClick={() => handleClick(index + 1)}
-          onMouseEnter={() => handleMouseEnter(index + 1)}
-        />
-      );
-    }
+    if (editable) setHoverRating(0);
   };
 
   return (
-    <div className={`d-flex align-items-center ${className}`}>
-      <div 
-        className="d-flex"
-        onMouseLeave={handleMouseLeave}
-      >
-        {[0, 1, 2, 3, 4].map((index) => (
-          <span key={index} className="me-1">
-            {renderStar(index)}
-          </span>
-        ))}
+    <div className={`flex items-center gap-2 ${className}`}>
+      <div className="flex" onMouseLeave={handleMouseLeave}>
+        {[...Array(5)].map((_, index) => {
+          const starValue = index + 1;
+          return (
+            <Star
+              key={starValue}
+              size={size}
+              className={`transition-colors ${editable ? 'cursor-pointer' : ''} ${starValue <= (hoverRating || rating) ? 'text-yellow-400 fill-current' : 'text-slate-300'}`}
+              onClick={() => handleClick(starValue)}
+              onMouseEnter={() => handleMouseEnter(starValue)}
+            />
+          );
+        })}
       </div>
       {showRating && (
-        <span className="ms-2 fw-bold">
+        <span className="font-bold text-slate-700">
           {rating ? rating.toFixed(1) : '0.0'}
         </span>
       )}

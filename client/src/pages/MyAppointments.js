@@ -1,56 +1,57 @@
 import { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../utils/axios';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-// PatientNavbar removed - already handled in Layout component
 import { getAppointmentsByPatientId, cancelAppointment } from '../api/appointmentAPI';
 import { createOrAccessChat } from '../api/chatAPI';
+import { Calendar, Stethoscope, MessageSquare, X, Loader2, Info, ArrowLeft } from 'lucide-react';
 
 const MyAppointments = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [chatLoading, setChatLoading] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchAppointments();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   const fetchAppointments = async () => {
     try {
-      console.log("Fetching from:", `/appointments/patient/${user._id}`);
-      const appointments = await getAppointmentsByPatientId(user._id);
-      setAppointments(appointments);
+      setLoading(true);
+      const appointmentsData = await getAppointmentsByPatientId(user._id);
+      setAppointments(appointmentsData);
     } catch (err) {
-      console.log(err);
       toast.error('Error fetching appointments');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCancel = async (id) => {
-    try {
-      await cancelAppointment(id);
-      toast.success('Appointment cancelled');
-      fetchAppointments();
-    } catch (err) {
-      toast.error('Failed to cancel appointment');
+    if (window.confirm('Are you sure you want to cancel this appointment?')) {
+      try {
+        await cancelAppointment(id);
+        toast.success('Appointment cancelled');
+        fetchAppointments();
+      } catch (err) {
+        toast.error('Failed to cancel appointment');
+      }
     }
   };
 
   const handleChatWithDoctor = async (appointmentId) => {
     setChatLoading(appointmentId);
     try {
-      console.log('Creating/accessing chat for appointment:', appointmentId);
-      // Create or access the chat for this appointment
       const chat = await createOrAccessChat(appointmentId);
-      console.log('Chat created/accessed:', chat);
-
-      if (!chat || !chat._id) {
-        throw new Error('Invalid chat response - missing chat ID');
-      }
-
-      // Redirect to the specific chat using React Router
-      console.log('Navigating to chat:', `/chats/${chat._id}`);
+      if (!chat || !chat._id) throw new Error('Invalid chat response');
       navigate(`/chats/${chat._id}`);
     } catch (err) {
-      console.error('Error accessing chat:', err);
       toast.error(err.response?.data?.msg || err.message || 'Failed to start chat with doctor');
     } finally {
       setChatLoading(null);
@@ -58,104 +59,105 @@ const MyAppointments = () => {
   };
 
   const isAppointmentTimePassed = (date, time) => {
-    const appointmentDate = new Date(date);
-    const [hours, minutes] = time.split(':').map(Number);
-    appointmentDate.setHours(hours, minutes, 0, 0);
-    
+    const appointmentDate = new Date(`${date.slice(0, 10)}T${time}`);
     return new Date() >= appointmentDate;
   };
+  
+  const getStatusClass = (status) => {
+    const statusClasses = {
+      'approved': 'bg-green-100 text-green-800',
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'rejected': 'bg-red-100 text-red-800',
+      'cancelled': 'bg-gray-100 text-gray-800'
+    };
+    return statusClasses[status] || 'bg-gray-100 text-gray-800';
+  };
 
-  useEffect(() => {
-    if (user?._id) {
-      fetchAppointments();
-    }
-  }, [user]);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+      </div>
+    );
+  }
 
   if (!user) {
-    return <div className='container mt-4'>Please log in to view appointments.</div>;
+    return <div className="text-center p-8">Please log in to view your appointments.</div>;
   }
 
   return (
-    <>
-      <div className='container mt-4'>
-        <div className='welcome-section mb-4'>
-          <h3 className='welcome-title'>My Appointments</h3>
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate('/patient/dashboard')}
+          className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-3xl font-bold text-health-text-h">My Appointments</h1>
+      </div>
+
+      <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100">
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-bold text-health-text-h">Your Appointment History</h2>
         </div>
-
-        <div className='card shadow-sm enhanced-card mb-4'>
-          <div className='card-header enhanced-header'>
-            <h5 className='mb-0'>Your Appointment History</h5>
-          </div>
-          <div className='card-body'>
-            <div className='table-responsive'>
-              <table className='table table-hover enhanced-table'>
-                <thead className='table-dark'>
-                  <tr>
-                    <th><i className="fas fa-calendar me-2"></i>Date</th>
-                    <th><i className="fas fa-user-md me-2"></i>Doctor</th>
-                    <th><i className="fas fa-info-circle me-2"></i>Status</th>
-                    <th><i className="fas fa-cogs me-2"></i>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {appointments.map(app => (
-                    <tr key={app._id} className='table-row-hover'>
-                      <td className='fw-semibold'>{new Date(app.date).toLocaleDateString()}</td>
-                      <td>{app.doctorId?.name || 'N/A'}</td>
-                      <td>
-                        <span className={`badge ${app.status === 'approved' ? 'bg-success' : app.status === 'pending' ? 'bg-warning' : 'bg-secondary'}`}>
-                          {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                        </span>
-                      </td>
-                      <td>
-                        {app.status === 'approved' && (
-                          <div className='btn-group' role='group'>
-                            <button
-                              className='btn btn-info btn-sm me-2 enhanced-btn'
-                              onClick={() => handleChatWithDoctor(app._id)}
-                              disabled={chatLoading === app._id}
-                            >
-                              {chatLoading === app._id ? (
-                                <>
-                                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                  Loading...
-                                </>
-                              ) : (
-                                <>
-                                  <i className="fas fa-comments me-1"></i>
-                                  Chat
-                                </>
-                              )}
+        <div className="overflow-x-auto">
+          {appointments.length > 0 ? (
+            <table className="w-full text-sm text-left text-health-text-p">
+              <thead className="text-xs text-health-text-p uppercase bg-slate-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3">Date</th>
+                  <th scope="col" className="px-6 py-3">Doctor</th>
+                  <th scope="col" className="px-6 py-3">Status</th>
+                  <th scope="col" className="px-6 py-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointments.map(app => (
+                  <tr key={app._id} className="bg-white border-b hover:bg-slate-50">
+                    <td className="px-6 py-4 font-medium text-health-text-h flex items-center gap-2">
+                      <Calendar size={16} />
+                      <span>{new Date(app.date).toLocaleDateString()} at {app.time}</span>
+                    </td>
+                    <td className="px-6 py-4 flex items-center gap-2">
+                      <Stethoscope size={16} />
+                      <span>{app.doctorId?.name || 'N/A'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 font-semibold leading-tight rounded-full text-xs ${getStatusClass(app.status)}`}>
+                        {app.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {app.status === 'approved' && (
+                        <div className="flex items-center justify-center gap-2">
+                          <button onClick={() => handleChatWithDoctor(app._id)} disabled={chatLoading === app._id} className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-all font-medium flex items-center gap-2 text-xs">
+                            {chatLoading === app._id ? <Loader2 className="animate-spin" size={14} /> : <MessageSquare size={14} />}
+                            <span>Chat</span>
+                          </button>
+                          {!isAppointmentTimePassed(app.date, app.time) && (
+                            <button onClick={() => handleCancel(app._id)} className="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition-all font-medium flex items-center gap-2 text-xs">
+                              <X size={14} />
+                              <span>Cancel</span>
                             </button>
-                            {!isAppointmentTimePassed(app.date, app.time) && (
-                              <button
-                                className='btn btn-danger btn-sm enhanced-btn'
-                                onClick={() => handleCancel(app._id)}
-                              >
-                                <i className="fas fa-times me-1"></i>
-                                Cancel
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center py-16 text-health-text-p">
+              <Info size={40} className="mx-auto mb-4 text-slate-400" />
+              <h5 className="font-semibold">No Appointments Found</h5>
+              <p>You haven't booked any appointments yet.</p>
             </div>
-
-            {appointments.length === 0 && (
-              <div className='text-center py-5'>
-                <i className="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                <h5 className='text-muted'>No Appointments Found</h5>
-                <p className='text-muted'>You haven't booked any appointments yet.</p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from '../utils/axios';
+import { Eye, Mail, X } from 'lucide-react';
 
 const AdminQueries = () => {
   const [queries, setQueries] = useState([]);
@@ -24,143 +25,97 @@ const AdminQueries = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
-  };
-
-  const handleViewQuery = (query) => {
-    setSelectedQuery(query);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedQuery(null);
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
   };
 
   if (loading) {
     return (
-      <div className="container mt-5">
-        <div className="text-center">Loading queries...</div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="container mt-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Contact Queries</h2>
-        <span className="badge bg-primary">{queries.length} queries</span>
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-health-text-h">Contact Queries</h1>
+        <span className="px-3 py-1 text-sm font-medium bg-teal-100 text-teal-700 rounded-full">{queries.length} queries</span>
       </div>
 
-      {queries.length === 0 ? (
-        <div className="alert alert-info">
-          No contact queries found.
-        </div>
-      ) : (
-        <div className="card">
-          <div className="card-body">
-            <div className="table-responsive">
-              <table className="table table-striped table-hover">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Subject</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+      <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100">
+        <div className="overflow-x-auto">
+          {queries.length > 0 ? (
+            <table className="w-full text-sm text-left text-health-text-p">
+              <thead className="text-xs text-health-text-p uppercase bg-slate-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3">Name</th>
+                  <th scope="col" className="px-6 py-3">Email</th>
+                  <th scope="col" className="px-6 py-3">Subject</th>
+                  <th scope="col" className="px-6 py-3">Date</th>
+                  <th scope="col" className="px-6 py-3">Status</th>
+                  <th scope="col" className="px-6 py-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {queries.map((query) => (
+                  <tr key={query._id} className="bg-white border-b hover:bg-slate-50">
+                    <td className="px-6 py-4 font-medium text-health-text-h">{query.name}</td>
+                    <td className="px-6 py-4">
+                      <a href={`mailto:${query.email}`} className="text-health-primary hover:underline">{query.email}</a>
+                    </td>
+                    <td className="px-6 py-4">{query.subject}</td>
+                    <td className="px-6 py-4">{formatDate(query.createdAt)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 font-semibold leading-tight rounded-full text-xs ${query.status === 'new' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                        {query.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button onClick={() => setSelectedQuery(query)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full">
+                        <Eye size={16} />
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {queries.map((query) => (
-                    <tr key={query._id}>
-                      <td>{query.name}</td>
-                      <td>
-                        <a href={`mailto:${query.email}`} className="text-decoration-none">
-                          {query.email}
-                        </a>
-                      </td>
-                      <td>{query.subject}</td>
-                      <td>{formatDate(query.createdAt)}</td>
-                      <td>
-                        <span className={`badge ${query.status === 'new' ? 'bg-warning' : 'bg-success'}`}>
-                          {query.status}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => handleViewQuery(query)}
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-center py-12 text-health-text-p">No contact queries found.</p>
+          )}
         </div>
-      )}
+      </div>
 
-      {/* Query Detail Modal */}
       {selectedQuery && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Query Details</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={handleCloseModal}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="row mb-3">
-                  <div className="col-md-6">
-                    <strong>Name:</strong> {selectedQuery.name}
-                  </div>
-                  <div className="col-md-6">
-                    <strong>Email:</strong>{' '}
-                    <a href={`mailto:${selectedQuery.email}`} className="text-decoration-none">
-                      {selectedQuery.email}
-                    </a>
-                  </div>
-                </div>
-                <div className="row mb-3">
-                  <div className="col-12">
-                    <strong>Subject:</strong> {selectedQuery.subject}
-                  </div>
-                </div>
-                <div className="row mb-3">
-                  <div className="col-12">
-                    <strong>Date:</strong> {formatDate(selectedQuery.createdAt)}
-                  </div>
-                </div>
-                <div className="row">
-                  <div className="col-12">
-                    <strong>Message:</strong>
-                    <div className="border p-3 mt-2 bg-light rounded">
-                      {selectedQuery.message}
-                    </div>
-                  </div>
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-lg">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h5 className="text-xl font-bold">Query Details</h5>
+              <button onClick={() => setSelectedQuery(null)} className="p-2 rounded-full hover:bg-slate-100">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div><strong>Name:</strong> {selectedQuery.name}</div>
+              <div><strong>Email:</strong> <a href={`mailto:${selectedQuery.email}`} className="text-health-primary hover:underline">{selectedQuery.email}</a></div>
+              <div><strong>Subject:</strong> {selectedQuery.subject}</div>
+              <div><strong>Date:</strong> {formatDate(selectedQuery.createdAt)}</div>
+              <div>
+                <strong>Message:</strong>
+                <div className="border p-3 mt-2 bg-slate-50 rounded-lg text-health-text-p">
+                  {selectedQuery.message}
                 </div>
               </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleCloseModal}
-                >
-                  Close
-                </button>
-                <a
-                  href={`mailto:${selectedQuery.email}`}
-                  className="btn btn-primary"
-                >
-                  Reply
-                </a>
-              </div>
+            </div>
+            <div className="p-6 border-t flex justify-end gap-4">
+              <button onClick={() => setSelectedQuery(null)} className="bg-slate-100 text-slate-700 px-6 py-2 rounded-full hover:bg-slate-200 transition-all font-medium">Close</button>
+              <a href={`mailto:${selectedQuery.email}`} className="bg-teal-600 text-white px-6 py-2 rounded-full hover:bg-teal-700 transition-all font-medium flex items-center gap-2">
+                <Mail size={16} />
+                <span>Reply</span>
+              </a>
             </div>
           </div>
         </div>

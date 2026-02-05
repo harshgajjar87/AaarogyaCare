@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getAllAdminAppointments, updateAppointmentStatus, deleteAppointment, exportAppointments } from '../api/adminAppointmentAPI';
+import { Trash2, Download, Search } from 'lucide-react';
 
 const AdminAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -29,11 +30,9 @@ const AdminAppointments = () => {
 
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {
-      const response = await updateAppointmentStatus(appointmentId, newStatus);
-      if (response.success) {
-        toast.success('Appointment status updated successfully');
-        fetchAppointments();
-      }
+      await updateAppointmentStatus(appointmentId, newStatus);
+      toast.success('Appointment status updated successfully');
+      fetchAppointments();
     } catch (error) {
       console.error('Error updating appointment status:', error);
       toast.error('Failed to update appointment status');
@@ -43,11 +42,9 @@ const AdminAppointments = () => {
   const handleDeleteAppointment = async (appointmentId) => {
     if (window.confirm('Are you sure you want to delete this appointment?')) {
       try {
-        const response = await deleteAppointment(appointmentId);
-        if (response.success) {
-          toast.success('Appointment deleted successfully');
-          fetchAppointments();
-        }
+        await deleteAppointment(appointmentId);
+        toast.success('Appointment deleted successfully');
+        fetchAppointments();
       } catch (error) {
         console.error('Error deleting appointment:', error);
         toast.error('Failed to delete appointment');
@@ -58,7 +55,6 @@ const AdminAppointments = () => {
   const handleExport = async () => {
     try {
       const data = await exportAppointments();
-      // Create a download link for the Excel file
       const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement('a');
       link.href = url;
@@ -77,225 +73,131 @@ const AdminAppointments = () => {
     if (!appointment) return false;
     const matchesStatus = filterStatus === 'all' || appointment.status === filterStatus;
     const matchesSearch = searchTerm === '' ||
-      appointment.patientId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.doctorId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment._id?.toLowerCase().includes(searchTerm.toLowerCase());
-
+      (appointment.patientId?.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (appointment.doctorId?.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (appointment._id?.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesStatus && matchesSearch;
   });
 
-  const getStatusColor = (status) => {
-    const colors = {
-      'approved': 'success',
-      'rejected': 'danger',
-      'pending': 'warning',
-      'cancelled-by-patient': 'info'
-
+  const getStatusClass = (status) => {
+    const statusClasses = {
+      'approved': 'bg-green-100 text-green-800',
+      'rejected': 'bg-red-100 text-red-800',
+      'pending': 'bg-yellow-100 text-yellow-800',
+      'cancelled-by-patient': 'bg-blue-100 text-blue-800'
     };
-    return colors[status] || 'secondary';
+    return statusClasses[status] || 'bg-gray-100 text-gray-800';
   };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getPatientName = (appointment) => {
-    return appointment.patientId?.name || 'Unknown Patient';
-  };
-
-  const getDoctorName = (appointment) => {
-    return appointment.doctorId?.name || 'Unknown Doctor';
-  };
+  
+  const StatCard = ({ title, value, color }) => (
+    <div className={`bg-health-surface rounded-xl shadow-sm border-l-4 border-${color}-500 p-6`}>
+      <h5 className="text-health-text-p text-sm">{title}</h5>
+      <p className="text-health-text-h text-2xl font-bold">{value}</p>
+    </div>
+  );
 
   if (loading) {
     return (
-      <div className="container mt-5">
-        <div className="text-center loading-state">
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="container-fluid mt-4 admin-appointments">
-      <div className="row">
-        <div className="col-12">
-          <div className="card admin-card">
-            <div className="card-header bg-primary text-white admin-header">
-              <h4 className="mb-0">Manage Appointments</h4>
-            </div>
-            <div className="card-body admin-body">
-              {/* Filters and Search */}
-              <div className="row mb-4">
-                <div className="col-md-6">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Search by patient, doctor, or appointment ID..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="col-md-3">
-                  <select
-                    className="form-select"
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                  >
-                    <option value="all">All Status</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="pending">Pending</option>
-                    <option value="cancelled-by-patient">Cancelled by Patient</option>
+    <div className="space-y-8">
+      <h1 className="text-3xl font-bold text-health-text-h">Manage Appointments</h1>
 
-                  </select>
-                </div>
-                <div className="col-md-3">
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      setFilterStatus('all');
-                      setSearchTerm('');
-                    }}
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Total Appointments" value={appointments.length} color="teal" />
+        <StatCard title="Approved" value={appointments.filter(a => a?.status === 'approved').length} color="green" />
+        <StatCard title="Rejected" value={appointments.filter(a => a?.status === 'rejected').length} color="red" />
+        <StatCard title="Pending" value={appointments.filter(a => a?.status === 'pending').length} color="yellow" />
+      </div>
 
-              {/* Statistics */}
-              <div className="row mb-4">
-                <div className="col-md-3">
-                  <div className="card bg-primary text-white dashboard-card">
-                    <div className="card-body">
-                      <h5>Total Appointments</h5>
-                      <h3>{(appointments || []).length}</h3>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <div className="card bg-success text-white dashboard-card">
-                    <div className="card-body">
-                      <h5>Approved</h5>
-                      <h3>{(appointments || []).filter(a => a?.status === 'approved').length}</h3>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <div className="card bg-danger text-white dashboard-card">
-                    <div className="card-body">
-                      <h5>Rejected</h5>
-                      <h3>{(appointments || []).filter(a => a?.status === 'rejected').length}</h3>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-3">
-                  <div className="card bg-warning text-white dashboard-card">
-                    <div className="card-body">
-                      <h5>Pending</h5>
-                      <h3>{(appointments || []).filter(a => a?.status === 'pending').length}</h3>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Export Button */}
-              <div className="row mb-4">
-                <div className="col-md-3">
-                  <button
-                    className="btn btn-success"
-                    onClick={handleExport}
-                  >
-                    Export to Excel
-                  </button>
-                </div>
-              </div>
-
-              {/* Appointments Table */}
-              <div className="table-responsive enhanced-table">
-                <table className="table table-hover enhanced-table">
-                  <thead className="table-light">
-                    <tr>
-                      <th>ID</th>
-                      <th>Patient</th>
-                      <th>Doctor</th>
-                      <th>Date & Time</th>
-                      <th>Status</th>
-                      <th>Reason</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAppointments.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" className="text-center">
-                          <div className="empty-state">
-                            <i className="fas fa-calendar-times"></i>
-                            <h4>No appointments found</h4>
-                            <p>Try adjusting your search or filter criteria.</p>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredAppointments.map((appointment) => (
-                        <tr key={appointment._id} className="table-row-hover">
-                          <td>{appointment._id.substring(0, 8)}</td>
-                          <td>
-                            <Link to={`/profile/${appointment.patientId?._id}`} className="text-decoration-none">
-                              {getPatientName(appointment)}
-                            </Link>
-                          </td>
-                          <td>
-                            <Link to={`/doctor/${appointment.doctorId?._id}`} className="text-decoration-none">
-                              {getDoctorName(appointment)}
-                            </Link>
-                          </td>
-                          <td>{formatDate(appointment.date)} at {appointment.time}</td>
-                          <td>
-                            <span className={`badge bg-${getStatusColor(appointment.status)} status-badge ${appointment.status}`}>
-                              {appointment.status}
-                            </span>
-                          </td>
-                          <td>{appointment.reason || 'N/A'}</td>
-                          <td>
-                            <div className="btn-group" role="group">
-                              <select
-                                className="form-select form-select-sm"
-                                value={appointment.status}
-                                onChange={(e) => handleStatusUpdate(appointment._id, e.target.value)}
-                                style={{ width: 'auto' }}
-                              >
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                                <option value="pending">Pending</option>
-                                <option value="cancelled-by-patient">Cancelled by Patient</option>
-                              </select>
-                              <button
-                                className="btn btn-sm btn-danger ms-1"
-                                onClick={() => handleDeleteAppointment(appointment._id)}
-                                title="Delete Appointment"
-                              >
-                                <i className="fas fa-trash"></i>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+      <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
+        <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+          <div className="relative w-full md:w-1/2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              type="text"
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-full focus:ring-2 focus:ring-teal-500"
+              placeholder="Search by patient, doctor, or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
+          <div className="flex gap-4">
+            <select
+              className="w-full md:w-auto border border-slate-300 rounded-full focus:ring-2 focus:ring-teal-500 px-4 py-2"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="pending">Pending</option>
+              <option value="cancelled-by-patient">Cancelled</option>
+            </select>
+            <button
+              className="bg-teal-600 text-white px-4 py-2 rounded-full hover:bg-teal-700 transition-all font-medium flex items-center gap-2"
+              onClick={handleExport}
+            >
+              <Download size={16} />
+              <span>Export</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left text-health-text-p">
+            <thead className="text-xs text-health-text-p uppercase bg-slate-50">
+              <tr>
+                <th scope="col" className="px-6 py-3">Patient</th>
+                <th scope="col" className="px-6 py-3">Doctor</th>
+                <th scope="col" className="px-6 py-3">Date & Time</th>
+                <th scope="col" className="px-6 py-3">Status</th>
+                <th scope="col" className="px-6 py-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAppointments.length > 0 ? filteredAppointments.map((appointment) => (
+                <tr key={appointment._id} className="bg-white border-b hover:bg-slate-50">
+                  <td className="px-6 py-4 font-medium text-health-text-h">{appointment.patientId?.name || 'N/A'}</td>
+                  <td className="px-6 py-4">{appointment.doctorId?.name || 'N/A'}</td>
+                  <td className="px-6 py-4">{new Date(appointment.date).toLocaleDateString()} at {appointment.time}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 font-semibold leading-tight rounded-full text-xs ${getStatusClass(appointment.status)}`}>
+                      {appointment.status.replace('-by-patient', '')}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <select
+                      className="border border-slate-300 rounded-full focus:ring-2 focus:ring-teal-500 px-2 py-1 mr-2"
+                      value={appointment.status}
+                      onChange={(e) => handleStatusUpdate(appointment._id, e.target.value)}
+                    >
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="pending">Pending</option>
+                      <option value="cancelled-by-patient">Cancelled</option>
+                    </select>
+                    <button
+                      className="p-2 text-red-500 hover:bg-red-100 rounded-full"
+                      onClick={() => handleDeleteAppointment(appointment._id)}
+                      title="Delete Appointment"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan="5" className="text-center py-12 text-health-text-p">No appointments found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

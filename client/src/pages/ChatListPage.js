@@ -1,19 +1,15 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ChatList from '../components/ChatList';
-import PaitentNavbar from '../components/PaitentNavbar';
-import DoctorNavbar from '../components/DoctorNavbar';
+import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const ChatListPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
-  // Get user role from user object in localStorage
-  const userData = JSON.parse(localStorage.getItem('user') || '{}');
-  const userRole = userData.role || 'patient'; // Default to patient if not found
-
   const handleBackToDashboard = () => {
-    if (userRole === 'doctor') {
+    if (user?.role === 'doctor') {
       navigate('/doctor/dashboard');
     } else {
       navigate('/patient/dashboard');
@@ -21,21 +17,19 @@ const ChatListPage = () => {
   };
 
   return (
-    <div className="chat-list-page">
-      {/* {userRole === 'doctor' ? <DoctorNavbar /> : <PaitentNavbar />} */}
-      <div className="content">
-        <div className="container mt-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>Your Chats</h2>
-            <button 
-              className="btn btn-secondary"
-              onClick={handleBackToDashboard}
-            >
-              Back to Dashboard
-            </button>
-          </div>
-          <ChatList />
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-health-text-h">Your Chats</h1>
+        <button 
+          className="bg-slate-200 text-slate-800 px-4 py-2 rounded-full hover:bg-slate-300 transition-all font-medium flex items-center gap-2 text-sm"
+          onClick={handleBackToDashboard}
+        >
+          <ArrowLeft size={16} />
+          <span>Back to Dashboard</span>
+        </button>
+      </div>
+      <div className="bg-white rounded-xl shadow-sm border p-6">
+        <ChatList />
       </div>
     </div>
   );

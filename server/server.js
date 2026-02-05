@@ -29,9 +29,14 @@ app.use('/api/admin/doctors/new', require('./routes/adminDoctorRoutesNew'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
+app.use('/api/chatbot', require('./routes/chatbotRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/verification', require('./routes/doctorVerificationRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/upload', require('./routes/imageRoutes'));
+app.use('/api/payment', require('./routes/paymentRoutes'));
+app.use('/api/prescriptions', require('./routes/prescriptionRoutes'));
+app.use('/api/analysis', require('./routes/analysisRoutes'));
 
 // DB & Start
 mongoose.connect(process.env.MONGO_URI)

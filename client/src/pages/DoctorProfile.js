@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { FaStar, FaMapMarkerAlt, FaRupeeSign, FaUserMd, FaArrowLeft } from 'react-icons/fa';
 import { getFullImageUrl } from '../utils/imageUtils';
 import { getDoctorById } from '../api/doctorAPI';
 import ReviewForm from '../components/ReviewForm';
 import ReviewList from '../components/ReviewList';
 import { useAuth } from '../context/AuthContext';
 import { checkUserReview } from '../api/reviewAPI';
-import '../styles/components/DoctorProfile.css';
+import { Star, MapPin, IndianRupee, User, ArrowLeft, Briefcase, GraduationCap, Info, Brain, Calendar, Image as ImageIcon } from 'lucide-react';
 
 const DoctorProfile = () => {
   const { id } = useParams();
@@ -25,13 +24,9 @@ const DoctorProfile = () => {
   };
 
   const handleBackToDashboard = () => {
-    if (user?.role === 'doctor') {
-      navigate('/doctor/dashboard');
-    } else if (user?.role === 'admin') {
-      navigate('/admin-doctors');
-    } else {
-      navigate('/patient/dashboard');
-    }
+    if (user?.role === 'doctor') navigate('/doctor/dashboard');
+    else if (user?.role === 'admin') navigate('/admin-doctors');
+    else navigate('/patient/dashboard');
   };
 
   useEffect(() => {
@@ -45,9 +40,8 @@ const DoctorProfile = () => {
         setLoading(false);
       }
     };
-
     fetchDoctor();
-  }, [id]);
+  }, [id, refreshReviews]);
 
   useEffect(() => {
     const checkReviewStatus = async () => {
@@ -56,11 +50,10 @@ const DoctorProfile = () => {
           const hasReviewed = await checkUserReview(doctor._id);
           setHasUserReviewed(hasReviewed);
         } catch (error) {
-          console.error('Error checking review status:', error);
+          // Silently fail, as this is not critical
         }
       }
     };
-
     checkReviewStatus();
   }, [user, doctor, refreshReviews]);
 
@@ -68,266 +61,96 @@ const DoctorProfile = () => {
     setHasUserReviewed(true);
     setShowReviewForm(false);
     setRefreshReviews(prev => prev + 1);
-
-    // Refresh doctor data to get updated rating
-    const fetchUpdatedDoctor = async () => {
-      try {
-        const doctorData = await getDoctorById(id);
-        setDoctor(doctorData);
-      } catch (err) {
-        console.error('Failed to fetch updated doctor details:', err);
-      }
-    };
-
-    fetchUpdatedDoctor();
   };
 
-  const toggleReviewForm = () => {
-    setShowReviewForm(!showReviewForm);
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="alert alert-danger text-center py-5">
-        {error}
-        <Link to="/" className="btn btn-primary mt-3">Back to Home</Link>
-      </div>
-    );
-  }
-
-  if (!doctor) {
-    return (
-      <div className="alert alert-warning text-center py-5">
-        Doctor not found
-        <Link to="/" className="btn btn-primary mt-3">Back to Home</Link>
-      </div>
-    );
-  }
+  if (loading) return <div className="text-center p-8">Loading doctor's profile...</div>;
+  if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
+  if (!doctor) return <div className="text-center p-8">Doctor not found.</div>;
 
   const doctorDetails = doctor.doctorDetails || {};
+  
+  const InfoCard = ({ title, icon, children }) => (
+    <div className="bg-white rounded-xl shadow-sm border p-6">
+        <h4 className="text-lg font-semibold text-health-text-h flex items-center gap-2 mb-4">{icon} {title}</h4>
+        <div className="text-health-text-p space-y-2">{children}</div>
+    </div>
+  );
 
   return (
-    <div>
-      <div className="container py-4 doctor-profile-container">
-      <div className="d-flex align-items-center mb-4">
-        <button
-          className="btn-back-dashboard me-3"
-          onClick={handleBackToDashboard}
-        >
-          <FaArrowLeft /> Back to Dashboard
+    <div className="max-w-5xl mx-auto space-y-8">
+      <div className="flex items-center justify-between">
+        <button onClick={handleBackToDashboard} className="flex items-center gap-2 text-sm text-health-text-p hover:text-health-primary">
+          <ArrowLeft size={16} /> Back to Dashboard
         </button>
-        <h2 className="mb-0">Doctor Profile</h2>
-        <button
-          className="btn btn-primary ms-auto"
-          onClick={handleBookAppointment}
-        >
-          Book Appointment
-        </button>
+        {user?.role === 'patient' && (
+          <button onClick={handleBookAppointment} className="bg-teal-600 text-white px-6 py-2 rounded-full hover:bg-teal-700 font-medium">
+            Book Appointment
+          </button>
+        )}
       </div>
 
-      <div className="profile-card mb-4">
-        <div className="row g-0 doctor-profile-row">
-          {/* Doctor Image */}
-          <div className="col-md-4">
-            <img
-              src={getFullImageUrl(doctor.profileImage) || '/images/default-avtar.jpg'}
-              alt={doctor.name}
-              className="img-fluid"
-              onError={(e) => {
-                e.target.src = '/images/default-avtar.jpg';
-              }}
-            />
+      <div className="bg-white rounded-xl shadow-sm border p-6 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="text-center">
+            <img src={getFullImageUrl(doctor.profileImage)} alt={doctor.name} className="w-40 h-40 rounded-full object-cover mx-auto ring-4 ring-teal-100" />
           </div>
-
-          {/* Doctor Information */}
-          <div className="col-md-8 doctor-profile-content">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <h3 className="card-title mb-1">{doctor.name}</h3>
-                  <p className="card-text">
-                    <FaUserMd className="text-primary me-2" />
-                    <span className="badge bg-primary fs-6">{doctorDetails.specialization || 'General'}</span>
-                  </p>
-                </div>
-                <div className="text-end">
-                  <div className="d-flex align-items-center mb-1">
-                    <FaStar className="text-warning me-1" />
-                    <span className="fw-bold">{doctorDetails.rating || 0}</span>
-                    <span className="text-muted ms-1">({doctorDetails.totalReviews || 0} reviews)</span>
-                  </div>
-                  <div className="d-flex align-items-center">
-                    <FaRupeeSign className="text-success me-1" />
-                    <span className="fw-bold">₹{doctorDetails.consultationFee || 0}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="doctor-info-section">
-                <h5>
-                  <i className="fas fa-info-circle me-2"></i>
-                  About the Doctor
-                </h5>
-                <p>{doctorDetails.about || 'No information provided.'}</p>
-              </div>
-
-              <div className="doctor-info-section">
-                <h5>
-                  <i className="fas fa-briefcase me-2"></i>
-                  Experience
-                </h5>
-                <p>{doctorDetails.experience || 0} years</p>
-              </div>
-
-              <div className="doctor-info-section">
-                <h5>
-                  <i className="fas fa-graduation-cap me-2"></i>
-                  Qualifications
-                </h5>
-                <p>{doctorDetails.qualifications || doctorDetails.education || 'Not specified'}</p>
-              </div>
-
-              <div className="doctor-info-section">
-                <h5>
-                  <i className="fas fa-map-marker-alt me-2"></i>
-                  Clinic Address
-                </h5>
-                <p>
-                  <FaMapMarkerAlt className="text-danger me-2" />
-                  {doctorDetails.clinicName || 'Clinic Name'}, {doctorDetails.clinicAddress || 'Address not provided'}
-                </p>
-              </div>
+          <div className="md:col-span-2 space-y-4">
+            <div>
+              <span className="inline-block bg-teal-100 text-health-primary text-sm font-semibold px-3 py-1 rounded-full">{doctorDetails.specialization || 'General'}</span>
+              <h1 className="text-3xl font-bold text-health-text-h mt-2">{doctor.name}</h1>
             </div>
+            <div className="flex items-center gap-6 text-health-text-p">
+              <div className="flex items-center gap-1"><Star size={16} className="text-yellow-400" /> <span>{doctorDetails.rating?.toFixed(1) || 0} ({doctorDetails.totalReviews || 0} reviews)</span></div>
+              <div className="flex items-center gap-1"><IndianRupee size={16} className="text-green-500" /> <span>{doctorDetails.consultationFee || 0}</span></div>
+            </div>
+            <div className="text-sm text-health-text-p flex items-start gap-2"><MapPin size={16} className="mt-1 flex-shrink-0" /> <span>{doctorDetails.clinicName}, {doctorDetails.clinicAddress}</span></div>
           </div>
         </div>
       </div>
-
-      {/* Clinic Images Section */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <h4 className="card-title mb-3">Clinic Images</h4>
-          {doctorDetails.clinicImages && doctorDetails.clinicImages.length > 0 ? (
-            <div className="row g-3">
-              {doctorDetails.clinicImages.map((image, index) => (
-                <div key={index} className="col-md-4 col-sm-6">
-                  <img
-                    src={getFullImageUrl(image)}
-                    alt={`Clinic Image ${index + 1}`}
-                    className="img-fluid rounded"
-                    style={{ height: '200px', objectFit: 'cover' }}
-                    onError={(e) => {
-                      e.target.src = '/images/default-avtar.jpg';
-                    }}
-                  />
-                </div>
-              ))}
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <InfoCard title="About" icon={<Info size={20}/>}><p>{doctorDetails.about || 'N/A'}</p></InfoCard>
+        <InfoCard title="Experience" icon={<Briefcase size={20}/>}><p>{doctorDetails.experience || 0} years</p></InfoCard>
+        <InfoCard title="Qualifications" icon={<GraduationCap size={20}/>}><p>{Array.isArray(doctorDetails.qualifications) ? doctorDetails.qualifications.join(', ') : doctorDetails.qualifications || 'N/A'}</p></InfoCard>
+        <InfoCard title="Expertise" icon={<Brain size={20}/>}>
+            {doctorDetails.expertise && (doctorDetails.expertise.conditions?.length > 0 || doctorDetails.expertise.treatments?.length > 0) ? (
+                <>
+                  <h5 className="font-semibold">Conditions</h5>
+                  <div className="flex flex-wrap gap-2">{doctorDetails.expertise.conditions?.map((c,i) => <span key={i} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{c}</span>)}</div>
+                  <h5 className="font-semibold mt-2">Treatments</h5>
+                  <div className="flex flex-wrap gap-2">{doctorDetails.expertise.treatments?.map((t,i) => <span key={i} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{t}</span>)}</div>
+                </>
+            ) : <p>N/A</p>}
+        </InfoCard>
+        <InfoCard title="Clinic Images" icon={<ImageIcon size={20}/>}>
+          {doctorDetails.clinicImages?.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {doctorDetails.clinicImages.map((img, i) => <img key={i} src={getFullImageUrl(img)} alt={`Clinic ${i+1}`} className="w-full h-24 object-cover rounded-md" />)}
             </div>
-          ) : (
-            <p className="text-muted">No clinic images available</p>
-          )}
-        </div>
+          ) : <p>No images available.</p>}
+        </InfoCard>
+        <InfoCard title="Availability" icon={<Calendar size={20}/>}>
+          {doctorDetails.availability?.length > 0 ? (
+            <div className="space-y-1">
+              {doctorDetails.availability.map((slot, i) => <div key={i} className="flex justify-between text-sm"><span className="font-medium">{slot.day}</span><span>{slot.startTime} - {slot.endTime}</span></div>)}
+            </div>
+          ) : <p>Contact clinic for availability.</p>}
+        </InfoCard>
       </div>
 
-      {/* Expertise Section */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <h4 className="card-title mb-3">Expertise</h4>
-          {doctorDetails.expertise && (doctorDetails.expertise.conditions?.length > 0 || doctorDetails.expertise.treatments?.length > 0) ? (
-            <div className="row">
-              <div className="col-md-6">
-                <h5>Medical Conditions</h5>
-                <div className="d-flex flex-wrap">
-                  {doctorDetails.expertise.conditions?.map((condition, index) => (
-                    <span key={index} className="badge bg-info me-2 mb-2">{condition}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="col-md-6">
-                <h5>Treatments & Procedures</h5>
-                <div className="d-flex flex-wrap">
-                  {doctorDetails.expertise.treatments?.map((treatment, index) => (
-                    <span key={index} className="badge bg-success me-2 mb-2">{treatment}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-muted">No specific expertise information available</p>
-          )}
-        </div>
-      </div>
-
-      {/* Available Time Slots */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <h4 className="card-title mb-3">Available Time Slots</h4>
-          {doctorDetails.availability && doctorDetails.availability.length > 0 ? (
-            <div className="row">
-              {doctorDetails.availability.map((slot, index) => (
-                <div key={slot._id || index} className="col-md-4 mb-3">
-                  <div className="card">
-                    <div className="card-body">
-                      <h6 className="card-title">{slot.day}</h6>
-                      <p className="card-text">
-                        {slot.startTime} - {slot.endTime}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-3">
-              <p className="text-muted mb-3">No available time slots specified</p>
-              <button
-                className="btn btn-primary"
-                onClick={handleBookAppointment}
-              >
-                Book Appointment to See Available Slots
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Reviews Section */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h4 className="card-title mb-0">Patient Reviews</h4>
+      <div className="bg-white rounded-xl shadow-sm border p-6 md:p-8">
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="text-xl font-bold text-health-text-h">Patient Reviews</h4>
             {user && user.role === 'patient' && !hasUserReviewed && (
-              <button
-                className="btn btn-outline-primary"
-                onClick={toggleReviewForm}
-              >
-                {showReviewForm ? 'Cancel Review' : 'Write a Review'}
+              <button onClick={() => setShowReviewForm(!showReviewForm)} className="bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-medium">
+                {showReviewForm ? 'Cancel' : 'Write a Review'}
               </button>
             )}
           </div>
-
-          {/* Review Form */}
-          {showReviewForm && (
-            <ReviewForm
-              doctorId={doctor._id}
-              onReviewSubmitted={handleReviewSubmitted}
-            />
-          )}
-
-          {/* Review List */}
+          {showReviewForm && <ReviewForm doctorId={doctor._id} onReviewSubmitted={handleReviewSubmitted} />}
           <ReviewList doctorId={doctor._id} key={refreshReviews} />
-        </div>
       </div>
-      </div>
+
     </div>
   );
 };

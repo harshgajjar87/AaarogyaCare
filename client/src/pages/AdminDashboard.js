@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from '../utils/axios';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import AdminNavbar from '../components/AdminNavbar';
+import { AuthContext } from '../context/AuthContext';
 import { getTotalPatients, getTotalDoctors, getTotalAppointments, getDoctorsBySpecialization, getAppointmentsByDoctor } from '../api/adminAPI';
+import { Users, Stethoscope, Calendar, LayoutDashboard, User, LogOut, BarChart2, Menu, X } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
   const [stats, setStats] = useState({
     totalPatients: 0,
     totalDoctors: 0,
@@ -15,29 +16,26 @@ const AdminDashboard = () => {
     appointmentsByDoctor: {}
   });
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch total patients
-        const patientsResponse = await getTotalPatients();
-        setStats(prev => ({ ...prev, totalPatients: patientsResponse.data.count || 0 }));
+        const [patientsRes, doctorsRes, appointmentsRes, specRes, apptByDocRes] = await Promise.all([
+          getTotalPatients(),
+          getTotalDoctors(),
+          getTotalAppointments(),
+          getDoctorsBySpecialization(),
+          getAppointmentsByDoctor()
+        ]);
 
-        // Fetch total doctors
-        const doctorsResponse = await getTotalDoctors();
-        setStats(prev => ({ ...prev, totalDoctors: doctorsResponse.data.count || 0 }));
-
-        // Fetch total appointments
-        const appointmentsResponse = await getTotalAppointments();
-        setStats(prev => ({ ...prev, totalAppointments: appointmentsResponse.data.count || 0 }));
-
-        // Fetch doctors by specialization
-        const doctorsBySpecResponse = await getDoctorsBySpecialization();
-        setStats(prev => ({ ...prev, doctorsBySpecialization: doctorsBySpecResponse.data || {} }));
-
-        // Fetch appointments by doctor
-        const appointmentsByDoctorResponse = await getAppointmentsByDoctor();
-        setStats(prev => ({ ...prev, appointmentsByDoctor: appointmentsByDoctorResponse.data || {} }));
+        setStats({
+          totalPatients: patientsRes.data.count || 0,
+          totalDoctors: doctorsRes.data.count || 0,
+          totalAppointments: appointmentsRes.data.count || 0,
+          doctorsBySpecialization: specRes.data || {},
+          appointmentsByDoctor: apptByDocRes.data || {}
+        });
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
         toast.error('Failed to load dashboard data');
@@ -48,119 +46,123 @@ const AdminDashboard = () => {
 
     fetchStats();
   }, []);
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const SidebarLink = ({ to, icon, text }) => (
+    <Link to={to} className="flex items-center px-4 py-2 text-health-text-p hover:bg-teal-50 hover:text-health-primary transition-colors rounded-lg">
+      {icon}
+      <span className="ml-3">{text}</span>
+    </Link>
+  );
+
+  const StatCard = ({ title, value, icon, color, onClick }) => (
+    <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6 flex items-center justify-between cursor-pointer" onClick={onClick}>
+      <div>
+        <p className="text-sm text-health-text-p">{title}</p>
+        <p className="text-3xl font-bold text-health-text-h">{value}</p>
+      </div>
+      <div className={`rounded-full p-3 bg-${color}-100 text-${color}-600`}>
+        {icon}
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className='container mt-5 admin-dashboard'>
-        <h2>Admin Dashboard</h2>
+    <div className="flex min-h-screen bg-health-secondary relative">
+      <aside className={`${isSidebarOpen ? "w-64" : "w-0"} md:w-64 bg-health-surface shadow-md flex flex-col transition-all duration-300 overflow-hidden absolute md:relative h-full z-10`}>
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="absolute top-4 right-4 p-2 rounded-md text-slate-500 hover:text-health-primary hover:bg-slate-100 z-20 md:hidden"
+        >
+          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+        <div className="p-6 border-b border-slate-100">
+          <h2 className="text-2xl font-bold text-health-text-h">Admin Panel</h2>
+          <p className="text-health-text-p mt-2">Welcome, {user?.name || 'Admin'}!</p>
+        </div>
 
-        {loading ? (
-          <div className='text-center loading-state'>
-            <div className="spinner-border" role="status">
-              <span className="visually-hidden">Loading dashboard data...</span>
+        <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col`}>
+          <SidebarLink to="/admin-dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
+          <SidebarLink to="/admin-doctors" icon={<Stethoscope size={20} />} text="Doctors" />
+          <SidebarLink to="/admin-patients" icon={<Users size={20} />} text="Patients" />
+          <SidebarLink to="/admin-appointments" icon={<Calendar size={20} />} text="Appointments" />
+        </nav>
+
+        <div className={`${isSidebarOpen ? "block" : "hidden md:block"} p-6 border-t border-slate-100`}>
+          <button onClick={handleLogout} className="w-full bg-teal-600 text-white px-6 py-2 rounded-full hover:bg-teal-700 transition-all font-medium flex items-center justify-center gap-2">
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 overflow-auto p-4 lg:p-6 transition-all duration-300">
+        <div className="mb-8 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="md:hidden p-2 rounded-md text-slate-500 hover:text-health-primary hover:bg-slate-100"
+            >
+              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+            <h1 className="text-3xl font-bold text-health-text-h">Admin Dashboard</h1>
+          </div>
+        </div>
+
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <StatCard title="Total Patients" value={stats.totalPatients} icon={<Users size={24} />} color="blue" onClick={() => navigate('/admin-patients')} />
+          <StatCard title="Total Doctors" value={stats.totalDoctors} icon={<Stethoscope size={24} />} color="green" onClick={() => navigate('/admin-doctors')} />
+          <StatCard title="Total Appointments" value={stats.totalAppointments} icon={<Calendar size={24} />} color="purple" onClick={() => navigate('/admin-appointments')} />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100">
+            <h2 className="text-xl font-bold text-health-text-h p-6 flex items-center gap-2"><BarChart2 size={22} /> Doctors by Specialization</h2>
+            <div className="p-6 pt-0">
+              {Object.keys(stats.doctorsBySpecialization).length > 0 ? (
+                <ul className="space-y-2">
+                  {Object.entries(stats.doctorsBySpecialization).map(([specialization, count]) => (
+                    <li key={specialization} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">{specialization}</span>
+                      <span className="font-bold text-teal-600">{count}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-center py-8 text-health-text-p">No data available.</p>}
             </div>
           </div>
-        ) : (
-          <div className='row'>
-            {/* Total Patients Card */}
-            <div className='col-md-4 mb-4'>
-              <div
-                className='card bg-primary text-white dashboard-card'
-                style={{ cursor: 'pointer' }}
-                onClick={() => navigate('/admin-patients')}
-              >
-                <div className='card-body'>
-                  <h5 className='card-title'>Total Patients</h5>
-                  <h2 className='card-text'>{stats.totalPatients}</h2>
-                </div>
-              </div>
-            </div>
-
-            {/* Total Doctors Card */}
-            <div className='col-md-4 mb-4'>
-              <div
-                className='card bg-success text-white dashboard-card'
-                style={{ cursor: 'pointer' }}
-                onClick={() => navigate('/admin-doctors')}
-              >
-                <div className='card-body'>
-                  <h5 className='card-title'>Total Doctors</h5>
-                  <h2 className='card-text'>{stats.totalDoctors}</h2>
-                </div>
-              </div>
-            </div>
-
-            {/* Total Appointments Card */}
-            <div className='col-md-4 mb-4'>
-              <div
-                className='card bg-info text-white dashboard-card'
-                style={{ cursor: 'pointer' }}
-                onClick={() => navigate('/admin-appointments')}
-              >
-                <div className='card-body'>
-                  <h5 className='card-title'>Total Appointments</h5>
-                  <h2 className='card-text'>{stats.totalAppointments}</h2>
-                </div>
-              </div>
-            </div>
-
-            {/* Doctors by Specialization */}
-            <div className='col-md-6 mb-4'>
-              <div className='card stats-card'>
-                <div className='card-header bg-secondary text-white stats-header'>
-                  <h5 className='card-title mb-0'>Doctors by Specialization</h5>
-                </div>
-                <div className='card-body stats-body'>
-                  {Object.keys(stats.doctorsBySpecialization).length > 0 ? (
-                    <ul className='list-group list-group-flush stats-list'>
-                      {Object.entries(stats.doctorsBySpecialization).map(([specialization, count]) => (
-                        <li key={specialization} className='list-group-item d-flex justify-content-between align-items-center stats-item'>
-                          {specialization}
-                          <span className='badge bg-primary rounded-pill stats-badge'>{count}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="empty-state">
-                      <i className="fas fa-chart-bar"></i>
-                      <h4>No data available</h4>
-                      <p>Data will appear here once doctors are registered.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Appointments by Doctor */}
-            <div className='col-md-6 mb-4'>
-              <div className='card stats-card'>
-                <div className='card-header bg-secondary text-white stats-header'>
-                  <h5 className='card-title mb-0'>Appointments by Doctor</h5>
-                </div>
-                <div className='card-body stats-body'>
-                  {Object.keys(stats.appointmentsByDoctor).length > 0 ? (
-                    <ul className='list-group list-group-flush stats-list'>
-                      {Object.entries(stats.appointmentsByDoctor).map(([doctorName, count]) => (
-                        <li key={doctorName} className='list-group-item d-flex justify-content-between align-items-center stats-item'>
-                          {doctorName}
-                          <span className='badge bg-info rounded-pill stats-badge'>{count}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="empty-state">
-                      <i className="fas fa-calendar-check"></i>
-                      <h4>No data available</h4>
-                      <p>Data will appear here once appointments are booked.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+          
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100">
+            <h2 className="text-xl font-bold text-health-text-h p-6 flex items-center gap-2"><BarChart2 size={22} /> Appointments by Doctor</h2>
+            <div className="p-6 pt-0">
+              {Object.keys(stats.appointmentsByDoctor).length > 0 ? (
+                <ul className="space-y-2">
+                  {Object.entries(stats.appointmentsByDoctor).map(([doctorName, count]) => (
+                    <li key={doctorName} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">{doctorName}</span>
+                      <span className="font-bold text-teal-600">{count}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="text-center py-8 text-health-text-p">No data available.</p>}
             </div>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      </main>
+    </div>
   );
 };
 

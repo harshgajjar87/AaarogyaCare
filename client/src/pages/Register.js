@@ -85,7 +85,6 @@ const Register = () => {
 
       toast.success('Registration Successful');
 
-      // All new users start as 'patient' role and go to patient dashboard
       navigate('/patient/dashboard');
     } catch (err) {
       toast.error(err.response?.data?.msg || 'Registration Failed');
@@ -95,104 +94,138 @@ const Register = () => {
   };
 
   return (
-    <>
-    <div className='container mt-5 fade-in-up'>
-      <div className="row justify-content-center">
-        <div className="col-md-6">
-          <div className="card shadow-lg fade-zoom-in">
-            <div className="card-body p-5">
-              <h2 className='mb-4 text-center fade-in-down'>Register</h2>
-              <form onSubmit={handleSubmit}>
-                <div className='mb-3'>
-                  <label className="fade-in-left">Name</label>
-                  <input
-                    type='text'
-                    name='name'
-                    value={form.name}
-                    onChange={handleChange}
-                    className='form-control animated-input'
-                    required
-                  />
-                </div>
+    <div className="min-h-screen flex">
+      {/* Left Side - Medical Abstract Image/Gradient */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-teal-600 to-emerald-700 relative overflow-hidden">
+        <div className="absolute inset-0 bg-hero-section bg-cover bg-center opacity-20"></div>
+        <div className="relative z-10 flex flex-col justify-center items-center text-white p-12">
+          <div className="text-6xl mb-6">🩺</div>
+          <h1 className="text-4xl font-bold mb-4">Join AarogyaCare</h1>
+          <p className="text-xl text-center max-w-md">
+            Create your account to access quality healthcare services, book appointments, and manage your health journey.
+          </p>
+        </div>
+      </div>
 
-                <div className='mb-3'>
-                  <label className="fade-in-left" style={{animationDelay: '0.1s'}}>Email</label>
-                  <div className="input-group">
-                    <input
-                      type='email'
-                      name='email'
-                      value={form.email}
-                      onChange={handleChange}
-                      className='form-control animated-input'
-                      required
-                      disabled={otpVerified}
-                    />
-                    {!otpVerified && (
-                      <button
-                        type="button"
-                        className="btn btn-outline-primary"
-                        onClick={handleSendOTP}
-                        disabled={otpLoading || otpSent}
-                      >
-                        {otpLoading ? 'Sending...' : otpSent ? 'OTP Sent' : 'Send OTP'}
-                      </button>
-                    )}
-                  </div>
-                  {otpVerified && (
-                    <div className="text-success mt-1">
-                      <small>✓ Email verified</small>
-                    </div>
+      {/* Right Side - Register Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-health-secondary">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8 lg:hidden">
+            <div className="text-5xl mb-4">🩺</div>
+            <h1 className="text-3xl font-bold text-health-text-h">AarogyaCare</h1>
+          </div>
+
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-8">
+            <h2 className="text-2xl font-bold text-health-text-h mb-6 text-center">Create Your Account</h2>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-health-text-p mb-2">Full Name</label>
+                <input
+                  type='text'
+                  name='name'
+                  value={form.name}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4 border focus:outline-none focus:border-transparent transition-all"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-health-text-p mb-2">Email</label>
+                <div className="flex gap-2">
+                  <input
+                    type='email'
+                    name='email'
+                    value={form.email}
+                    onChange={handleChange}
+                    className="flex-1 w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4 border focus:outline-none focus:border-transparent transition-all"
+                    placeholder="Enter your email"
+                    required
+                    disabled={otpVerified}
+                  />
+                  {!otpVerified && (
+                    <button
+                      type="button"
+                      onClick={handleSendOTP}
+                      disabled={otpLoading || otpSent}
+                      className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-all font-medium whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {otpLoading ? 'Sending...' : otpSent ? 'Sent' : 'Send OTP'}
+                    </button>
                   )}
                 </div>
-
-                {otpSent && !otpVerified && (
-                  <OTPVerification
-                    email={form.email}
-                    onVerified={handleVerifyOTP}
-                    onResend={handleSendOTP}
-                  />
+                {otpVerified && (
+                  <div className="mt-2 text-sm text-green-600 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Email verified
+                  </div>
                 )}
+              </div>
 
-                <div className='mb-3'>
-                  <label className="fade-in-left" style={{animationDelay: '0.2s'}}>Password</label>
-                  <input
-                    type='password'
-                    name='password'
-                    value={form.password}
-                    onChange={handleChange}
-                    className='form-control animated-input'
-                    required
-                  />
-                </div>
+              {otpSent && !otpVerified && (
+                <OTPVerification
+                  email={form.email}
+                  onVerified={handleVerifyOTP}
+                  onResend={handleSendOTP}
+                />
+              )}
 
-                <div className='mb-3'>
-                  <label className="fade-in-left" style={{animationDelay: '0.3s'}}>Confirm Password</label>
-                  <input
-                    type='password'
-                    name='confirm'
-                    value={form.confirm}
-                    onChange={handleChange}
-                    className='form-control animated-input'
-                    required
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-health-text-p mb-2">Password</label>
+                <input
+                  type='password'
+                  name='password'
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4 border focus:outline-none focus:border-transparent transition-all"
+                  placeholder="Create a password"
+                  required
+                />
+              </div>
 
-                <button className='btn btn-primary w-100 hover-lift fade-in-up' style={{animationDelay: '0.4s'}} disabled={loading || !otpVerified}>
-                  {loading ? 'Registering...' : 'Register'}
-                </button>
-                <p className='mt-3 text-center fade-in-up' style={{animationDelay: '0.5s'}}>
-          Already have an account?{' '}
-          <Link to='/login' className='btn btn-outline-secondary btn-sm ms-2 hover-scale'>
-            Login
-          </Link>
-        </p>
-              </form>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-health-text-p mb-2">Confirm Password</label>
+                <input
+                  type='password'
+                  name='confirm'
+                  value={form.confirm}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4 border focus:outline-none focus:border-transparent transition-all"
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !otpVerified}
+                className="w-full bg-teal-600 text-white px-6 py-2 rounded-full hover:bg-teal-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Creating Account...' : 'Create Account'}
+              </button>
+
+              <p className="text-center text-health-text-p">
+                Already have an account?{' '}
+                <Link to='/login' className="text-health-primary hover:text-teal-700 font-medium transition-colors">
+                  Login
+                </Link>
+              </p>
+
+              <p className="text-center text-sm text-health-text-p mt-4">
+                Are you a healthcare professional?{' '}
+                <Link to='/register-doctor' className="text-health-primary hover:text-teal-700 font-medium transition-colors">
+                  Register as a Doctor
+                </Link>
+              </p>
+            </form>
           </div>
         </div>
       </div>
     </div>
-    </>
   );
 };
 

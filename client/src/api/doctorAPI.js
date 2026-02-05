@@ -22,6 +22,10 @@ export const getAllDoctors = async (filters = {}) => {
 // Get single doctor details
 export const getDoctorById = async (id) => {
   try {
+    // Prevent route conflicts
+    if (id === 'patients' || id === 'specializations' || id === 'profile') {
+      throw new Error('Invalid doctor ID');
+    }
     const response = await axios.get(`/doctors/${id}`);
     return response.data;
   } catch (error) {
@@ -66,5 +70,15 @@ export const uploadClinicImages = async (images) => {
     return response.data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to upload images';
+  }
+};
+
+// Get doctor's patients
+export const getDoctorPatients = async () => {
+  try {
+    const response = await axios.get('/doctors/patients');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to fetch doctor patients';
   }
 };

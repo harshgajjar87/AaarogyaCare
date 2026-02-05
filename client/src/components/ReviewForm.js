@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import StarRating from './StarRating';
 import { createReview } from '../api/reviewAPI';
 import { useAuth } from '../context/AuthContext';
+import { Send, Loader2 } from 'lucide-react';
 
 const ReviewForm = ({ doctorId, onReviewSubmitted, existingReview = null }) => {
   const [rating, setRating] = useState(existingReview?.rating || 0);
@@ -15,38 +16,20 @@ const ReviewForm = ({ doctorId, onReviewSubmitted, existingReview = null }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (rating === 0) {
-      setError('Please select a rating');
-      return;
-    }
-
-    if (!description.trim()) {
-      setError('Please write a review');
-      return;
-    }
+    if (rating === 0) { setError('Please select a rating'); return; }
+    if (!description.trim()) { setError('Please write a review'); return; }
 
     setLoading(true);
     setError('');
     setSuccess('');
 
     try {
-      const reviewData = {
-        rating,
-        description: description.trim(),
-        doctorId,
-        isAnonymous
-      };
-
-      await createReview(reviewData);
+      await createReview({ rating, description: description.trim(), doctorId, isAnonymous });
       setSuccess('Review submitted successfully!');
       setDescription('');
       setRating(0);
       setIsAnonymous(false);
-      
-      if (onReviewSubmitted) {
-        onReviewSubmitted();
-      }
+      if (onReviewSubmitted) onReviewSubmitted();
     } catch (err) {
       setError(err.message || 'Failed to submit review');
     } finally {
@@ -54,107 +37,49 @@ const ReviewForm = ({ doctorId, onReviewSubmitted, existingReview = null }) => {
     }
   };
 
-  const handleRatingChange = (newRating) => {
-    setRating(newRating);
-    setError('');
-  };
-
   if (!user) {
-    return (
-      <div className="alert alert-info">
-        Please log in to leave a review.
-      </div>
-    );
+    return <div className="p-4 bg-blue-50 text-blue-700 rounded-lg">Please log in to leave a review.</div>;
   }
 
   return (
-    <div className="card shadow-sm mb-4">
-      <div className="card-body">
-        <h5 className="card-title mb-3">
-          {existingReview ? 'Edit Your Review' : 'Write a Review'}
-        </h5>
-        
-        {error && (
-          <div className="alert alert-danger" role="alert">
-            {error}
-          </div>
-        )}
-        
-        {success && (
-          <div className="alert alert-success" role="alert">
-            {success}
-          </div>
-        )}
+    <div className="bg-slate-50 rounded-xl p-6 my-4">
+      <h5 className="text-lg font-bold text-health-text-h mb-4">
+        {existingReview ? 'Edit Your Review' : 'Write a Review'}
+      </h5>
+      
+      {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg mb-4">{error}</div>}
+      {success && <div className="p-3 bg-green-100 text-green-700 rounded-lg mb-4">{success}</div>}
 
-        <form onSubmit={handleSubmit}>
-          {/* Rating Section */}
-          <div className="mb-3">
-            <label className="form-label fw-semibold">Your Rating</label>
-            <div className="mb-2">
-              <StarRating
-                rating={rating}
-                onRatingChange={handleRatingChange}
-                editable={true}
-                showRating={false}
-                size={24}
-              />
-            </div>
-            <small className="text-muted">
-              Click on the stars to rate (1-5 stars)
-            </small>
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-health-text-p mb-2">Your Rating</label>
+          <StarRating rating={rating} onRatingChange={(r) => { setRating(r); setError(''); }} editable={true} size={28} />
+        </div>
 
-          {/* Review Description */}
-          <div className="mb-3">
-            <label htmlFor="reviewDescription" className="form-label fw-semibold">
-              Your Review
-            </label>
-            <textarea
-              id="reviewDescription"
-              className="form-control"
-              rows="4"
-              placeholder="Share your experience with this doctor..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={1000}
-              required
-            />
-            <small className="text-muted">
-              {description.length}/1000 characters
-            </small>
-          </div>
+        <div>
+          <label htmlFor="reviewDescription" className="block text-sm font-medium text-health-text-p mb-2">Your Review</label>
+          <textarea
+            id="reviewDescription"
+            className="w-full rounded-lg border-slate-300"
+            rows="4"
+            placeholder="Share your experience..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={1000}
+            required
+          />
+          <p className="text-xs text-slate-500 text-right">{description.length}/1000</p>
+        </div>
 
-          {/* Anonymous Option */}
-          <div className="mb-3 form-check">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="anonymousCheck"
-              checked={isAnonymous}
-              onChange={(e) => setIsAnonymous(e.target.checked)}
-            />
-            <label className="form-check-label" htmlFor="anonymousCheck">
-              Post anonymously
-            </label>
-          </div>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" id="anonymousCheck" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} />
+          <label htmlFor="anonymousCheck" className="text-sm font-medium text-health-text-p">Post anonymously</label>
+        </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={loading || rating === 0 || !description.trim()}
-          >
-            {loading ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Submitting...
-              </>
-            ) : (
-              existingReview ? 'Update Review' : 'Submit Review'
-            )}
-          </button>
-        </form>
-      </div>
+        <button type="submit" className="w-full bg-teal-600 text-white px-6 py-2 rounded-full hover:bg-teal-700 font-medium flex items-center justify-center gap-2 disabled:opacity-50" disabled={loading || rating === 0 || !description.trim()}>
+          {loading ? <><Loader2 className="animate-spin" size={16}/> Submitting...</> : <><Send size={16}/>{existingReview ? 'Update Review' : 'Submit Review'}</>}
+        </button>
+      </form>
     </div>
   );
 };

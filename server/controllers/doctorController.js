@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 // Get all doctors with filtering
 const getAllDoctors = async (req, res) => {
@@ -74,7 +75,14 @@ const getAllDoctors = async (req, res) => {
 // Get single doctor details
 const getDoctorById = async (req, res) => {
   try {
-    const doctor = await User.findById(req.params.id)
+    const { id } = req.params;
+    
+    // Check if id is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid doctor ID format' });
+    }
+    
+    const doctor = await User.findById(id)
       .select('-password');
     
     if (!doctor || doctor.role !== 'doctor') {

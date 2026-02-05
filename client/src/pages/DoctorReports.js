@@ -1,75 +1,75 @@
 import { useEffect, useState } from 'react';
 import axios from '../utils/axios';
 import { toast } from 'react-toastify';
-// DoctorNavbar removed - already handled in Layout component
+import { FileText, Download, Info } from 'lucide-react';
 
 const DoctorReports = () => {
   const [reports, setReports] = useState([]);
-
-  const fetchReports = async () => {
-    try {
-      const res = await axios.get('/reports/all'); // ✅ Make sure your backend route exists
-      setReports(res.data);
-    } catch (err) {
-      toast.error('Failed to load reports');
-      console.error(err);
-    }
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const res = await axios.get('/reports/all');
+        setReports(res.data);
+      } catch (err) {
+        toast.error('Failed to load reports');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchReports();
   }, []);
 
-  return (
-    <>
-      <div className="container mt-5">
-        <h2>Uploaded Medical Reports</h2>
+  if (loading) return <div className="text-center p-8">Loading reports...</div>;
 
-        {reports.length === 0 ? (
-          <p className="text-muted mt-4">No reports uploaded yet.</p>
-        ) : (
-          <table className="table table-bordered table-hover mt-4">
-            <thead className="table-dark">
-              <tr>
-                <th>Patient Name</th>
-                <th>Email</th>
-                <th>Doctor Name</th>
-                <th>Reason</th>
-                <th>Date</th>
-                <th>Report File</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reports.map((r) => (
-                <tr key={r._id}>
-                  <td>{r.patientId?.name || 'N/A'}</td>
-                  <td>{r.patientId?.email || 'N/A'}</td>
-                  <td>{r.doctorId?.name || 'N/A'}</td>
-                  <td>{r.reason || 'N/A'}</td>
-                  <td>
-                    {r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}
-                  </td>
-                  <td>
-                    {r.file ? (
-                      <a
-                        href={`http://localhost:5000/uploads/${r.file}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-sm btn-outline-primary"
-                      >
-                        View Report
-                      </a>
-                    ) : (
-                      <span className="text-muted">No file</span>
-                    )}
-                  </td>
+  return (
+    <div className="space-y-8">
+      <h1 className="text-3xl font-bold text-health-text-h">Uploaded Medical Reports</h1>
+      
+      <div className="bg-white rounded-xl shadow-sm border">
+        <div className="overflow-x-auto">
+          {reports.length > 0 ? (
+            <table className="w-full text-sm text-left text-slate-600">
+              <thead className="text-xs text-slate-700 uppercase bg-slate-50">
+                <tr>
+                  <th className="px-6 py-3">Patient</th>
+                  <th className="px-6 py-3">Doctor</th>
+                  <th className="px-6 py-3">Reason</th>
+                  <th className="px-6 py-3">Date</th>
+                  <th className="px-6 py-3 text-center">Report</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {reports.map((r) => (
+                  <tr key={r._id} className="bg-white border-b hover:bg-slate-50">
+                    <td className="px-6 py-4 font-medium text-slate-900">{r.patientId?.name || 'N/A'}</td>
+                    <td className="px-6 py-4">{r.doctorId?.name || 'N/A'}</td>
+                    <td className="px-6 py-4">{r.reason || 'N/A'}</td>
+                    <td className="px-6 py-4">{r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}</td>
+                    <td className="px-6 py-4 text-center">
+                      {r.file ? (
+                        <a href={`http://localhost:5000/uploads/${r.file}`} target="_blank" rel="noopener noreferrer" className="bg-teal-600 text-white px-3 py-1 rounded-full inline-flex items-center gap-1 text-xs">
+                          <Download size={14} /> View Report
+                        </a>
+                      ) : (
+                        <span className="text-slate-400">No file</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center py-16 text-slate-500">
+              <Info size={48} className="mx-auto mb-4" />
+              <h5 className="font-semibold text-lg">No Reports Found</h5>
+              <p>Uploaded reports will appear here.</p>
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

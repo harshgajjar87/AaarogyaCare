@@ -1,11 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { useState, useEffect, useContext } from 'react';
-import { FiMenu, FiX } from 'react-icons/fi';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, AuthContext } from './context/AuthContext';
-
-// Import all styles
-import './styles/combined-styles.css';
 
 // Import pages
 import Home from './pages/Home';
@@ -39,12 +35,21 @@ import Notifications from './pages/Notifications';
 import Privacy from './pages/Privacy';
 import DoctorVerification from './pages/DoctorVerification';
 import AdminDoctorVerifications from './pages/AdminDoctorVerifications';
+import HealthRiskPage from './pages/HealthRiskPage';
+import SymptomCheckerPage from './pages/SymptomCheckerPage';
+import DoctorRegister from './pages/DoctorRegister';
+import ChatDoctorPage from './pages/ChatDoctorPage';
+import DashboardPage from './pages/DashboardPage';
+import VoiceDoctorPage from './pages/VoiceDoctorPage';
+import PaymentHistory from './pages/PaymentHistory';
+import PrescriptionForm from './pages/PrescriptionForm';
+import PatientPrescriptions from './pages/PatientPrescriptions';
+import PatientDetails from './pages/PatientDetails';
 
 // Import Toast and Notification
 import { ToastContainer } from 'react-toastify';
 import { NotificationProvider } from './context/NotificationContext';
 import 'react-toastify/dist/ReactToastify.css';
-import './styles/App.css';
 
 // Import navigation components
 import PatientNavbar from './components/PaitentNavbar';
@@ -57,39 +62,26 @@ import PublicNavbar from './components/PublicNavbar';
 function Layout() {
   const location = useLocation();
   const { user } = useContext(AuthContext);
-
-  // Determine navbar based on user role for authenticated routes
-  // Debug logging
-  console.log('Layout Debug:', {
-    pathname: location.pathname,
-    user: user,
-    userRole: user?.role
-  });
-
-  // Fix: Ensure userRole is properly set
   const userRole = user?.role;
 
-  const isPatientRoute = location.pathname.startsWith('/patient') ||
-    (location.pathname.match(/^\/doctor\/\d+$/) && user?.role === 'patient') || 
-    (location.pathname.match(/^\/doctor\/\d+\/.*$/) && user?.role === 'patient') || 
-    (user?.role === 'patient' && (
-      
+  const isPatientRoute =
+    location.pathname.startsWith('/patient') ||
+    location.pathname === '/doctor-verification' ||
+    (location.pathname.match(/^\/doctor\/\d+$/) && user?.role === 'patient') ||
+    (location.pathname.match(/^\/doctor\/\d+\/.*$/) && user?.role === 'patient') ||
+    (user?.role === 'patient' &&
       location.pathname !== '/about' &&
       (location.pathname === '/profile' ||
-      location.pathname === '/notifications' ||
-      location.pathname.startsWith('/chats'))
-    ));
+        location.pathname === '/notifications' ||
+        location.pathname.startsWith('/chats')));
 
-    const isDoctorRoute = (location.pathname.startsWith('/doctor') &&
-    !location.pathname.match(/^\/doctor\/\d+$/) &&
-    !location.pathname.match(/^\/doctor\/\d+\/.*$/) &&
-    user?.role === 'doctor') || 
-    (user?.role === 'doctor' && (
+  const isDoctorRoute =
+    user?.role === 'doctor' &&
+    (location.pathname.startsWith('/doctor') ||
       location.pathname === '/about' ||
       location.pathname === '/profile' ||
       location.pathname === '/notifications' ||
-      location.pathname.startsWith('/chats')
-    ));
+      location.pathname.startsWith('/chats'));
 
   const isAdminRoute = location.pathname.startsWith('/admin') ||
     (user?.role === 'admin' && (
@@ -99,65 +91,61 @@ function Layout() {
       location.pathname.startsWith('/chats')
     ));
 
-  // If user is logged in, never show public navbar
   const isPublicRoute = !user && !isPatientRoute && !isDoctorRoute && !isAdminRoute;
 
-  // Debug logging
-  console.log('Route determination:', {
-    isPatientRoute,
-    isDoctorRoute,
-    isAdminRoute,
-    isPublicRoute,
-    willShow: isPatientRoute ? 'PatientNavbar' : isDoctorRoute ? 'DoctorNavbar' : isAdminRoute ? 'AdminNavbar' : 'PublicNavbar'
-  });
-
   return (
-    <div className="app-layout">
-      {/* Header removed */}
+    <div className="min-h-screen bg-health-secondary text-health-text-p font-sans antialiased">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-100">
+        {isPatientRoute && <PatientNavbar />}
+        {isDoctorRoute && <DoctorNavbar />}
+        {isAdminRoute && <AdminNavbar />}
+        {isPublicRoute && <PublicNavbar />}
+      </header>
 
-      {/* Navigation based on route */}
-      {isPatientRoute && <PatientNavbar />}
-      {isDoctorRoute && <DoctorNavbar />}
-      {isAdminRoute && <AdminNavbar />}
-      {isPublicRoute && <PublicNavbar />}
-
-      {/* Main Content */}
-      <main className="App-main">
-        <div className="container">
+      <main className="relative">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
           <Outlet />
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container footer-content">
-          <div className="footer-column">
-            <div className="footer-section">
-              <h4>About AarogyaCare</h4>
-              <p>Your trusted healthcare partner providing quality medical services and support.</p>
+      <footer className="border-t border-slate-100 bg-white/80 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+          <div className="grid gap-10 md:grid-cols-3">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-semibold text-teal-700">
+                <span role="img" aria-label="logo">🩺</span>
+                <span className="text-health-primary">AarogyaCare</span>
+              </div>
+              <p className="text-health-text-p">
+                Your trusted healthcare partner providing quality medical services, secure records, and guided care journeys.
+              </p>
+              <div className="text-sm text-slate-500">
+                Ahmedabad, India
+              </div>
             </div>
-            <div className="footer-section">
-              <h4>Contact Us</h4>
-              <ul>
-                <li>Email: aarogyacare55@gmail.com</li>
-                <li>Phone: +1 (555) 123-4567</li>
-                <li>Address: Ahmedabad City</li>
+
+            <div>
+              <h4 className="text-base font-semibold text-health-text-h">Explore</h4>
+              <ul className="mt-4 space-y-3 text-sm text-health-text-p">
+                <li><a className="transition-colors hover:text-health-primary" href="/">Home</a></li>
+                <li><a className="transition-colors hover:text-health-primary" href="/about">About</a></li>
+                <li><a className="transition-colors hover:text-health-primary" href="/privacy">Privacy Policy</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-base font-semibold text-health-text-h">Contact</h4>
+              <ul className="mt-4 space-y-3 text-sm text-health-text-p">
+                <li>Email: <a className="text-health-primary hover:underline" href="mailto:aarogyacare55@gmail.com">aarogyacare55@gmail.com</a></li>
+                <li>Phone: +91 999 888 7777</li>
+                <li>Address: Ahmedabad, India</li>
               </ul>
             </div>
           </div>
-          <div className="footer-column">
-            <div className="footer-section">
-              <h4>Quick Links</h4>
-              <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About</a></li>
 
-                <li><a href="/privacy">Privacy Policy</a></li>
-              </ul>
-            </div>
-            <div className="footer-section">
-              <p>&copy; {new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
-            </div>
+          <div className="mt-10 flex flex-col gap-3 border-t border-slate-100 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+            <span>© {new Date().getFullYear()} AarogyaCare. All rights reserved.</span>
+            <span className="text-slate-400">Built for trust, privacy, and care.</span>
           </div>
         </div>
       </footer>
@@ -166,84 +154,74 @@ function Layout() {
 }
 
 function App() {
-  const [darkMode, setDarkMode] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
-  // Apply dark mode class to body
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
-    }
-  }, [darkMode]);
-
   return (
     <Router future={{
       v7_startTransition: true,
       v7_relativeSplatPath: true
     }}>
       <AuthProvider>
-        <ThemeProvider>
-          <div className={`App ${darkMode ? 'dark' : ''} ${sidebarOpen ? 'sidebar-open' : ''} fade-in`}>
-            <NotificationProvider>
-              <ToastContainer />
-              {/* Sidebar Overlay */}
-              {sidebarOpen && (
-                <div
-                  className="sidebar-overlay"
-                  onClick={() => setSidebarOpen(false)}
-                ></div>
-              )}
+        <NotificationProvider>
+          <ToastContainer position="top-right" theme='light' />
+          <Routes>
+            {/* Protected routes with layout */}
+            <Route element={<Layout />}>
+              {/* Public routes inside layout */}
+              <Route path='/' element={<Home />} />
+              <Route path='/login' element={<Login />} />
+              <Route path='/register' element={<Register />} />
+              <Route path='/register-doctor' element={<DoctorRegister />} />
+              <Route path='/forgot-password' element={<ForgotPassword />} />
+              <Route path='/reset-password' element={<ResetPassword />} />
 
-              <Routes>
-                {/* Protected routes with layout */}
-                <Route element={<Layout />}>
-                  {/* Public routes inside layout */}
-                  <Route path='/' element={<Home />} />
-                  <Route path='/login' element={<Login />} />
-                  <Route path='/register' element={<Register />} />
-                  <Route path='/forgot-password' element={<ForgotPassword />} />
-                  <Route path='/reset-password' element={<ResetPassword />} />
+              <Route path='/patient/dashboard' element={<PatientDashboard />} />
+              <Route path='/patient/appointments' element={<AppointmentForm />} />
+              <Route path='/patient/my-appointments' element={<MyAppointments />} />
+              <Route path='/my-appointments' element={<MyAppointments />} />
+              <Route path='/patient/payments' element={<PaymentHistory />} />
+              <Route path='/payments' element={<PaymentHistory />} />
+              <Route path='/patient/prescriptions' element={<PatientPrescriptions />} />
+              <Route path='/patient/reports' element={<ReportList />} />
+              <Route path='/doctor-verification' element={<DoctorVerification />} />
 
-                  <Route path='/patient/dashboard' element={<PatientDashboard />} />
-                  <Route path='/patient/appointments' element={<AppointmentForm />} />
-                  <Route path='/patient/my-appointments' element={<MyAppointments />} />
-                  <Route path='/patient/reports' element={<ReportList />} />
-                  <Route path='/doctor-verification' element={<DoctorVerification />} />
+              <Route path='/doctor/dashboard' element={<DoctorDashboard />} />
+              <Route path='/doctor/appointments' element={<DoctorAppointments />} />
+              <Route path='/doctor/patients' element={<DoctorPatients />} />
+              <Route path='/doctor/payments' element={<PaymentHistory />} />
+              <Route path='/doctor/prescription/:appointmentId' element={<PrescriptionForm />} />
+              <Route path='/doctor/patient/:patientId' element={<PatientDetails />} />
+              <Route path='/doctor/reports' element={<DoctorReports />} />
+              <Route path='/doctor/reviews' element={<DoctorReviews />} />
+              <Route path='/doctor/upload' element={<DoctorUploadReport />} />
 
-                  <Route path='/doctor/dashboard' element={<DoctorDashboard />} />
-                  <Route path='/doctor/appointments' element={<DoctorAppointments />} />
-                  <Route path='/doctor/reports' element={<DoctorReports />} />
-                  <Route path='/doctor/reviews' element={<DoctorReviews />} />
-                  <Route path='/doctor/upload' element={<DoctorUploadReport />} />
+              <Route path='/admin-dashboard' element={<ProtectedRoute allowedRole='admin'><AdminDashboard /></ProtectedRoute>} />
+              <Route path='/admin-doctors' element={<ProtectedRoute allowedRole='admin'><AdminDoctors /></ProtectedRoute>} />
+              <Route path='/admin-patients' element={<ProtectedRoute allowedRole='admin'><AdminPatients /></ProtectedRoute>} />
+              <Route path='/admin-appointments' element={<ProtectedRoute allowedRole='admin'><AdminAppointments /></ProtectedRoute>} />
+              <Route path='/admin-queries' element={<ProtectedRoute allowedRole='admin'><AdminQueries /></ProtectedRoute>} />
+              <Route path='/admin/analytics' element={<ProtectedRoute allowedRole='admin'><DashboardPage /></ProtectedRoute>} />
+              <Route path='/admin-doctor-verifications' element={<ProtectedRoute allowedRole='admin'><AdminDoctorVerifications /></ProtectedRoute>} />
+              <Route path='/about' element={<About />} />
+              <Route path='/privacy' element={<Privacy />} />
+              <Route path='/health-risk' element={<HealthRiskPage />} />
+              <Route path='/symptom-checker' element={<SymptomCheckerPage />} />
+              <Route path='/patient/chat-doctor' element={<ChatDoctorPage />} />
+              <Route path='/patient/voice-doctor' element={<VoiceDoctorPage />} />
+              <Route path='/doctor/analytics' element={<ProtectedRoute allowedRole='doctor'><DashboardPage /></ProtectedRoute>} />
 
-                  <Route path='/admin-dashboard' element={<ProtectedRoute allowedRole='admin'><AdminDashboard /></ProtectedRoute>} />
-                  <Route path='/admin-doctors' element={<ProtectedRoute allowedRole='admin'><AdminDoctors /></ProtectedRoute>} />
-                  <Route path='/admin-patients' element={<ProtectedRoute allowedRole='admin'><AdminPatients /></ProtectedRoute>} />
-                  <Route path='/admin-appointments' element={<ProtectedRoute allowedRole='admin'><AdminAppointments /></ProtectedRoute>} />
-                  <Route path='/admin-queries' element={<ProtectedRoute allowedRole='admin'><AdminQueries /></ProtectedRoute>} />
-                  <Route path='/admin-doctor-verifications' element={<ProtectedRoute allowedRole='admin'><AdminDoctorVerifications /></ProtectedRoute>} />
-                  <Route path='/about' element={<About />} />
-                  <Route path='/privacy' element={<Privacy />} />
+              <Route path='/notifications' element={<Notifications />} />
+              <Route path='/profile' element={<Profile />} />
+              {/* Patient aliases to avoid "No routes matched" errors */}
+              <Route path='/patient/profile' element={<Profile />} />
+              <Route path='/doctor/:id' element={<DoctorProfile />} />
 
-                  <Route path='/notifications' element={<Notifications />} />
-                  <Route path='/profile' element={<Profile />} />
-                  <Route path='/doctor/:id' element={<DoctorProfile />} />
-
-                  {/* 聊天相关路由 */}
-                  <Route path='/chats' element={<ChatListPage />} />
-                  <Route path='/chats/:chatId' element={<ChatPage />} />
-                </Route>
-              </Routes>
-            </NotificationProvider>
-          </div>
-        </ThemeProvider>
+              {/* Chat routes */}
+              <Route path='/chats' element={<ChatListPage />} />
+              <Route path='/chats/:chatId' element={<ChatPage />} />
+              {/* Patient alias for chat */}
+              <Route path='/patient/chat' element={<ChatListPage />} />
+            </Route>
+          </Routes>
+        </NotificationProvider>
       </AuthProvider>
     </Router>
   );

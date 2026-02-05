@@ -53,4 +53,4 @@ const admin = (req, res, next) => {
   next();
 };
 
-module.exports = { protect, isDoctor, isPatient, admin };
+module.exports = { protect, isDoctor, isPatient, admin, isPendingDoctor, isUser };

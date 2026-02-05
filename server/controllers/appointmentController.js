@@ -57,8 +57,16 @@ exports.exportAppointmentsToExcel = async (req, res) => {
 };
 exports.createAppointment = async (req, res) => {
   try {
-    const { name, age, gender, date, time, reason, doctorId } = req.body;
+    // This function is now only used for creating appointments without payment
+    // For paid appointments, use the payment verification endpoint
+    const { name, age, gender, date, time, reason, doctorId, fees } = req.body;
     const patientId = req.user._id;
+
+    // Get doctor details to fetch consultation fee
+    const doctor = await User.findById(doctorId);
+    if (!doctor || doctor.role !== 'doctor') {
+      return res.status(404).json({ msg: 'Doctor not found' });
+    }
 
     const appointment = new Appointment({
       patientId,
@@ -68,7 +76,8 @@ exports.createAppointment = async (req, res) => {
       gender,
       date,
       time,
-      reason
+      reason,
+      fees: fees || doctor.doctorDetails.consultationFee || 0
     });
 
     await appointment.save();
@@ -289,60 +298,154 @@ exports.getAllAppointments = async (req, res) => {
   }
 };
 
-// ✅ Get unique patients who have had appointments with the doctor
+// Get detailed patient information for doctor
+exports.getPatientDetails = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const doctorId = req.user._id;
+    
+    // Get patient basic info
+    const patient = await User.findById(patientId).select('-password');
+    if (!patient || patient.role !== 'patient') {
+      return res.status(404).json({ msg: 'Patient not found' });
+    }
+    
+    // Get all appointments between this doctor and patient
+    const appointments = await Appointment.find({
+      doctorId,
+      patientId
+    }).sort({ createdAt: -1 });
+    
+    // Get prescriptions for this patient from this doctor
+    const Prescription = require('../models/Prescription');
+    const prescriptions = await Prescription.find({
+      doctorId,
+      patientId
+    }).sort({ createdAt: -1 });
+    
+    res.json({
+      patient,
+      appointments,
+      prescriptions
+    });
+  } catch (err) {
+    console.error('Error in getPatientDetails:', err);
+    res.status(500).json({ msg: 'Error fetching patient details', error: err.message });
+  }
+};
+
+// ✅ Get comprehensive patient data for doctor's patients
 exports.getDoctorPatients = async (req, res) => {
   try {
-    // Get doctorId from URL parameter if provided, otherwise use authenticated user's ID
-    const doctorId = req.params.doctorId || req.user._id;
+    console.log('🔍 getDoctorPatients called for user:', req.user._id);
     
-    // 获取所有状态（包括pending, approved, rejected等）的预约
+    const doctorId = req.user._id;
+    
+    // Get all appointments for this doctor with full patient data
     const appointments = await Appointment.find({
-      doctorId
-    }).populate('patientId', 'name email profile phone');
+      doctorId,
+      patientId: { $ne: null }
+    })
+    .populate({
+      path: 'patientId',
+      select: 'name email profileImage profile createdAt',
+      match: { role: 'patient' }
+    })
+    .sort({ createdAt: -1 });
 
-    // 获取唯一的患者
-    const patients = [];
-    const patientIds = new Set();
+    console.log('🔍 Found appointments:', appointments.length);
+
+    // Filter out appointments where patient population failed
+    const validAppointments = appointments.filter(appointment => appointment.patientId);
+    console.log('🔍 Valid appointments:', validAppointments.length);
+
+    // Group appointments by patient
+    const patientMap = new Map();
     
-    // 计算每个患者的预约次数和最后一次预约日期
-    const patientStats = {};
-    
-    appointments.forEach(appointment => {
+    validAppointments.forEach(appointment => {
       const patientId = appointment.patientId._id.toString();
+      const patient = appointment.patientId;
       
-      if (!patientIds.has(patientId)) {
-        patients.push(appointment.patientId);
-        patientIds.add(patientId);
+      if (!patientMap.has(patientId)) {
+        patientMap.set(patientId, {
+          _id: patient._id,
+          name: patient.name,
+          email: patient.email,
+          profileImage: patient.profileImage,
+          profile: patient.profile || {},
+          joinedDate: patient.createdAt,
+          appointments: [],
+          totalAppointments: 0,
+          completedAppointments: 0,
+          pendingAppointments: 0,
+          approvedAppointments: 0,
+          cancelledAppointments: 0,
+          lastAppointmentDate: null,
+          nextAppointmentDate: null,
+          totalFeesPaid: 0
+        });
       }
       
-      // 初始化患者统计信息
-      if (!patientStats[patientId]) {
-        patientStats[patientId] = {
-          appointmentCount: 0,
-          lastAppointmentDate: appointment.date
-        };
+      const patientData = patientMap.get(patientId);
+      
+      // Add appointment to patient's list
+      patientData.appointments.push({
+        _id: appointment._id,
+        date: appointment.date,
+        time: appointment.time,
+        status: appointment.status,
+        reason: appointment.reason,
+        fees: appointment.fees || 0,
+        createdAt: appointment.createdAt
+      });
+      
+      // Update statistics
+      patientData.totalAppointments++;
+      
+      switch (appointment.status) {
+        case 'completed':
+        case 'visited':
+          patientData.completedAppointments++;
+          patientData.totalFeesPaid += appointment.fees || 0;
+          break;
+        case 'pending':
+          patientData.pendingAppointments++;
+          break;
+        case 'approved':
+          patientData.approvedAppointments++;
+          break;
+        case 'cancelled':
+        case 'cancelled-by-patient':
+        case 'rejected':
+          patientData.cancelledAppointments++;
+          break;
       }
       
-      // 更新预约次数
-      patientStats[patientId].appointmentCount++;
+      // Update dates
+      if (!patientData.lastAppointmentDate || appointment.date > patientData.lastAppointmentDate) {
+        patientData.lastAppointmentDate = appointment.date;
+      }
       
-      // 更新最后一次预约日期
-      if (appointment.date > patientStats[patientId].lastAppointmentDate) {
-        patientStats[patientId].lastAppointmentDate = appointment.date;
+      if (appointment.status === 'approved' && appointment.date > new Date()) {
+        if (!patientData.nextAppointmentDate || appointment.date < patientData.nextAppointmentDate) {
+          patientData.nextAppointmentDate = appointment.date;
+        }
       }
     });
 
-    const patientData = patients.map(patient => {
-        const stats = patientStats[patient._id.toString()];
-        return {
-            ...patient.toObject(),
-            appointmentCount: stats ? stats.appointmentCount : 0,
-            lastAppointmentDate: stats ? stats.lastAppointmentDate : null
-        };
-    });
+    // Convert to array and sort
+    const patientsData = Array.from(patientMap.values())
+      .sort((a, b) => {
+        if (!a.lastAppointmentDate && !b.lastAppointmentDate) return 0;
+        if (!a.lastAppointmentDate) return 1;
+        if (!b.lastAppointmentDate) return -1;
+        return new Date(b.lastAppointmentDate) - new Date(a.lastAppointmentDate);
+      });
 
-    res.json(patientData);
+    console.log('✅ Returning patient data:', patientsData.length, 'patients');
+    res.json(patientsData);
   } catch (err) {
+    console.error('❌ Error in getDoctorPatients:', err);
     res.status(500).json({ msg: 'Error fetching doctor patients', error: err.message });
   }
 };

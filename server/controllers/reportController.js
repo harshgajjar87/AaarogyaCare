@@ -1,6 +1,6 @@
 const Report = require('../models/Report');
 const User = require('../models/User');
-const transporter = require('../config/mail');
+const transporter = require('../config/mailjet');
 
 // ✅ Upload Report (Doctor to Patient)
 exports.uploadReport = async (req, res) => {
@@ -25,7 +25,7 @@ exports.uploadReport = async (req, res) => {
 
     // Email notification with download link
     const mailOptions = {
-      from: process.env.MAIL_USER,
+      from: process.env.MAIL_USER || process.env.MAILJET_API_KEY,
       to: patient.email,
       subject: 'New Medical Report Uploaded',
       html: `
@@ -35,9 +35,13 @@ exports.uploadReport = async (req, res) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError);
+    }
 
-    res.status(200).json({ msg: 'Report uploaded and patient notified', report: newReport });
+    res.status(200).json({ msg: 'Report uploaded', report: newReport });
   } catch (err) {
     res.status(500).json({ msg: 'Upload failed', error: err.message });
   }

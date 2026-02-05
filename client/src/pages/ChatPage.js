@@ -1,37 +1,30 @@
-
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Chat from '../components/Chat';
-import PaitentNavbar from '../components/PaitentNavbar';
+import { ArrowLeft } from 'lucide-react';
 
 const ChatPage = () => {
   const navigate = useNavigate();
-  
-  // Get user role from user object in localStorage
-  const userData = JSON.parse(localStorage.getItem('user') || '{}');
-  const userRole = userData.role || 'patient'; // Default to patient if not found
 
   const handleBackToChats = () => {
     navigate('/chats');
   };
 
   return (
-    <div className="chat-page">
-      
-      <div className="content">
-        <div className="container mt-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>Chat</h2>
+    <div className="max-w-5xl mx-auto">
+        <div className="flex justify-between items-center mb-4">
+            <h1 className="text-3xl font-bold text-health-text-h">Chat</h1>
             <button 
-              className="btn btn-secondary"
+              className="bg-slate-200 text-slate-800 px-4 py-2 rounded-full hover:bg-slate-300 transition-all font-medium flex items-center gap-2 text-sm"
               onClick={handleBackToChats}
             >
-              Back to Chats
+                <ArrowLeft size={16} />
+                <span>Back to Chats</span>
             </button>
-          </div>
-          <Chat />
         </div>
-      </div>
+        <div className="bg-white rounded-xl shadow-sm border overflow-hidden" style={{ height: 'calc(100vh - 12rem)' }}>
+            <Chat />
+        </div>
     </div>
   );
 };

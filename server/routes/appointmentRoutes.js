@@ -9,7 +9,7 @@ const { protect, isDoctor, isPatient } = require('../middleware/authMiddleware')
 router.post('/', protect, isPatient, appointmentController.createAppointment);
 
 // GET /api/appointments/patient/:id - Patient views their own appointments.
-router.get('/patient/:id', protect, isPatient, appointmentController.getAppointmentsByPatientId);
+router.get('/patient/:id', protect, appointmentController.getAppointmentsByPatientId);
 
 // PATCH /api/appointments/cancel/:id - Patient cancels their appointment.
 router.patch('/cancel/:id', protect, isPatient, appointmentController.cancelAppointment);

@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Otp = require('../models/Otp');
-const transporter = require('../config/mail');
+const transporter = require('../config/mailjet');
 
 // Generate 6-digit OTP
 const generateOTP = () => {
@@ -107,7 +107,7 @@ exports.forgotPassword = async (req, res) => {
 
     // Send password reset email
     const mailOptions = {
-      from: process.env.MAIL_USER,
+      from: process.env.MAIL_USER || process.env.MAILJET_API_KEY,
       to: email,
       subject: 'Aarogya Clinic - Password Reset Request',
       html: `
@@ -128,7 +128,11 @@ exports.forgotPassword = async (req, res) => {
     res.json({ msg: 'Password reset OTP sent successfully to email' });
   } catch (err) {
     console.error('Forgot password error:', err);
-    res.status(500).json({ msg: 'Server Error', error: err.message });
+    if (err.code === 'EAUTH') {
+      res.status(500).json({ msg: 'Email system authentication failed. Please contact admin.', error: 'SMTP Credentials Invalid' });
+    } else {
+      res.status(500).json({ msg: 'Server Error', error: err.message });
+    }
   }
 };
 

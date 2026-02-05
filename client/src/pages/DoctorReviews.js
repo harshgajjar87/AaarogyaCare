@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import ReviewList from '../components/ReviewList';
 import { getReviewStatistics } from '../api/reviewAPI';
 import StarRating from '../components/StarRating';
-import '../styles/pages/DoctorReviews.css';
+import { Star, BarChart, Users, ArrowLeft } from 'lucide-react';
 
 const DoctorReviews = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [statistics, setStatistics] = useState({
     averageRating: 0,
     totalReviews: 0,
@@ -16,119 +18,79 @@ const DoctorReviews = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchReviewStatistics();
+    if (user?._id) {
+      fetchReviewStatistics();
+    }
   }, [user]);
 
   const fetchReviewStatistics = async () => {
     try {
       setLoading(true);
-      if (user && user._id) {
-        const stats = await getReviewStatistics(user._id);
-        setStatistics(stats);
-      }
+      const stats = await getReviewStatistics(user._id);
+      setStatistics(stats);
       setError('');
     } catch (err) {
       setError(err.message || 'Failed to load review statistics');
-      console.error('Error fetching review statistics:', err);
     } finally {
       setLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="text-center">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading reviews...</span>
-          </div>
-          <p className="mt-2">Loading your reviews...</p>
-        </div>
+  
+  const StatCard = ({ title, value, icon }) => (
+    <div className="bg-white rounded-xl shadow-sm border p-6">
+      <div className="flex items-center justify-between">
+        <h5 className="text-slate-500">{title}</h5>
+        {icon}
       </div>
-    );
-  }
+      <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
+    </div>
+  );
 
-  if (error) {
-    return (
-      <div className="error-container">
-        <div className="error-alert">
-          <i className="fas fa-exclamation-triangle me-2"></i>
-          {error}
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="text-center p-8">Loading reviews...</div>;
+  if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
 
   return (
-    <div className="reviews-container">
-      <div className="reviews-header">
-        <h2>My Reviews</h2>
-        <p>Track your patient feedback and ratings</p>
+    <div className="max-w-5xl mx-auto space-y-8">
+      <div className="flex items-center gap-4 mb-4">
+        <button
+          onClick={() => navigate('/doctor/dashboard')}
+          className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-3xl font-bold text-health-text-h">My Reviews</h1>
+      </div>
+      <div className="text-center -mt-4">
+        <p className="text-health-text-p">Track your patient feedback and ratings.</p>
       </div>
 
-      {/* Review Statistics */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="card-body">
-            <h5 className="card-title">Overall Rating</h5>
-            <div className="rating-display">
-              <StarRating
-                rating={statistics.averageRating}
-                size={28}
-                editable={false}
-                showRating={true}
-              />
-            </div>
-            <p className="card-text">
-              {statistics.averageRating.toFixed(1)} out of 5
-            </p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="card-body">
-            <h5 className="card-title">Total Reviews</h5>
-            <h2 className="display-4">{statistics.totalReviews}</h2>
-            <p className="card-text">patient reviews</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <StatCard title="Overall Rating" value={statistics.averageRating.toFixed(1)} icon={<Star className="text-yellow-400" />} />
+        <StatCard title="Total Reviews" value={statistics.totalReviews} icon={<Users className="text-blue-500" />} />
       </div>
 
-      {/* Rating Distribution */}
-      <div className="rating-distribution-card">
-        <div className="card-body">
-          <h5 className="card-title">Rating Distribution</h5>
-          <div className="rating-bars">
-            {[5, 4, 3, 2, 1].map(rating => (
-              <div key={rating} className="rating-bar-item">
-                <span className="rating-stars">{rating}★</span>
-                <div className="progress">
-                  <div
-                    className="progress-bar"
-                    role="progressbar"
-                    style={{
-                      width: `${statistics.totalReviews > 0 ? (statistics.ratingDistribution[rating] / statistics.totalReviews * 100) : 0}%`
-                    }}
-                  >
-                    {statistics.ratingDistribution[rating]}
-                  </div>
+      <div className="bg-white rounded-xl shadow-sm border p-6">
+        <h4 className="text-lg font-semibold text-health-text-h flex items-center gap-2 mb-4"><BarChart size={20}/> Rating Distribution</h4>
+        <div className="space-y-2">
+          {[5, 4, 3, 2, 1].map(rating => {
+            const count = statistics.ratingDistribution[rating] || 0;
+            const percentage = statistics.totalReviews > 0 ? (count / statistics.totalReviews * 100) : 0;
+            return (
+              <div key={rating} className="flex items-center gap-2">
+                <span className="text-sm text-slate-500 w-8">{rating}★</span>
+                <div className="w-full bg-slate-100 rounded-full h-4">
+                  <div className="bg-yellow-400 h-4 rounded-full" style={{ width: `${percentage}%` }}></div>
                 </div>
+                <span className="text-sm font-bold text-slate-600 w-10 text-right">{count}</span>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
-
-      {/* Reviews List */}
-      <div className="reviews-list-card">
-        <div className="card-body">
-          <h5 className="card-title">Patient Reviews</h5>
-          {user && user._id ? (
-            <ReviewList doctorId={user._id} />
-          ) : (
-            <p className="text-muted">Please log in to view reviews.</p>
-          )}
-        </div>
+      
+      <div className="bg-white rounded-xl shadow-sm border p-6">
+        <h4 className="text-lg font-semibold text-health-text-h mb-4">Patient Reviews</h4>
+        {user?._id ? <ReviewList doctorId={user._id} /> : <p className="text-slate-500">Log in to see reviews.</p>}
       </div>
     </div>
   );

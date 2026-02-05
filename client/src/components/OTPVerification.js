@@ -8,7 +8,6 @@ const OTPVerification = ({ email, onVerified, onResend }) => {
   const [resendLoading, setResendLoading] = useState(false);
   const otpInputRef = useRef(null);
 
-  // ✅ Autofocus when component mounts
   useEffect(() => {
     if (otpInputRef.current) {
       otpInputRef.current.focus();
@@ -47,48 +46,44 @@ const OTPVerification = ({ email, onVerified, onResend }) => {
   };
 
   return (
-    <div className="card mt-3">
-      <div className="card-body">
-        <h5 className="card-title">Verify Email Address</h5>
-        <p className="text-muted">
-          Enter the 6-digit OTP sent to <strong>{email}</strong>
-        </p>
+    <div className="bg-slate-50 rounded-lg p-4 mt-4">
+      <h5 className="font-bold text-health-text-h text-center">Verify Email Address</h5>
+      <p className="text-sm text-health-text-p text-center mb-4">
+        Enter the 6-digit OTP sent to <strong>{email}</strong>
+      </p>
 
-        <div>
-          <div className="mb-3">
-            <input
-              ref={otpInputRef} // ✅ Focus here
-              type="text"
-              className="form-control"
-              placeholder="Enter 6-digit OTP"
-              value={otp}
-              onChange={(e) =>
-                setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
-              }
-              maxLength="6"
-              required
-            />
-          </div>
+      <div className="space-y-4">
+        <input
+          ref={otpInputRef}
+          type="text"
+          className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4 border focus:outline-none focus:border-transparent transition-all text-center tracking-[1em]"
+          placeholder="------"
+          value={otp}
+          onChange={(e) =>
+            setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
+          }
+          maxLength="6"
+          required
+        />
 
-          <div className="d-grid gap-2">
-            <button
-              type="button" // ✅ No parent form submit
-              className="btn btn-primary"
-              disabled={loading}
-              onClick={handleVerify}
-            >
-              {loading ? 'Verifying...' : 'Verify OTP'}
-            </button>
+        <div className="grid grid-cols-1 gap-2">
+          <button
+            type="button"
+            className="w-full bg-teal-600 text-white px-6 py-2 rounded-full hover:bg-teal-700 transition-all font-medium disabled:opacity-50"
+            disabled={loading}
+            onClick={handleVerify}
+          >
+            {loading ? 'Verifying...' : 'Verify OTP'}
+          </button>
 
-            <button
-              type="button"
-              className="btn btn-link"
-              onClick={handleResend}
-              disabled={resendLoading}
-            >
-              {resendLoading ? 'Sending...' : 'Resend OTP'}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="text-sm text-teal-600 hover:text-teal-700 transition-colors disabled:opacity-50"
+            onClick={handleResend}
+            disabled={resendLoading}
+          >
+            {resendLoading ? 'Sending...' : 'Resend OTP'}
+          </button>
         </div>
       </div>
     </div>

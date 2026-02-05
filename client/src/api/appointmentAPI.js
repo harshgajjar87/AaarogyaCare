@@ -20,6 +20,20 @@ export const getAppointmentsByPatientId = async (patientId) => {
   }
 };
 
+// Convenience helper: get appointments for the currently logged-in patient
+export const getMyAppointments = async () => {
+  try {
+    // Fetch the current user's profile to get their ID
+    const profileRes = await axios.get('/profile/me');
+    const patientId = profileRes.data._id;
+
+    const response = await axios.get(`/appointments/patient/${patientId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const exportDoctorAppointments = async () => {
   try {
     const response = await axios.get('/appointments/export', {
@@ -88,20 +102,20 @@ export const getAllAppointments = async () => {
   }
 };
 
-// Get doctor patients
-export const getDoctorPatients = async () => {
+// Get patients by doctor ID
+export const getPatientsByDoctorId = async (doctorId) => {
   try {
-    const response = await axios.get('/appointments/doctor/patients');
+    const response = await axios.get(`/appointments/doctor/patients/${doctorId}`);
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-// Get patients by doctor ID
-export const getPatientsByDoctorId = async (doctorId) => {
+// Get doctor's patients (for logged-in doctor)
+export const getDoctorPatients = async () => {
   try {
-    const response = await axios.get(`/appointments/doctor/patients/${doctorId}`);
+    const response = await axios.get('/doctors/patients');
     return response.data;
   } catch (error) {
     throw error;
