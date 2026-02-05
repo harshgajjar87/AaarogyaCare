@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSpecializations } from '../api/doctorAPI';
-import { Search, Filter, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw } from 'lucide-react';
 
 const DoctorSearchFilter = ({ onFilterChange, loading }) => {
   const [specializations, setSpecializations] = useState([]);

@@ -22,6 +22,8 @@ const DoctorCard = ({ doctor, showBookAppointmentButton = true, onViewProfile, o
     const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     return doctor.doctorDetails?.availability?.some(day => day.day === today && day.isAvailable);
   };
+  // eslint-disable-next-line no-unused-vars
+  const availableToday = isAvailableToday();
 
   return (
     <div onClick={handleViewProfile} className="bg-health-surface rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 overflow-hidden group cursor-pointer">

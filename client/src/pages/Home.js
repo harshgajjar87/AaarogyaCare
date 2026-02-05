@@ -4,10 +4,8 @@ import ReviewsCarousel from '../components/ReviewsCarousel';
 import DoctorCard from '../components/DoctorCard';
 import { getAllDoctors } from '../api/doctorAPI';
 import { AuthContext } from '../context/AuthContext';
-import { CheckCircle, UserMd, Calendar, MessageCircle, Shield, Clock, ArrowDown, Stethoscope, Activity, Heart } from 'lucide-react';
-import heroSectionImage from '../assets/herosection.webp';
-import SymptomChecker from '../components/SymptomChecker';
-import HealthRiskCalculator from '../components/HealthRiskCalculator';
+import { ArrowDown, Stethoscope, Activity, Heart } from 'lucide-react';
+
 
 const Home = () => {
   const [doctors, setDoctors] = useState([]);

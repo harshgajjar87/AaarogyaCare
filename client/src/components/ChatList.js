@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getUserChats } from '../api/chatAPI';
-import { MessageSquare, Archive, RefreshCw, AlertCircle, User, Stethoscope } from 'lucide-react';
+import { RefreshCw, AlertCircle, User, Stethoscope } from 'lucide-react';
 
 const ChatList = () => {
   const [activeChats, setActiveChats] = useState([]);

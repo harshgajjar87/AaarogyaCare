@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
-import { useState, useEffect, useContext } from 'react';
-import { ThemeProvider } from './context/ThemeContext';
+import { useContext } from 'react';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 
 // Import pages
@@ -25,7 +24,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DoctorReports from './pages/DoctorReports';
 import DoctorPatients from './pages/DoctorPatients';
 import DoctorReviews from './pages/DoctorReviews';
-import NotificationBell from './components/NotificationBell';
+
 import DoctorProfile from './pages/DoctorProfile'; // Corrected path
 import ChatListPage from './pages/ChatListPage';
 import ChatPage from './pages/ChatPage';
@@ -62,7 +61,6 @@ import PublicNavbar from './components/PublicNavbar';
 function Layout() {
   const location = useLocation();
   const { user } = useContext(AuthContext);
-  const userRole = user?.role;
 
   const isPatientRoute =
     location.pathname.startsWith('/patient') ||

@@ -18,7 +18,7 @@ const MedicineDropdown = ({ value, onChange, placeholder = "Select medicine..." 
     } else {
       setFilteredMedicines(allMedicines.slice(0, 20));
     }
-  }, [value]);
+  }, [value, allMedicines]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

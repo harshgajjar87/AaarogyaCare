@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import StarRating from './StarRating';
 import { getDoctorReviews } from '../api/reviewAPI';
 import { getFullImageUrl } from '../utils/imageUtils';
-import { ChevronDown, ChevronsUpDown } from 'lucide-react';
 
 const ReviewList = ({ doctorId }) => {
   const [reviews, setReviews] = useState([]);
@@ -13,9 +12,9 @@ const ReviewList = ({ doctorId }) => {
 
   useEffect(() => {
     fetchReviews();
-  }, [doctorId, pagination.page, sortBy]);
+  }, [fetchReviews]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
       const [sortField, sortOrder] = sortBy.split('_');
@@ -28,7 +27,7 @@ const ReviewList = ({ doctorId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [doctorId, pagination.page, sortBy]);
 
   const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 

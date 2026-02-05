@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -19,9 +19,9 @@ const MyAppointments = () => {
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, fetchAppointments]);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       const appointmentsData = await getAppointmentsByPatientId(user._id);
@@ -31,7 +31,7 @@ const MyAppointments = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user._id]);
 
   const handleCancel = async (id) => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {

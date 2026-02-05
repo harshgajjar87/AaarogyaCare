@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { AuthContext } from './AuthContext';
 import { getNotifications, markAllAsSeen, clearNotifications as clearNotificationsAPI } from '../api/notificationAPI';
 
@@ -9,12 +9,12 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [hasNew, setHasNew] = useState(false);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user || !user._id) return; // ✅ Guard clause
     const data = await getNotifications(user._id);
     setNotifications(data);
     setHasNew(data.some(n => !n.seen));
-  };
+  }, [user]);
 
   const markSeen = async () => {
     if (!user || !user._id) return; // ✅ Guard clause
@@ -34,7 +34,7 @@ export const NotificationProvider = ({ children }) => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [fetchNotifications]);
 
   return (
     <NotificationContext.Provider value={{ notifications, hasNew, fetchNotifications, markSeen, clearNotifications }}>

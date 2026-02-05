@@ -5,7 +5,7 @@ import NotificationBell from './NotificationBell';
 import ConfirmLogoutModal from './ConfirmLogoutModal';
 import axios from '../utils/axios';
 import { getProfileImageUrl } from '../utils/imageUtils';
-import { LayoutDashboard, Stethoscope, Calendar, FileText, Info, LogOut, Menu, X, User } from 'lucide-react';
+import { Info, LogOut, Menu, X } from 'lucide-react';
 
 const PatientNavbar = () => {
   const { logout } = useContext(AuthContext);

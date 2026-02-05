@@ -46,7 +46,7 @@ const VoiceDoctor = () => {
     
     window.speechSynthesis.cancel(); // Cancel any previous speech
     window.speechSynthesis.speak(utterance);
-  }, [language, voices]); // Re-create this function if language or voices change
+  }, [language, voices, langConfig]); // Re-create this function if language or voices change
 
   // Effect to load speech synthesis voices
   useEffect(() => {
@@ -72,7 +72,7 @@ const VoiceDoctor = () => {
     if (voices.length > 0) {
       speak(initialMessage.content, langConfig[language].code);
     }
-  }, [language, voices, speak]); // Reruns on language change or when voices become available
+  }, [language, voices, speak, langConfig]); // Reruns on language change or when voices become available
 
   // Memoized handler for processing user speech and interacting with the backend
   const handleUserSpeech = useCallback((transcript) => {
@@ -111,7 +111,7 @@ const VoiceDoctor = () => {
       // Return the new state with the user's message for an optimistic UI update
       return [...prevHistory, userMessage];
     });
-  }, [language, speak]);
+  }, [language, speak, langConfig]);
 
   // Effect to set up and manage the SpeechRecognition API
   useEffect(() => {
@@ -145,7 +145,7 @@ const VoiceDoctor = () => {
     return () => {
       recognition.abort();
     };
-  }, [language, handleUserSpeech]); // Re-configure only when language or the handler function changes
+  }, [language, handleUserSpeech, langConfig]); // Re-configure only when language or the handler function changes
 
   const toggleListen = () => {
     const recognition = recognitionRef.current;

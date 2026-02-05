@@ -1,9 +1,6 @@
 
 import axios from '../utils/axios';
 
-// Base URL for API requests
-const API_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
-
 // Retry configuration
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second

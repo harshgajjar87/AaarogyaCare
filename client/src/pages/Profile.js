@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { getProfileImageUrl, getClinicImageUrl } from '../utils/imageUtils';
 import { updateDoctorProfile } from '../api/doctorAPI';
 import { AuthContext } from '../context/AuthContext';
-import { Upload, X, Camera, User, Heart, Phone, MapPin, Building, Briefcase, GraduationCap, Info, Brain, Calendar, Clock, Image as ImageIcon, ArrowLeft } from 'lucide-react';
+import { Camera, User, Briefcase, Brain, Calendar, ArrowLeft, X, Image as ImageIcon } from 'lucide-react';
 
 const Profile = () => {
-  const { user, login } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
@@ -161,7 +161,11 @@ const Profile = () => {
         <div className="lg:col-span-1 space-y-8">
           <div className="bg-white rounded-xl shadow-sm border p-6 text-center">
             <div className="relative w-32 h-32 mx-auto">
-              <img src={previewImage || '/images/default-avtar.jpg'} alt="Profile" className="w-32 h-32 rounded-full object-cover mx-auto ring-4 ring-teal-100" />
+              <img
+                src={previewImage || '/images/default-avtar.jpg'}
+                alt="Profile"
+                className="w-32 h-32 rounded-full object-cover mx-auto ring-4 ring-teal-100"
+              />
               <label htmlFor="profile-image-upload" className="absolute bottom-0 right-0 bg-teal-600 text-white p-2 rounded-full cursor-pointer hover:bg-teal-700">
                 <Camera size={16} />
                 <input id="profile-image-upload" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
