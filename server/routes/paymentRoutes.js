@@ -5,8 +5,21 @@ const crypto = require('crypto');
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Chat = require('../models/Chat');
 const transporter = require('../config/mail');
 const { protect } = require('../middleware/authMiddleware');
+
+// HTML sanitization function
+const escapeHtml = (text) => {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
+};
 
 // Initialize Razorpay lazily
 let razorpay = null;
@@ -29,11 +42,11 @@ router.post('/order', protect, async (req, res) => {
   try {
     const { amount } = req.body;
 
-    // Check if Razorpay is configured
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      return res.status(500).json({
+    // Validate amount
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({
         success: false,
-        message: 'Payment service not configured'
+        message: 'Invalid amount provided'
       });
     }
 
@@ -67,7 +80,9 @@ router.post('/order', protect, async (req, res) => {
 // Verify Payment and Create Appointment
 router.post('/verify-and-book', protect, async (req, res) => {
   try {
-    console.log("Received payment verification request with body:", req.body);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Received payment verification request");
+    }
     const {
       razorpay_payment_id,
       razorpay_order_id,
@@ -84,13 +99,7 @@ router.post('/verify-and-book', protect, async (req, res) => {
       });
     }
 
-    // Check if Razorpay is configured
-    if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-      return res.status(500).json({
-        success: false,
-        message: 'Payment service not configured'
-      });
-    }
+
 
     // Verify signature
     console.log("Verifying payment signature");
@@ -99,8 +108,9 @@ router.post('/verify-and-book', protect, async (req, res) => {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
     
-    console.log("Generated signature:", generated_signature);
-    console.log("Received signature:", razorpay_signature);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log("Verifying payment signature");
+    }
 
     if (generated_signature !== razorpay_signature) {
       console.error("Signature verification failed");
@@ -147,7 +157,6 @@ router.post('/verify-and-book', protect, async (req, res) => {
     const doctor = await User.findById(bookingDetails.doctorId);
 
     // Create a chat for the approved appointment
-    const Chat = require('../models/Chat');
     try {
       const existingChat = await Chat.findOne({ appointmentId: appointment._id });
 
@@ -194,10 +203,10 @@ router.post('/verify-and-book', protect, async (req, res) => {
           to: doctor.email,
           subject: 'New Approved Appointment',
           html: `
-            <p>Dear Dr. ${doctor.name},</p>
-            <p>You have a new approved appointment on <strong>${bookingDetails.date}</strong> at <strong>${bookingDetails.time}</strong>.</p>
-            <p>Patient: ${bookingDetails.name}</p>
-            <p>Payment ID: ${razorpay_payment_id}</p>
+            <p>Dear Dr. ${escapeHtml(doctor.name)},</p>
+            <p>You have a new approved appointment on <strong>${escapeHtml(bookingDetails.date)}</strong> at <strong>${escapeHtml(bookingDetails.time)}</strong>.</p>
+            <p>Patient: ${escapeHtml(bookingDetails.name)}</p>
+            <p>Payment ID: ${escapeHtml(razorpay_payment_id)}</p>
             <p>This appointment has been automatically approved as payment was successful.</p>
           `
         };
