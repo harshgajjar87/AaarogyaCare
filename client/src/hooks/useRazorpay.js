@@ -39,7 +39,7 @@ const useRazorpay = () => {
                 // 2. Configure Razorpay options
                 console.log("Configuring Razorpay options with order ID:", order.id);
                 const options = {
-                    key: 'rzp_test_RbbXXNYeUDInu0',
+                    key: process.env.RAZORPAY_KEY_ID || 'rzp_test_RbbXXNYeUDInu0',
                     amount: order.amount,
                     currency: "INR",
                     name: "AarogyaCare",
