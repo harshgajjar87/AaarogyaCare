@@ -1,18 +1,25 @@
 const DoctorVerification = require('../models/DoctorVerification');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const transporter = require('../config/mail');
 const multer = require('multer');
 const path = require('path');
-const { createNotification } = require('./notificationController');
+const fs = require('fs');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/verifications/');
+    // Use path.join for robust path creation and ensure directory exists
+    const uploadDir = path.join(__dirname, '..', 'uploads', 'verifications');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    const cleanFilename = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(cleanFilename));
   }
 });
 
@@ -183,10 +190,15 @@ exports.approveVerification = async (req, res) => {
     await transporter.sendMail(mailOptions);
 
     // Notify all admins about the approval
-    const admins = await User.find({ role: 'admin' });
+    const admins = await User.find({ role: 'admin' }).select('_id').lean();
     const notificationMessage = `Doctor verification approved for Dr. ${user.name}.`;
-    for (const admin of admins) {
-      await createNotification(admin._id, notificationMessage);
+    if (admins.length > 0) {
+      const notifications = admins.map(admin => ({
+        userId: admin._id,
+        message: notificationMessage,
+      }));
+      // Use insertMany for bulk creation, which is more efficient than one by one.
+      await Notification.insertMany(notifications);
     }
 
     res.json({ msg: 'Verification approved successfully' });

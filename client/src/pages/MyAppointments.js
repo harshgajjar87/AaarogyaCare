@@ -13,14 +13,6 @@ const MyAppointments = () => {
   const [chatLoading, setChatLoading] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user?._id) {
-      fetchAppointments();
-    } else {
-      setLoading(false);
-    }
-  }, [user, fetchAppointments]);
-
   const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
@@ -32,6 +24,14 @@ const MyAppointments = () => {
       setLoading(false);
     }
   }, [user._id]);
+
+  useEffect(() => {
+    if (user?._id) {
+      fetchAppointments();
+    } else {
+      setLoading(false);
+    }
+  }, [user, fetchAppointments]);
 
   const handleCancel = async (id) => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {

@@ -10,10 +10,6 @@ const ReviewList = ({ doctorId }) => {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1 });
   const [sortBy, setSortBy] = useState('createdAt_desc');
 
-  useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
-
   const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
@@ -28,6 +24,10 @@ const ReviewList = ({ doctorId }) => {
       setLoading(false);
     }
   }, [doctorId, pagination.page, sortBy]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
