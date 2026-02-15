@@ -7,8 +7,10 @@ import DoctorCard from '../components/DoctorCard';
 import axios from '../utils/axios';
 import { getAllDoctors } from '../api/doctorAPI';
 import { getMyAppointments } from '../api/appointmentAPI';
-import { LayoutDashboard, CalendarCheck, MessageSquare, User, LogOut, Briefcase, Users, FileText, Brain, Book, Bell, Menu, X, Activity, CreditCard, Pill } from 'lucide-react';
+import { LayoutDashboard, CalendarCheck, MessageSquare, User, LogOut, Briefcase, Users, FileText, Brain, Book, Bell, Menu, X, Activity, CreditCard, Pill, Stethoscope, Phone } from 'lucide-react';
 import ChatBot from '../components/ChatBot';
+import AITriageChat from '../components/AITriageChat';
+import AIVoiceCall from '../components/AIVoiceCall';
 import { getProfileImageUrl } from '../utils/imageUtils';
 
 const PatientDashboard = () => {
@@ -30,6 +32,8 @@ const PatientDashboard = () => {
     totalPages: 1,
     total: 0,
   });
+  const [showAIChat, setShowAIChat] = useState(false);
+  const [showVoiceCall, setShowVoiceCall] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -268,21 +272,23 @@ const PatientDashboard = () => {
           <Brain size={20} />
           <span>Predict your health</span>
         </Link>
-        <Link
-          to="/patient/chat-doctor"
+        <button
+          onClick={() => setShowAIChat(true)}
           className="fixed bottom-6 right-6 z-40 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105"
         >
-          <MessageSquare size={20} />
+          <Stethoscope size={20} />
           <span>Chat with AI Doctor</span>
-        </Link>
-        <Link
-          to="/patient/voice-doctor"
+        </button>
+        <button
+          onClick={() => setShowVoiceCall(true)}
           className="fixed bottom-20 right-6 z-40 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105"
         >
-          <Activity size={20} />
+          <Phone size={20} />
           <span>Voice Call with AI Doctor</span>
-        </Link>
+        </button>
         <ChatBot />
+        <AITriageChat isOpen={showAIChat} onClose={() => setShowAIChat(false)} />
+        <AIVoiceCall isOpen={showVoiceCall} onClose={() => setShowVoiceCall(false)} />
       </main>
     </div>
   );

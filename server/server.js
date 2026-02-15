@@ -65,6 +65,8 @@ app.use('/upload', require('./routes/imageRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/prescriptions', require('./routes/prescriptionRoutes'));
 app.use('/api/analysis', require('./routes/analysisRoutes'));
+app.use('/api/triage', require('./routes/triageRoutes'));
+app.use('/api/tts', require('./routes/ttsRoutes'));
 
 // DB & Start
 mongoose.connect(process.env.MONGO_URI)

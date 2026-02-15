@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Indian Accent Voices</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .voice { padding: 10px; margin: 5px; border: 1px solid #ddd; }
+        .indian { background-color: #d4edda; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Available Indian Accent Voices</h1>
+    <p>This page shows all available voices in your browser and highlights Indian voices.</p>
+    
+    <button onclick="testEnglish()">Test English (Indian)</button>
+    <button onclick="testHindi()">Test Hindi</button>
+    <button onclick="testGujarati()">Test Gujarati</button>
+    
+    <h2>Available Voices:</h2>
+    <div id="voices"></div>
+
+    <script>
+        function loadVoices() {
+            const voices = window.speechSynthesis.getVoices();
+            const voicesDiv = document.getElementById('voices');
+            voicesDiv.innerHTML = '';
+            
+            voices.forEach(voice => {
+                const isIndian = voice.lang.includes('IN') || 
+                                voice.lang.includes('hi') || 
+                                voice.lang.includes('gu') ||
+                                voice.name.toLowerCase().includes('indian') ||
+                                voice.name.toLowerCase().includes('india');
+                
+                const div = document.createElement('div');
+                div.className = 'voice' + (isIndian ? ' indian' : '');
+                div.innerHTML = `
+                    <strong>${voice.name}</strong><br>
+                    Language: ${voice.lang}<br>
+                    ${isIndian ? '✅ <strong>INDIAN VOICE</strong>' : ''}
+                `;
+                voicesDiv.appendChild(div);
+            });
+        }
+
+        function speak(text, lang) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            
+            let voice = null;
+            if (lang === 'en-IN') {
+                voice = voices.find(v => v.lang === 'en-IN' || v.name.includes('Indian'));
+            } else if (lang === 'hi-IN') {
+                voice = voices.find(v => v.lang.includes('hi'));
+            } else if (lang === 'gu-IN') {
+                voice = voices.find(v => v.lang.includes('gu'));
+            }
+            
+            if (voice) {
+                utterance.voice = voice;
+                console.log('Using voice:', voice.name, voice.lang);
+            }
+            
+            utterance.lang = lang;
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function testEnglish() {
+            speak('Hello, I am your AI doctor. Please tell me about your symptoms.', 'en-IN');
+        }
+
+        function testHindi() {
+            speak('नमस्ते, मैं आपका AI डॉक्टर हूं। कृपया अपने लक्षणों के बारे में बताएं।', 'hi-IN');
+        }
+
+        function testGujarati() {
+            speak('નમસ્તે, હું તમારો AI ડોક્ટર છું. કૃપા કરીને તમારા લક્ષણો વિશે કહો.', 'gu-IN');
+        }
+
+        // Load voices
+        loadVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+    </script>
+</body>
+</html>
