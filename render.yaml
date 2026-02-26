@@ -1,0 +1,55 @@
+services:
+  # Node.js Backend API
+  - type: web
+    name: aarogyacare-api
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: MAILJET_API_KEY
+        sync: false
+      - key: MAILJET_SECRET_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: PYTHON_SERVICE_URL
+        fromService:
+          type: web
+          name: aarogyacare-python
+          property: host
+
+  # Python Voice Assistant Service
+  - type: web
+    name: aarogyacare-python
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r server/requirements.txt
+    startCommand: python server/voice_assistant.py
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: GOOGLE_API_KEY
+        sync: false
