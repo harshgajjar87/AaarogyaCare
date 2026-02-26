@@ -24,6 +24,7 @@ exports.sendOTP = async (req, res) => {
     await Otp.findOneAndDelete({ email }); 
     const newOtp = new Otp({ email, otp });
     await newOtp.save();
+    console.log(`OTP generated for ${email}: ${otp}`);
 
     // Send email
     const mailOptions = {
@@ -42,12 +43,22 @@ exports.sendOTP = async (req, res) => {
       `
     };
 
+    console.log(`Attempting to send email to ${email}...`);
     await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent successfully to ${email}`);
 
     res.json({ msg: 'OTP sent successfully to email', otp: process.env.NODE_ENV === 'development' ? otp : undefined });
   } catch (err) {
-    console.error('Send OTP error:', err);
-    res.status(500).json({ msg: 'Server Error', error: err.message });
+    console.error('❌ Send OTP error:', err);
+    console.error('Error details:', {
+      message: err.message,
+      code: err.code,
+      command: err.command
+    });
+    res.status(500).json({ 
+      msg: 'Failed to send OTP. Please try again.', 
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Server error'
+    });
   }
 };
 
