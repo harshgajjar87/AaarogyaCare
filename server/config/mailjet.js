@@ -10,6 +10,7 @@ console.log(`Secret Key Check: ${mailjetPass ? mailjetPass.substring(0, 10) + '.
 
 if (!mailjetUser || !mailjetPass) {
   console.error("❌ Mailjet configuration missing in .env file. Please check MAILJET_API_KEY and MAILJET_SECRET_KEY.");
+  throw new Error('Mailjet credentials are required. Please set MAILJET_API_KEY and MAILJET_SECRET_KEY environment variables.');
 }
 
 const transporter = nodemailer.createTransport({
@@ -17,9 +18,12 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: mailjetUser ? mailjetUser.trim() : '',
-    pass: mailjetPass ? mailjetPass.trim() : ''
+    user: mailjetUser.trim(),
+    pass: mailjetPass.trim()
   },
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 // Verify connection configuration on startup
