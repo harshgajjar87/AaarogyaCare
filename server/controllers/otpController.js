@@ -1,5 +1,5 @@
 const Otp = require('../models/Otp');
-const transporter = require('../config/mail');
+const { sendEmail } = require('../config/mailjetAPI');
 
 // Generate 6-digit OTP
 const generateOTP = () => {
@@ -26,34 +26,31 @@ exports.sendOTP = async (req, res) => {
     await newOtp.save();
     console.log(`OTP generated for ${email}: ${otp}`);
 
-    // Send email
-    const mailOptions = {
-      from: process.env.MAIL_USER,
-      to: email,
-      subject: 'Aarogya Clinic - Email Verification',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2c5aa0;">Aarogya Clinic Email Verification</h2>
-          <p>Hello,</p>
-          <p>Your verification code is: <strong style="font-size: 18px; color: #2c5aa0;">${otp}</strong></p>
-          <p>This code will expire in 5 minutes. Please use it to complete your registration.</p>
-          <p>If you didn't request this code, please ignore this email.</p>
-          <p>Best regards,<br>Aarogya Clinic Team</p>
-        </div>
-      `
-    };
+    // Send email using Mailjet API
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2c5aa0;">Aarogya Clinic Email Verification</h2>
+        <p>Hello,</p>
+        <p>Your verification code is: <strong style="font-size: 18px; color: #2c5aa0;">${otp}</strong></p>
+        <p>This code will expire in 5 minutes. Please use it to complete your registration.</p>
+        <p>If you didn't request this code, please ignore this email.</p>
+        <p>Best regards,<br>Aarogya Clinic Team</p>
+      </div>
+    `;
 
     console.log(`Attempting to send email to ${email}...`);
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent successfully to ${email}`);
+    await sendEmail({
+      to: email,
+      subject: 'Aarogya Clinic - Email Verification',
+      html: html
+    });
 
     res.json({ msg: 'OTP sent successfully to email', otp: process.env.NODE_ENV === 'development' ? otp : undefined });
   } catch (err) {
     console.error('❌ Send OTP error:', err);
     console.error('Error details:', {
       message: err.message,
-      code: err.code,
-      command: err.command
+      statusCode: err.statusCode
     });
     res.status(500).json({ 
       msg: 'Failed to send OTP. Please try again.', 
@@ -106,27 +103,22 @@ exports.resendOTP = async (req, res) => {
     const newOtp = new Otp({ email, otp });
     await newOtp.save();
 
-    const mailOptions = {
-      from: process.env.MAIL_USER,
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2c5aa0;">Aarogya Clinic Email Verification</h2>
+        <p>Hello,</p>
+        <p>Your verification code is: <strong style="font-size: 18px; color: #2c5aa0;">${otp}</strong></p>
+        <p>This code will expire in 5 minutes. Please use it to complete your registration.</p>
+        <p>If you didn't request this code, please ignore this email.</p>
+        <p>Best regards,<br>Aarogya Clinic Team</p>
+      </div>
+    `;
+
+    await sendEmail({
       to: email,
       subject: 'Aarogya Clinic - Email Verification',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2c5aa0;">Aarogya Clinic Email Verification</h2>
-          <p>Hello,</p>
-          <p>Your verification code is: <strong style="font-size: 18px; color: #2c5aa0;">${otp}</strong></p>
-          <p>This code will expire in 5 minutes. Please use it to complete your registration.</p>
-          <p>If you didn't request this code, please ignore this email.</p>
-          <p>Best regards,<br>Aarogya Clinic Team</p>
-        </div>
-      `
-    };
-
-    try {
-      await transporter.sendMail(mailOptions);
-    } catch (emailError) {
-      console.error('Email sending failed:', emailError);
-    }
+      html: html
+    });
 
     res.json({ msg: 'OTP resent successfully', otp: process.env.NODE_ENV === 'development' ? otp : undefined });
   } catch (err) {

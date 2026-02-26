@@ -1,5 +1,5 @@
 const Query = require('../models/Query');
-const transporter = require('../config/mail');
+const { sendEmail } = require('../config/mailjetAPI');
 
 // Submit contact form
 exports.submitContact = async (req, res) => {
@@ -35,26 +35,25 @@ exports.submitContact = async (req, res) => {
 
     // Send email notification to admin
     try {
-      const mailOptions = {
-        from: process.env.MAIL_USER,
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2c5aa0;">New Contact Query Received</h2>
+          <p><strong>From:</strong> ${name} (${email})</p>
+          <p><strong>Subject:</strong> ${subject}</p>
+          <p><strong>Message:</strong></p>
+          <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #2c5aa0;">
+            ${message.replace(/\n/g, '<br>')}
+          </div>
+          <p><strong>Received:</strong> ${new Date().toLocaleString()}</p>
+          <p>Please respond to this query as soon as possible.</p>
+        </div>
+      `;
+
+      await sendEmail({
         to: 'AarogyaCare55@gmail.com',
         subject: `New Contact Query: ${subject}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2c5aa0;">New Contact Query Received</h2>
-            <p><strong>From:</strong> ${name} (${email})</p>
-            <p><strong>Subject:</strong> ${subject}</p>
-            <p><strong>Message:</strong></p>
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #2c5aa0;">
-              ${message.replace(/\n/g, '<br>')}
-            </div>
-            <p><strong>Received:</strong> ${new Date().toLocaleString()}</p>
-            <p>Please respond to this query as soon as possible.</p>
-          </div>
-        `
-      };
-
-      await transporter.sendMail(mailOptions);
+        html: html
+      });
     } catch (emailError) {
       console.error('Failed to send email notification:', emailError);
       // Continue even if email fails - the query is still saved in database
