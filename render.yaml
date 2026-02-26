@@ -5,7 +5,7 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: cd server && npm install
+    buildCommand: cd server && npm ci
     startCommand: cd server && node server.js
     envVars:
       - key: NODE_ENV
