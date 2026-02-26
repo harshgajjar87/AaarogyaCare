@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, MapPin, IndianRupee, Stethoscope, Check, Calendar } from 'lucide-react';
-import { getFullImageUrl } from '../utils/imageUtils';
+import { getFullImageUrl, getProfileImageUrl } from '../utils/imageUtils';
 
 const DoctorCard = ({ doctor, showBookAppointmentButton = true, onViewProfile, onBookAppointment }) => {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ const DoctorCard = ({ doctor, showBookAppointmentButton = true, onViewProfile, o
       <div className="relative p-6 flex justify-center">
         <div className="relative">
           <img
-            src={getFullImageUrl(doctor.profileImage)}
+            src={getProfileImageUrl(doctor.profileImage)}
             alt={doctor.name}
             className="w-32 h-32 rounded-full object-cover ring-4 ring-white shadow-lg group-hover:scale-105 transition-transform"
           />

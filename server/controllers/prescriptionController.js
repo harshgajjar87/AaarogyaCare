@@ -2,6 +2,8 @@ const Prescription = require('../models/Prescription');
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const transporter = require('../config/mail');
+const { generatePrescriptionPDF } = require('../utils/pdfGenerator');
+const path = require('path');
 
 // Mark patient as visited
 exports.markPatientVisited = async (req, res) => {
@@ -163,6 +165,45 @@ exports.getPatientDetails = async (req, res) => {
       totalAppointments: appointments.length
     });
   } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
+// Download prescription as PDF
+exports.downloadPrescriptionPDF = async (req, res) => {
+  try {
+    const prescription = await Prescription.findById(req.params.id)
+      .populate('patientId', 'name email profile')
+      .populate('doctorId', 'name profile doctorDetails');
+
+    if (!prescription) {
+      return res.status(404).json({ msg: 'Prescription not found' });
+    }
+
+    // Check authorization - allow both patient and doctor
+    const isPatient = prescription.patientId._id.toString() === req.user._id.toString();
+    const isDoctor = prescription.doctorId._id.toString() === req.user._id.toString();
+    
+    if (!isPatient && !isDoctor) {
+      return res.status(403).json({ msg: 'Not authorized' });
+    }
+
+    const fileName = await generatePrescriptionPDF(prescription, prescription.patientId, prescription.doctorId);
+    const filePath = path.join(__dirname, '../uploads', fileName);
+
+    res.download(filePath, `Prescription_${prescription.patientId.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`, (err) => {
+      if (err) {
+        console.error('Download error:', err);
+      }
+      // Delete file after download
+      setTimeout(() => {
+        try {
+          require('fs').unlinkSync(filePath);
+        } catch (e) {}
+      }, 1000);
+    });
+  } catch (err) {
+    console.error('PDF download error:', err);
     res.status(500).json({ msg: 'Server error', error: err.message });
   }
 };

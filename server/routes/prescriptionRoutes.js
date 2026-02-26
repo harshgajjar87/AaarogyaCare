@@ -18,4 +18,7 @@ router.get('/doctor', protect, isDoctor, prescriptionController.getDoctorPrescri
 // Get patient details for doctor
 router.get('/patient-details/:patientId', protect, isDoctor, prescriptionController.getPatientDetails);
 
+// Download prescription as PDF
+router.get('/download/:id', protect, prescriptionController.downloadPrescriptionPDF);
+
 module.exports = router;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { getAllDoctors } from '../api/doctorAPI';
 import { createAppointment, getAvailableSlots } from '../api/appointmentAPI';
@@ -53,15 +53,23 @@ const AppointmentForm = () => {
     }
   }, [form.doctorId, form.date]);
 
-  const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setForm(prevForm => ({ ...prevForm, [name]: value }));
     
     // If doctor is selected, store doctor details
-    if (e.target.name === 'doctorId') {
-      const doctor = doctors.find(doc => doc._id === e.target.value);
+    if (name === 'doctorId') {
+      const doctor = doctors.find(doc => doc._id === value);
       setSelectedDoctor(doctor);
     }
-  };
+  }, [doctors]);
+
+  const handleVoiceTranscript = useCallback((transcript) => {
+    setForm(prevForm => ({
+      ...prevForm,
+      reason: prevForm.reason + (prevForm.reason ? ' ' : '') + transcript
+    }));
+  }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -99,7 +107,7 @@ const AppointmentForm = () => {
     }
   };
 
-  const FormSection = ({ title, icon, children }) => (
+  const FormSection = React.memo(({ title, icon, children }) => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-health-text-h flex items-center gap-2 border-b pb-2">
         {icon}
@@ -107,7 +115,7 @@ const AppointmentForm = () => {
       </h3>
       {children}
     </div>
-  );
+  ));
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -183,9 +191,7 @@ const AppointmentForm = () => {
                 className="w-full rounded-lg border-slate-300 pr-12"
               />
               <div className="absolute top-2 right-2">
-                <VoiceInput 
-                  onTranscript={(transcript) => setForm({...form, reason: form.reason + (form.reason ? ' ' : '') + transcript})}
-                />
+                <VoiceInput onTranscript={handleVoiceTranscript} />
               </div>
             </div>
           </FormSection>

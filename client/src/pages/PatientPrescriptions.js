@@ -24,50 +24,22 @@ const PatientPrescriptions = () => {
     }
   };
 
-  const downloadPrescription = (prescription) => {
-    const medicineList = prescription.medicines.map(med => {
-      const frequency = [];
-      if (med.frequency.morning) frequency.push('Morning');
-      if (med.frequency.evening) frequency.push('Evening');
-      if (med.frequency.night) frequency.push('Night');
-      
-      return `• ${med.name} - ${med.dosage} (${frequency.join(', ')}) ${med.timing.replace('_', ' ')} for ${med.days} days`;
-    }).join('\n');
-
-    const prescriptionContent = `
-AAROGYACARE PRESCRIPTION
-========================
-
-Date: ${new Date(prescription.createdAt).toLocaleDateString()}
-Doctor: Dr. ${prescription.doctorId.name}
-Patient: ${prescription.patientId?.name || 'N/A'}
-
-DIAGNOSIS
-=========
-${prescription.diagnosis}
-
-${prescription.notes ? `CLINICAL NOTES\n==============\n${prescription.notes}\n` : ''}
-
-MEDICINES
-=========
-${medicineList}
-
-${prescription.instructions ? `INSTRUCTIONS\n============\n${prescription.instructions}\n` : ''}
-
-${prescription.followUpDate ? `FOLLOW-UP DATE\n==============\n${new Date(prescription.followUpDate).toLocaleDateString()}\n` : ''}
-
-Thank you for choosing AarogyaCare!
-    `;
-
-    const blob = new Blob([prescriptionContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `prescription_${new Date(prescription.createdAt).toLocaleDateString().replace(/\//g, '-')}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+  const downloadPrescription = async (prescriptionId) => {
+    try {
+      const response = await axios.get(`/prescriptions/download/${prescriptionId}`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Prescription_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Prescription downloaded successfully');
+    } catch (err) {
+      toast.error('Failed to download prescription');
+    }
   };
 
   if (loading) {
@@ -112,11 +84,11 @@ Thank you for choosing AarogyaCare!
                       </div>
                     </div>
                     <button
-                      onClick={() => downloadPrescription(prescription)}
+                      onClick={() => downloadPrescription(prescription._id)}
                       className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-all font-medium flex items-center gap-2 text-sm"
                     >
                       <Download size={14} />
-                      Download
+                      Download PDF
                     </button>
                   </div>
 

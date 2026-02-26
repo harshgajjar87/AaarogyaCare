@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from '../utils/axios';
-import { ArrowLeft, User, Calendar, FileText, Pill, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowLeft, User, Calendar, FileText, Pill, Phone, Mail, MapPin, Download } from 'lucide-react';
 import { getFullImageUrl } from '../utils/imageUtils';
 
 const PatientDetails = () => {
@@ -24,6 +24,24 @@ const PatientDetails = () => {
       navigate('/doctor/patients');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPrescription = async (prescriptionId) => {
+    try {
+      const response = await axios.get(`/prescriptions/download/${prescriptionId}`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Prescription_${patient.name}_${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Prescription downloaded successfully');
+    } catch (err) {
+      toast.error('Failed to download prescription');
     }
   };
 
@@ -127,25 +145,60 @@ const PatientDetails = () => {
             {prescriptions.map((prescription) => (
               <div key={prescription._id} className="p-4 bg-slate-50 rounded-lg">
                 <div className="flex justify-between items-start mb-3">
-                  <h4 className="font-medium text-slate-800">Prescription</h4>
-                  <span className="text-sm text-slate-500">{new Date(prescription.createdAt).toLocaleDateString()}</span>
+                  <div>
+                    <h4 className="font-medium text-slate-800">Prescription</h4>
+                    {prescription.diagnosis && (
+                      <p className="text-sm text-slate-600 mt-1"><span className="font-medium">Diagnosis:</span> {prescription.diagnosis}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-slate-500">{new Date(prescription.createdAt).toLocaleDateString()}</span>
+                    <button
+                      onClick={() => handleDownloadPrescription(prescription._id)}
+                      className="p-2 bg-teal-100 text-teal-600 rounded-lg hover:bg-teal-200 transition-colors"
+                      title="Download PDF"
+                    >
+                      <Download size={16} />
+                    </button>
+                  </div>
                 </div>
-                {prescription.medications && prescription.medications.length > 0 && (
+                {prescription.medicines && prescription.medicines.length > 0 && (
                   <div className="mb-3">
-                    <h5 className="text-sm font-medium text-slate-700 mb-2">Medications:</h5>
-                    <div className="space-y-1">
-                      {prescription.medications.map((med, index) => (
-                        <div key={index} className="text-sm text-slate-600">
-                          <span className="font-medium">{med.name}</span> - {med.dosage} ({med.frequency})
+                    <h5 className="text-sm font-medium text-slate-700 mb-2">Medicines:</h5>
+                    <div className="space-y-2">
+                      {prescription.medicines.map((med, index) => (
+                        <div key={index} className="text-sm text-slate-600 bg-white p-2 rounded">
+                          <div className="font-medium">{med.name}</div>
+                          <div className="text-xs mt-1">
+                            <span>Dosage: {med.dosage}</span> | 
+                            <span> Timing: {med.timing.replace('_', ' ')}</span> | 
+                            <span> Days: {med.days}</span>
+                          </div>
+                          <div className="text-xs mt-1">
+                            {med.frequency.morning && <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded mr-1">Morning</span>}
+                            {med.frequency.evening && <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded mr-1">Evening</span>}
+                            {med.frequency.night && <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Night</span>}
+                          </div>
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+                {prescription.instructions && (
+                  <div className="mb-2">
+                    <h5 className="text-sm font-medium text-slate-700 mb-1">Instructions:</h5>
+                    <p className="text-sm text-slate-600">{prescription.instructions}</p>
                   </div>
                 )}
                 {prescription.notes && (
                   <div>
                     <h5 className="text-sm font-medium text-slate-700 mb-1">Notes:</h5>
                     <p className="text-sm text-slate-600">{prescription.notes}</p>
+                  </div>
+                )}
+                {prescription.followUpDate && (
+                  <div className="mt-2 text-sm text-slate-600">
+                    <span className="font-medium">Follow-up:</span> {new Date(prescription.followUpDate).toLocaleDateString()}
                   </div>
                 )}
               </div>

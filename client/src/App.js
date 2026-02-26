@@ -44,6 +44,8 @@ import PaymentHistory from './pages/PaymentHistory';
 import PrescriptionForm from './pages/PrescriptionForm';
 import PatientPrescriptions from './pages/PatientPrescriptions';
 import PatientDetails from './pages/PatientDetails';
+import DoctorAnalytics from './pages/DoctorAnalytics';
+import AdminAnalytics from './pages/AdminAnalytics';
 
 // Import Toast and Notification
 import { ToastContainer } from 'react-toastify';
@@ -192,6 +194,7 @@ function App() {
               <Route path='/doctor/upload' element={<DoctorUploadReport />} />
 
               <Route path='/admin-dashboard' element={<ProtectedRoute allowedRole='admin'><AdminDashboard /></ProtectedRoute>} />
+              <Route path='/admin-analytics' element={<ProtectedRoute allowedRole='admin'><AdminAnalytics /></ProtectedRoute>} />
               <Route path='/admin-doctors' element={<ProtectedRoute allowedRole='admin'><AdminDoctors /></ProtectedRoute>} />
               <Route path='/admin-patients' element={<ProtectedRoute allowedRole='admin'><AdminPatients /></ProtectedRoute>} />
               <Route path='/admin-appointments' element={<ProtectedRoute allowedRole='admin'><AdminAppointments /></ProtectedRoute>} />
@@ -204,7 +207,7 @@ function App() {
               <Route path='/symptom-checker' element={<SymptomCheckerPage />} />
               <Route path='/patient/chat-doctor' element={<ChatDoctorPage />} />
               <Route path='/patient/voice-doctor' element={<VoiceDoctorPage />} />
-              <Route path='/doctor/analytics' element={<ProtectedRoute allowedRole='doctor'><DashboardPage /></ProtectedRoute>} />
+              <Route path='/doctor/analytics' element={<ProtectedRoute allowedRole='doctor'><DoctorAnalytics /></ProtectedRoute>} />
 
               <Route path='/notifications' element={<Notifications />} />
               <Route path='/profile' element={<Profile />} />

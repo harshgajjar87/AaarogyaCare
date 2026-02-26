@@ -1,3 +1,0 @@
-- [x] Update client/src/styles/components/DoctorProfile.css to add circular image styles
-- [x] Update client/src/pages/DoctorProfile.js to remove conflicting styles
-- [ ] Run client to verify image displays as circle

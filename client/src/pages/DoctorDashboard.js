@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { getDoctorAppointments, approveAppointment, rejectAppointment } from '../api/appointmentAPI';
 import { getDoctorPatients } from '../api/doctorAPI';
 import axios from '../utils/axios';
-import { LayoutDashboard, Calendar, Users, MessageSquare, Star, User, LogOut, Check, X, Menu, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, MessageSquare, Star, User, LogOut, Check, X, Menu, CreditCard, BarChart3 } from 'lucide-react';
 
 const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
@@ -114,6 +114,7 @@ const DoctorDashboard = () => {
         <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col`}>
           <SidebarLink to="/doctor/dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
           <SidebarLink to="/doctor/appointments" icon={<Calendar size={20} />} text="Appointments" />
+          <SidebarLink to="/doctor/analytics" icon={<BarChart3 size={20} />} text="Analytics" />
           <SidebarLink to="/doctor/payments" icon={<CreditCard size={20} />} text="Payments" />
           <SidebarLink to="/doctor/patients" icon={<Users size={20} />} text="Patients" />
           <SidebarLink to="/chats" icon={<MessageSquare size={20} />} text="Messages" />

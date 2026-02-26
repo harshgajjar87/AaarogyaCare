@@ -61,10 +61,19 @@ exports.getPatientReports = async (req, res) => {
   }
 };
 
-// ✅ Get All Reports (for Doctor Dashboard)
+// ✅ Get All Reports (for Doctor Dashboard - only patients with appointments)
 exports.getAllReports = async (req, res) => {
   try {
-    const reports = await Report.find()
+    const Appointment = require('../models/Appointment');
+    const doctorId = req.user._id;
+
+    // Get all patient IDs who have appointments with this doctor
+    const appointments = await Appointment.find({ doctorId }).distinct('patientId');
+
+    // Fetch reports only for those patients
+    const reports = await Report.find({ 
+      patientId: { $in: appointments } 
+    })
       .populate('patientId', 'name email')
       .populate('doctorId', 'name email')
       .sort({ uploadedAt: -1 });

@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
 import { getTotalPatients, getTotalDoctors, getTotalAppointments, getDoctorsBySpecialization, getAppointmentsByDoctor } from '../api/adminAPI';
-import { Users, Stethoscope, Calendar, LayoutDashboard, User, LogOut, BarChart2, Menu, X } from 'lucide-react';
+import { Users, Stethoscope, Calendar, LayoutDashboard, User, LogOut, BarChart2, Menu, X, BarChart3 } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -95,6 +95,7 @@ const AdminDashboard = () => {
 
         <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col`}>
           <SidebarLink to="/admin-dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
+          <SidebarLink to="/admin-analytics" icon={<BarChart3 size={20} />} text="Analytics" />
           <SidebarLink to="/admin-doctors" icon={<Stethoscope size={20} />} text="Doctors" />
           <SidebarLink to="/admin-patients" icon={<Users size={20} />} text="Patients" />
           <SidebarLink to="/admin-appointments" icon={<Calendar size={20} />} text="Appointments" />
