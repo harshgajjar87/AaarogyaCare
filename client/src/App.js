@@ -68,8 +68,11 @@ function Layout() {
   const isPatientRoute =
     location.pathname.startsWith('/patient') ||
     location.pathname === '/doctor-verification' ||
-    (location.pathname.match(/^\/doctor\/\d+$/) && user?.role === 'patient') ||
-    (location.pathname.match(/^\/doctor\/\d+\/.*$/) && user?.role === 'patient') ||
+    location.pathname === '/health-prediction' ||
+    location.pathname === '/health-risk' ||
+    location.pathname === '/symptom-checker' ||
+    (location.pathname.match(/^\/doctor\/[a-f0-9]{24}$/) && user?.role === 'patient') ||
+    (location.pathname.match(/^\/doctor\/[a-f0-9]{24}\/.*$/) && user?.role === 'patient') ||
     (user?.role === 'patient' &&
       location.pathname !== '/about' &&
       (location.pathname === '/profile' ||
@@ -103,7 +106,7 @@ function Layout() {
         {isPublicRoute && <PublicNavbar />}
       </header>
 
-      <main className="relative">
+      <main className="relative px-3 sm:px-4 md:px-6 py-4 sm:py-6">
         <Outlet />
       </main>
 

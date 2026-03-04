@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from '../utils/axios';
 import { ArrowLeft, Loader2, Heart, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
-import PatientNavbar from './PaitentNavbar';
 
 const GeneralPrediction = ({ onBack }) => {
   const [formData, setFormData] = useState({
@@ -52,15 +51,11 @@ const GeneralPrediction = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-health-secondary">
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-100">
-        <PatientNavbar />
-      </header>
-      <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-6">
-        <button onClick={onBack} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6">
-          <ArrowLeft size={20} />
-          Back to Options
-        </button>
+    <div className="max-w-4xl mx-auto">
+      <button onClick={onBack} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6">
+        <ArrowLeft size={20} />
+        Back to Options
+      </button>
 
       <h1 className="text-3xl font-bold text-slate-800 mb-6">General Health Prediction</h1>
 
@@ -243,7 +238,6 @@ const GeneralPrediction = ({ onBack }) => {
           </button>
         </div>
       )}
-      </div>
     </div>
   );
 };

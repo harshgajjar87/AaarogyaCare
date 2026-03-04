@@ -32,7 +32,7 @@ const DoctorNavbar = () => {
   
   const navLinks = [
     { to: "/doctor/dashboard", icon: <LayoutDashboard className="h-4 w-4" />, text: "Dashboard" },
-    { to: "/doctor/upload", icon: <Upload className="h-4 w-4" />, text: "Upload Report" },
+    { to: "/doctor/upload-report", icon: <Upload className="h-4 w-4" />, text: "Upload Report" },
     { to: "/doctor/appointments", icon: <Calendar className="h-4 w-4" />, text: "Appointments" },
     { to: "/doctor/payments", icon: <CreditCard className="h-4 w-4" />, text: "Payments" },
     { to: "/doctor/reports", icon: <FileText className="h-4 w-4" />, text: "Reports" },

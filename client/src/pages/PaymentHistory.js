@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { getAppointmentsByPatientId, getDoctorAppointments } from '../api/appointmentAPI';
 import { Download, CreditCard, Calendar, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
 
 const PaymentHistory = () => {
   const { user } = useContext(AuthContext);
@@ -42,45 +43,174 @@ const PaymentHistory = () => {
   };
 
   const downloadReceipt = (payment) => {
-    const receiptData = {
-      paymentId: payment.paymentInfo.paymentId,
-      orderId: payment.paymentInfo.orderId,
-      amount: payment.paymentInfo.amount,
-      date: new Date(payment.createdAt).toLocaleDateString(),
-      patientName: payment.name,
-      doctorName: payment.doctorId?.name || 'N/A',
-      appointmentDate: new Date(payment.date).toLocaleDateString(),
-      appointmentTime: payment.time
-    };
-
-    const receiptContent = `
-AAROGYACARE PAYMENT RECEIPT
-============================
-
-Payment ID: ${receiptData.paymentId}
-Order ID: ${receiptData.orderId}
-Amount: ₹${receiptData.amount}
-Payment Date: ${receiptData.date}
-
-APPOINTMENT DETAILS
-==================
-Patient: ${receiptData.patientName}
-Doctor: ${receiptData.doctorName}
-Date: ${receiptData.appointmentDate}
-Time: ${receiptData.appointmentTime}
-
-Thank you for choosing AarogyaCare!
-    `;
-
-    const blob = new Blob([receiptContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `receipt_${receiptData.paymentId}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Header with brand color
+    doc.setFillColor(20, 184, 166); // Teal color
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    
+    // Logo/Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('🩺 AarogyaCare', pageWidth / 2, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text('Payment Receipt', pageWidth / 2, 32, { align: 'center' });
+    
+    // Reset text color
+    doc.setTextColor(0, 0, 0);
+    
+    // Receipt details box
+    let yPos = 55;
+    doc.setFillColor(240, 253, 250);
+    doc.roundedRect(15, yPos, pageWidth - 30, 35, 3, 3, 'F');
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Receipt Number:', 20, yPos + 10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(payment.paymentInfo.paymentId, 70, yPos + 10);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Order ID:', 20, yPos + 20);
+    doc.setFont('helvetica', 'normal');
+    doc.text(payment.paymentInfo.orderId, 70, yPos + 20);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date:', 20, yPos + 30);
+    doc.setFont('helvetica', 'normal');
+    doc.text(new Date(payment.createdAt).toLocaleDateString('en-IN', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }), 70, yPos + 30);
+    
+    // Amount section
+    yPos += 50;
+    doc.setFillColor(220, 252, 231);
+    doc.roundedRect(15, yPos, pageWidth - 30, 25, 3, 3, 'F');
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Amount Paid:', 20, yPos + 12);
+    doc.setFontSize(18);
+    doc.setTextColor(22, 163, 74); // Green color
+    doc.text(`₹${payment.paymentInfo.amount}`, 70, yPos + 12);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text('(Consultation Fee)', 70, yPos + 20);
+    
+    // Appointment Details
+    yPos += 40;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(20, 184, 166);
+    doc.text('Appointment Details', 20, yPos);
+    
+    // Draw line
+    doc.setDrawColor(203, 213, 225);
+    doc.line(20, yPos + 3, pageWidth - 20, yPos + 3);
+    
+    yPos += 15;
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    
+    // Patient info
+    doc.setFont('helvetica', 'bold');
+    doc.text('Patient Name:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(payment.name, 70, yPos);
+    
+    yPos += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Age:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(payment.age?.toString() || 'N/A', 70, yPos);
+    
+    yPos += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Gender:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(payment.gender || 'N/A', 70, yPos);
+    
+    // Doctor info
+    yPos += 15;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Doctor Name:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(payment.doctorId?.name || 'N/A', 70, yPos);
+    
+    yPos += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Specialization:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(payment.doctorId?.doctorDetails?.specialization || 'N/A', 70, yPos);
+    
+    // Appointment date/time
+    yPos += 15;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Appointment Date:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(new Date(payment.date).toLocaleDateString('en-IN', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }), 70, yPos);
+    
+    yPos += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Appointment Time:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(payment.time, 70, yPos);
+    
+    yPos += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Status:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(22, 163, 74);
+    doc.text(payment.status.toUpperCase(), 70, yPos);
+    doc.setTextColor(0, 0, 0);
+    
+    // Payment method
+    yPos += 15;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Payment Method:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Razorpay (Online)', 70, yPos);
+    
+    yPos += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Payment Status:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(22, 163, 74);
+    doc.text(payment.paymentInfo.status.toUpperCase(), 70, yPos);
+    doc.setTextColor(0, 0, 0);
+    
+    // Footer note
+    yPos = pageHeight - 40;
+    doc.setFillColor(249, 250, 251);
+    doc.rect(0, yPos, pageWidth, 40, 'F');
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(100, 116, 139);
+    doc.text('This is a computer-generated receipt and does not require a signature.', pageWidth / 2, yPos + 10, { align: 'center' });
+    doc.text('For any queries, please contact support@aarogyacare.com', pageWidth / 2, yPos + 18, { align: 'center' });
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(20, 184, 166);
+    doc.text('Thank you for choosing AarogyaCare!', pageWidth / 2, yPos + 28, { align: 'center' });
+    
+    // Save PDF
+    const fileName = `AarogyaCare_Receipt_${payment.paymentInfo.paymentId.slice(-8)}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(fileName);
+    toast.success('Receipt downloaded successfully!');
   };
 
   if (loading) {

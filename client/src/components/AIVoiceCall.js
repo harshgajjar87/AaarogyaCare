@@ -6,6 +6,7 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPushToTalk, setIsPushToTalk] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [history, setHistory] = useState([]);
   const [callLog, setCallLog] = useState([]);
@@ -15,6 +16,7 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
   const recognitionRef = useRef(null);
   const isSpeakingRef = useRef(false);
   const finalTranscriptRef = useRef('');
+  const pushToTalkRef = useRef(false);
 
   useEffect(() => {
     // Load available voices
@@ -72,13 +74,13 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       };
 
       recognitionRef.current.onend = () => {
-        console.log('Recognition ended, isSpeaking:', isSpeakingRef.current);
+        console.log('Recognition ended, isSpeaking:', isSpeakingRef.current, 'pushToTalk:', pushToTalkRef.current);
         setIsRecording(false);
-        // Auto-restart if not speaking (don't check isCallActive as it might be stale)
-        if (!isSpeakingRef.current) {
+        // Auto-restart only if not in push-to-talk mode and not speaking
+        if (!isSpeakingRef.current && !pushToTalkRef.current) {
           console.log('Auto-restarting recognition');
           setTimeout(() => {
-            if (!isSpeakingRef.current && recognitionRef.current) {
+            if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current) {
               try {
                 recognitionRef.current.start();
                 setIsRecording(true);
@@ -87,7 +89,7 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
                 console.log('Auto-restart failed:', e.message);
                 // Try one more time with longer delay
                 setTimeout(() => {
-                  if (!isSpeakingRef.current && recognitionRef.current) {
+                  if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current) {
                     try {
                       recognitionRef.current.start();
                       setIsRecording(true);
@@ -212,22 +214,53 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       setCallLog([{ text: greeting, sender: 'ai' }]);
       await speak(greeting);
       
-      // Start continuous listening after greeting
-      setTimeout(() => {
-        if (recognitionRef.current) {
-          const langMap = { english: 'en-IN', hindi: 'hi-IN', gujarati: 'gu-IN' };
-          recognitionRef.current.lang = langMap[language] || 'en-IN';
-          try {
-            recognitionRef.current.start();
-            setIsRecording(true);
-            console.log('Continuous listening started');
-          } catch (e) {
-            console.log('Start failed:', e.message);
+      // Start continuous listening after greeting only if not in push-to-talk mode
+      if (!isPushToTalk) {
+        setTimeout(() => {
+          if (recognitionRef.current) {
+            const langMap = { english: 'en-IN', hindi: 'hi-IN', gujarati: 'gu-IN' };
+            recognitionRef.current.lang = langMap[language] || 'en-IN';
+            try {
+              recognitionRef.current.start();
+              setIsRecording(true);
+              console.log('Continuous listening started');
+            } catch (e) {
+              console.log('Start failed:', e.message);
+            }
           }
-        }
-      }, 500);
+        }, 500);
+      }
     } catch (error) {
       alert('Microphone access is required for voice calls. Please allow microphone permission.');
+    }
+  };
+
+  const startPushToTalkRecording = () => {
+    if (!isCallActive || isSpeaking) return;
+    
+    pushToTalkRef.current = true;
+    if (recognitionRef.current) {
+      const langMap = { english: 'en-IN', hindi: 'hi-IN', gujarati: 'gu-IN' };
+      recognitionRef.current.lang = langMap[language] || 'en-IN';
+      try {
+        recognitionRef.current.start();
+        setIsRecording(true);
+        console.log('Push-to-talk recording started');
+      } catch (e) {
+        console.log('Push-to-talk start failed:', e.message);
+      }
+    }
+  };
+
+  const stopPushToTalkRecording = () => {
+    pushToTalkRef.current = false;
+    if (recognitionRef.current && isRecording) {
+      try {
+        recognitionRef.current.stop();
+        console.log('Push-to-talk recording stopped');
+      } catch (e) {
+        console.log('Push-to-talk stop failed:', e.message);
+      }
     }
   };
 
@@ -277,7 +310,7 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       // Resume listening after AI finishes speaking
       if (!res.data.completed) {
         setTimeout(() => {
-          if (recognitionRef.current) {
+          if (recognitionRef.current && !isPushToTalk) {
             try {
               console.log('Attempting to resume listening...');
               recognitionRef.current.start();
@@ -287,7 +320,7 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
               console.error('Resume failed:', e.message);
               // Retry once more after a longer delay
               setTimeout(() => {
-                if (recognitionRef.current) {
+                if (recognitionRef.current && !isPushToTalk) {
                   try {
                     recognitionRef.current.start();
                     setIsRecording(true);
@@ -341,10 +374,21 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
           </div>
           <h2 className="text-2xl font-bold mb-2">AI Voice Doctor</h2>
           <p className="text-teal-100 text-sm mb-4">
-            {isCallActive ? (isSpeaking ? 'AI is speaking...' : isRecording ? 'Listening...' : 'Press mic to speak') : 'Ready to start'}
+            {isCallActive ? (isSpeaking ? 'AI is speaking...' : isRecording ? 'Listening...' : isPushToTalk ? 'Press & hold mic to speak' : 'Ready') : 'Ready to start'}
           </p>
           {!isCallActive && (
             <div className="space-y-3">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isPushToTalk}
+                    onChange={(e) => setIsPushToTalk(e.target.checked)}
+                    className="w-4 h-4 rounded border-white border-opacity-30 bg-white bg-opacity-20 text-teal-600 focus:ring-2 focus:ring-white"
+                  />
+                  <span className="text-sm">Push-to-Talk Mode</span>
+                </label>
+              </div>
               <select 
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
@@ -394,17 +438,37 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
         <div className="flex justify-center gap-4 mb-6">
           {isCallActive && (
             <div className="text-center">
-              <div className={`p-6 rounded-full transition-all shadow-lg ${
-                isRecording 
-                  ? 'bg-red-500 animate-pulse' 
-                  : isSpeaking 
-                  ? 'bg-gray-400' 
-                  : 'bg-green-500'
-              }`}>
-                <Mic size={32} />
-              </div>
+              {isPushToTalk ? (
+                <button
+                  onMouseDown={startPushToTalkRecording}
+                  onMouseUp={stopPushToTalkRecording}
+                  onMouseLeave={stopPushToTalkRecording}
+                  onTouchStart={startPushToTalkRecording}
+                  onTouchEnd={stopPushToTalkRecording}
+                  disabled={isSpeaking}
+                  className={`p-6 rounded-full transition-all shadow-lg ${
+                    isRecording 
+                      ? 'bg-red-500 animate-pulse scale-110' 
+                      : isSpeaking 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-green-500 hover:bg-green-600 active:scale-95'
+                  }`}
+                >
+                  <Mic size={32} />
+                </button>
+              ) : (
+                <div className={`p-6 rounded-full transition-all shadow-lg ${
+                  isRecording 
+                    ? 'bg-red-500 animate-pulse' 
+                    : isSpeaking 
+                    ? 'bg-gray-400' 
+                    : 'bg-green-500'
+                }`}>
+                  <Mic size={32} />
+                </div>
+              )}
               <p className="text-sm mt-2">
-                {isSpeaking ? 'AI Speaking...' : isRecording ? 'Listening...' : 'Ready'}
+                {isSpeaking ? 'AI Speaking...' : isRecording ? 'Listening...' : isPushToTalk ? 'Press & Hold' : 'Ready'}
               </p>
             </div>
           )}

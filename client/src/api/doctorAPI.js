@@ -22,8 +22,27 @@ export const getAllDoctors = async (filters = {}) => {
 // Get single doctor details
 export const getDoctorById = async (id) => {
   try {
-    // Prevent route conflicts
-    if (id === 'patients' || id === 'specializations' || id === 'profile') {
+    // Prevent route conflicts with reserved paths
+    const reservedPaths = [
+      'patients', 
+      'specializations', 
+      'profile', 
+      'upload', 
+      'upload-report',
+      'upload-clinic-images', 
+      'availability', 
+      'clinic-images',
+      'dashboard',
+      'appointments',
+      'payments',
+      'reports',
+      'reviews',
+      'analytics',
+      'prescriptions',
+      'prescription',
+      'patient'
+    ];
+    if (reservedPaths.includes(id)) {
       throw new Error('Invalid doctor ID');
     }
     const response = await axios.get(`/doctors/${id}`);

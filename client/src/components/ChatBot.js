@@ -100,7 +100,7 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="fixed bottom-4 sm:bottom-6 md:bottom-20 left-3 sm:left-4 md:left-6 z-50">
+    <div className="fixed bottom-20 sm:bottom-24 left-3 sm:left-4 md:left-6 z-40">
       {/* Chat Window */}
       {isOpen && (
         <div className="bg-white rounded-2xl shadow-2xl w-[calc(100vw-1.5rem)] sm:w-80 md:w-96 mb-4 border border-slate-200 overflow-hidden flex flex-col transition-all duration-300 ease-in-out animate-fade-in-up" style={{ height: '70vh', maxHeight: '500px' }}>
