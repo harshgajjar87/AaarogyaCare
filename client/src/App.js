@@ -46,6 +46,7 @@ import PatientPrescriptions from './pages/PatientPrescriptions';
 import PatientDetails from './pages/PatientDetails';
 import DoctorAnalytics from './pages/DoctorAnalytics';
 import AdminAnalytics from './pages/AdminAnalytics';
+import HealthPrediction from './pages/HealthPrediction';
 
 // Import Toast and Notification
 import { ToastContainer } from 'react-toastify';
@@ -103,30 +104,28 @@ function Layout() {
       </header>
 
       <main className="relative">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
 
       <footer className="border-t border-slate-100 bg-white/80 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid gap-10 md:grid-cols-3">
-            <div className="space-y-4">
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 py-8 md:py-10">
+          <div className="grid gap-6 md:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-3 md:space-y-4">
               <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-semibold text-teal-700">
                 <span role="img" aria-label="logo">🩺</span>
                 <span className="text-health-primary">AarogyaCare</span>
               </div>
-              <p className="text-health-text-p">
+              <p className="text-health-text-p text-sm md:text-base">
                 Your trusted healthcare partner providing quality medical services, secure records, and guided care journeys.
               </p>
-              <div className="text-sm text-slate-500">
+              <div className="text-xs md:text-sm text-slate-500">
                 Ahmedabad, India
               </div>
             </div>
 
             <div>
-              <h4 className="text-base font-semibold text-health-text-h">Explore</h4>
-              <ul className="mt-4 space-y-3 text-sm text-health-text-p">
+              <h4 className="text-sm md:text-base font-semibold text-health-text-h">Explore</h4>
+              <ul className="mt-3 md:mt-4 space-y-2 md:space-y-3 text-xs md:text-sm text-health-text-p">
                 <li><a className="transition-colors hover:text-health-primary" href="/">Home</a></li>
                 <li><a className="transition-colors hover:text-health-primary" href="/about">About</a></li>
                 <li><a className="transition-colors hover:text-health-primary" href="/privacy">Privacy Policy</a></li>
@@ -134,16 +133,16 @@ function Layout() {
             </div>
 
             <div>
-              <h4 className="text-base font-semibold text-health-text-h">Contact</h4>
-              <ul className="mt-4 space-y-3 text-sm text-health-text-p">
-                <li>Email: <a className="text-health-primary hover:underline" href="mailto:aarogyacare55@gmail.com">aarogyacare55@gmail.com</a></li>
+              <h4 className="text-sm md:text-base font-semibold text-health-text-h">Contact</h4>
+              <ul className="mt-3 md:mt-4 space-y-2 md:space-y-3 text-xs md:text-sm text-health-text-p">
+                <li>Email: <a className="text-health-primary hover:underline break-all" href="mailto:aarogyacare55@gmail.com">aarogyacare55@gmail.com</a></li>
                 <li>Phone: +91 999 888 7777</li>
                 <li>Address: Ahmedabad, India</li>
               </ul>
             </div>
           </div>
 
-          <div className="mt-10 flex flex-col gap-3 border-t border-slate-100 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-6 md:mt-10 flex flex-col gap-2 md:gap-3 border-t border-slate-100 pt-4 md:pt-6 text-xs md:text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
             <span>© {new Date().getFullYear()} AarogyaCare. All rights reserved.</span>
             <span className="text-slate-400">Built for trust, privacy, and care.</span>
           </div>
@@ -187,39 +186,38 @@ function App() {
               <Route path='/doctor/appointments' element={<DoctorAppointments />} />
               <Route path='/doctor/patients' element={<DoctorPatients />} />
               <Route path='/doctor/payments' element={<PaymentHistory />} />
-              <Route path='/doctor/prescription/:appointmentId' element={<PrescriptionForm />} />
-              <Route path='/doctor/patient/:patientId' element={<PatientDetails />} />
               <Route path='/doctor/reports' element={<DoctorReports />} />
+              <Route path='/doctor/upload-report' element={<DoctorUploadReport />} />
               <Route path='/doctor/reviews' element={<DoctorReviews />} />
-              <Route path='/doctor/upload' element={<DoctorUploadReport />} />
+              <Route path='/doctor/analytics' element={<DoctorAnalytics />} />
+              <Route path='/doctor/prescriptions/:appointmentId' element={<PrescriptionForm />} />
+              <Route path='/doctor/prescription/:appointmentId' element={<PrescriptionForm />} />
+              <Route path='/patient/:patientId' element={<PatientDetails />} />
+              <Route path='/doctor/patient/:patientId' element={<PatientDetails />} />
 
-              <Route path='/admin-dashboard' element={<ProtectedRoute allowedRole='admin'><AdminDashboard /></ProtectedRoute>} />
-              <Route path='/admin-analytics' element={<ProtectedRoute allowedRole='admin'><AdminAnalytics /></ProtectedRoute>} />
-              <Route path='/admin-doctors' element={<ProtectedRoute allowedRole='admin'><AdminDoctors /></ProtectedRoute>} />
-              <Route path='/admin-patients' element={<ProtectedRoute allowedRole='admin'><AdminPatients /></ProtectedRoute>} />
-              <Route path='/admin-appointments' element={<ProtectedRoute allowedRole='admin'><AdminAppointments /></ProtectedRoute>} />
-              <Route path='/admin-queries' element={<ProtectedRoute allowedRole='admin'><AdminQueries /></ProtectedRoute>} />
-              <Route path='/admin/analytics' element={<ProtectedRoute allowedRole='admin'><DashboardPage /></ProtectedRoute>} />
-              <Route path='/admin-doctor-verifications' element={<ProtectedRoute allowedRole='admin'><AdminDoctorVerifications /></ProtectedRoute>} />
+              <Route path='/admin/dashboard' element={<AdminDashboard />} />
+              <Route path='/admin/doctors' element={<AdminDoctors />} />
+              <Route path='/admin/patients' element={<AdminPatients />} />
+              <Route path='/admin/appointments' element={<AdminAppointments />} />
+              <Route path='/admin/queries' element={<AdminQueries />} />
+              <Route path='/admin/verifications' element={<AdminDoctorVerifications />} />
+              <Route path='/admin/analytics' element={<AdminAnalytics />} />
+
+              <Route path='/profile' element={<Profile />} />
+              <Route path='/notifications' element={<Notifications />} />
               <Route path='/about' element={<About />} />
               <Route path='/privacy' element={<Privacy />} />
               <Route path='/health-risk' element={<HealthRiskPage />} />
+              <Route path='/health-prediction' element={<HealthPrediction />} />
               <Route path='/symptom-checker' element={<SymptomCheckerPage />} />
-              <Route path='/patient/chat-doctor' element={<ChatDoctorPage />} />
-              <Route path='/patient/voice-doctor' element={<VoiceDoctorPage />} />
-              <Route path='/doctor/analytics' element={<ProtectedRoute allowedRole='doctor'><DoctorAnalytics /></ProtectedRoute>} />
+              <Route path='/dashboard' element={<DashboardPage />} />
 
-              <Route path='/notifications' element={<Notifications />} />
-              <Route path='/profile' element={<Profile />} />
-              {/* Patient aliases to avoid "No routes matched" errors */}
-              <Route path='/patient/profile' element={<Profile />} />
-              <Route path='/doctor/:id' element={<DoctorProfile />} />
+              <Route path='/doctor/:doctorId' element={<DoctorProfile />} />
+              <Route path='/doctor/:doctorId/chat' element={<ChatDoctorPage />} />
+              <Route path='/doctor/:doctorId/voice' element={<VoiceDoctorPage />} />
 
-              {/* Chat routes */}
               <Route path='/chats' element={<ChatListPage />} />
               <Route path='/chats/:chatId' element={<ChatPage />} />
-              {/* Patient alias for chat */}
-              <Route path='/patient/chat' element={<ChatListPage />} />
             </Route>
           </Routes>
         </NotificationProvider>
@@ -229,3 +227,4 @@ function App() {
 }
 
 export default App;
+        

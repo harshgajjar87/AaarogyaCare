@@ -2,12 +2,10 @@ const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const ExcelJS = require('exceljs');
 
-// Get all appointments for admin panel with specific statuses
+// Get all appointments for admin panel (all statuses)
 exports.getAllAdminAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find({
-      status: { $in: ['approved', 'rejected', 'pending', 'cancelled-by-patient'] }
-    })
+    const appointments = await Appointment.find({})
     .populate('patientId', 'name email profile.phone')
     .populate('doctorId', 'name email profile.phone profile.specialization')
     .sort({ createdAt: -1 });
@@ -18,6 +16,7 @@ exports.getAllAdminAppointments = async (req, res) => {
       count: appointments.length
     });
   } catch (err) {
+    console.error('Error fetching admin appointments:', err);
     res.status(500).json({ 
       success: false, 
       msg: 'Error fetching admin appointments', 
@@ -32,11 +31,11 @@ exports.updateAppointmentStatus = async (req, res) => {
     const { appointmentId } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ['approved', 'rejected', 'pending', 'cancelled-by-patient'];
+    const validStatuses = ['pending', 'approved', 'rejected', 'cancelled', 'cancelled-by-patient', 'paid', 'completed', 'visited'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        msg: 'Invalid status. Must be one of: approved, rejected, pending, cancelled-by-patient'
+        msg: 'Invalid status. Must be one of: pending, approved, rejected, cancelled, cancelled-by-patient, paid, completed, visited'
       });
     }
 
@@ -68,9 +67,7 @@ exports.updateAppointmentStatus = async (req, res) => {
 // Export appointments to Excel (for admin)
 exports.exportAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find({
-      status: { $in: ['approved', 'rejected', 'pending', 'cancelled-by-patient'] }
-    })
+    const appointments = await Appointment.find({})
     .populate('patientId', 'name email profile.phone')
     .populate('doctorId', 'name email profile.phone profile.specialization');
 

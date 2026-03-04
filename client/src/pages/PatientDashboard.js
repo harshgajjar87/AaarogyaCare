@@ -126,12 +126,12 @@ const PatientDashboard = () => {
   );
 
   const StatCard = ({ title, value, icon, color }) => (
-    <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6 flex items-center justify-between">
+    <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6 flex items-center justify-between">
       <div>
-        <p className="text-sm text-health-text-p">{title}</p>
-        <p className="text-2xl font-bold text-health-text-h">{value}</p>
+        <p className="text-xs sm:text-sm text-health-text-p">{title}</p>
+        <p className="text-lg sm:text-xl md:text-2xl font-bold text-health-text-h">{value}</p>
       </div>
-      <div className={`rounded-full p-3 bg-${color}-100 text-${color}-600`}>
+      <div className={`rounded-full p-2 sm:p-3 bg-${color}-100 text-${color}-600 flex-shrink-0`}>
         {icon}
       </div>
     </div>
@@ -163,7 +163,7 @@ const PatientDashboard = () => {
           <p className="text-health-text-p mt-4 font-semibold">Welcome, {user.name} 👋</p>
         </div>
 
-        <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-2 flex-col`}>
+        <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-2 flex-col overflow-y-auto overflow-x-hidden`} style={{ maxHeight: 'calc(100vh - 280px)' }}>
           <SidebarLink to="/patient/dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
           <SidebarLink to="/patient/appointments" icon={<Book size={20} />} text="Book Appointment" />
           <SidebarLink to="/patient/my-appointments" icon={<CalendarCheck size={20} />} text="My Appointments" />
@@ -187,46 +187,46 @@ const PatientDashboard = () => {
       </aside>
 
       {/* Main Content */}
-<main className="flex-1 overflow-auto p-4 lg:p-6 transition-all duration-300">
-        <div className="mb-8 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+<main className="flex-1 overflow-auto p-2 sm:p-3 md:p-4 lg:p-6 transition-all duration-300">
+        <div className="mb-6 sm:mb-8 flex justify-between items-center">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="md:hidden p-2 rounded-md text-slate-500 hover:text-health-primary hover:bg-slate-100"
             >
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <h1 className="text-3xl font-bold text-health-text-h">Patient Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">Patient Dashboard</h1>
           </div>
           
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard title="Total Appointments" value={stats.totalAppointments} icon={<Briefcase size={24} />} color="teal" />
-            <StatCard title="Upcoming" value={stats.upcomingAppointments} icon={<CalendarCheck size={24} />} color="blue" />
-            <StatCard title="Available Doctors" value={stats.totalDoctors} icon={<Users size={24} />} color="purple" />
-            <StatCard title="Medical Reports" value={stats.totalReports} icon={<FileText size={24} />} color="green" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+            <StatCard title="Total Appointments" value={stats.totalAppointments} icon={<Briefcase size={20} className="sm:w-6 sm:h-6" />} color="teal" />
+            <StatCard title="Upcoming" value={stats.upcomingAppointments} icon={<CalendarCheck size={20} className="sm:w-6 sm:h-6" />} color="blue" />
+            <StatCard title="Available Doctors" value={stats.totalDoctors} icon={<Users size={20} className="sm:w-6 sm:h-6" />} color="purple" />
+            <StatCard title="Medical Reports" value={stats.totalReports} icon={<FileText size={20} className="sm:w-6 sm:h-6" />} color="green" />
         </div>
 
         {/* Search and Doctors Section */}
-        <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
-          <h2 className="text-xl font-bold text-health-text-h mb-4">Find a Doctor</h2>
+        <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
+          <h2 className="text-lg sm:text-xl font-bold text-health-text-h mb-3 sm:mb-4">Find a Doctor</h2>
           <DoctorSearchFilter onFilterChange={handleFilterChange} loading={loading} />
 
           {error && (
-            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mt-4 rounded-md">
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 sm:p-4 mt-4 rounded-md text-sm sm:text-base">
               <p>{error}</p>
             </div>
           )}
 
           {loading ? (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-teal-500"></div>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mt-4 sm:mt-6">
                 {doctors.length > 0 ? (
                   doctors.map(doctor => (
                     <div key={doctor._id}>
@@ -241,13 +241,13 @@ const PatientDashboard = () => {
               </div>
 
               {pagination.totalPages > 1 && (
-                <div className="flex justify-center mt-8">
+                <div className="flex justify-center mt-6 sm:mt-8">
                     <nav aria-label="Doctor pagination">
-                        <ul className="flex list-none">
+                        <ul className="flex list-none flex-wrap justify-center gap-2">
                         {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(page => (
-                          <li key={page} className="mx-1">
+                          <li key={page}>
                             <button
-                              className={`py-2 px-4 rounded-full border ${
+                              className={`py-2 px-3 sm:px-4 rounded-full border text-sm sm:text-base ${
                                 page === pagination.currentPage
                                   ? 'bg-teal-600 text-white border-teal-600'
                                   : 'bg-white text-gray-700 border-slate-300 hover:bg-slate-100'
@@ -265,27 +265,39 @@ const PatientDashboard = () => {
             </>
           )}
         </div>
+        {/* Floating Action Buttons - Split layout */}
+        {/* Left side - Health Prediction Button (higher z-index and positioned above chatbot) */}
         <Link
-          to="/health-risk"
-          className="fixed bottom-6 left-6 z-40 bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105"
+          to="/health-prediction"
+          className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 z-50 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105 w-12 h-12 sm:w-auto sm:h-auto sm:px-5 sm:py-3"
+          title="Predict your health"
         >
-          <Brain size={20} />
-          <span>Predict your health</span>
+          <Brain size={20} className="flex-shrink-0" />
+          <span className="hidden sm:inline whitespace-nowrap">Predict your health</span>
         </Link>
-        <button
-          onClick={() => setShowAIChat(true)}
-          className="fixed bottom-6 right-6 z-40 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105"
-        >
-          <Stethoscope size={20} />
-          <span>Chat with AI Doctor</span>
-        </button>
-        <button
-          onClick={() => setShowVoiceCall(true)}
-          className="fixed bottom-20 right-6 z-40 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105"
-        >
-          <Phone size={20} />
-          <span>Voice Call with AI Doctor</span>
-        </button>
+        
+        {/* Right side - AI Buttons Stack */}
+        <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex flex-col gap-2 sm:gap-3">
+          {/* Voice Call Button */}
+          <button
+            onClick={() => setShowVoiceCall(true)}
+            className="bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105 w-12 h-12 sm:w-auto sm:h-auto sm:px-5 sm:py-3"
+            title="Voice Call with AI Doctor"
+          >
+            <Phone size={20} className="flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Voice Call with AI Doctor</span>
+          </button>
+          
+          {/* Chat with AI Doctor Button */}
+          <button
+            onClick={() => setShowAIChat(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105 w-12 h-12 sm:w-auto sm:h-auto sm:px-5 sm:py-3"
+            title="Chat with AI Doctor"
+          >
+            <Stethoscope size={20} className="flex-shrink-0" />
+            <span className="hidden sm:inline whitespace-nowrap">Chat with AI Doctor</span>
+          </button>
+        </div>
         <ChatBot />
         <AITriageChat isOpen={showAIChat} onClose={() => setShowAIChat(false)} />
         <AIVoiceCall isOpen={showVoiceCall} onClose={() => setShowVoiceCall(false)} />

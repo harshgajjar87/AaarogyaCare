@@ -60,12 +60,12 @@ const AdminDashboard = () => {
   );
 
   const StatCard = ({ title, value, icon, color, onClick }) => (
-    <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6 flex items-center justify-between cursor-pointer" onClick={onClick}>
+    <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6 flex items-center justify-between cursor-pointer" onClick={onClick}>
       <div>
-        <p className="text-sm text-health-text-p">{title}</p>
-        <p className="text-3xl font-bold text-health-text-h">{value}</p>
+        <p className="text-xs sm:text-sm text-health-text-p">{title}</p>
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">{value}</p>
       </div>
-      <div className={`rounded-full p-3 bg-${color}-100 text-${color}-600`}>
+      <div className={`rounded-full p-2 sm:p-3 bg-${color}-100 text-${color}-600 flex-shrink-0`}>
         {icon}
       </div>
     </div>
@@ -93,12 +93,12 @@ const AdminDashboard = () => {
           <p className="text-health-text-p mt-2">Welcome, {user?.name || 'Admin'}!</p>
         </div>
 
-        <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col`}>
-          <SidebarLink to="/admin-dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
-          <SidebarLink to="/admin-analytics" icon={<BarChart3 size={20} />} text="Analytics" />
-          <SidebarLink to="/admin-doctors" icon={<Stethoscope size={20} />} text="Doctors" />
-          <SidebarLink to="/admin-patients" icon={<Users size={20} />} text="Patients" />
-          <SidebarLink to="/admin-appointments" icon={<Calendar size={20} />} text="Appointments" />
+        <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col overflow-y-auto overflow-x-hidden`} style={{ maxHeight: 'calc(100vh - 240px)' }}>
+          <SidebarLink to="/admin/dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
+          <SidebarLink to="/admin/analytics" icon={<BarChart3 size={20} />} text="Analytics" />
+          <SidebarLink to="/admin/doctors" icon={<Stethoscope size={20} />} text="Doctors" />
+          <SidebarLink to="/admin/patients" icon={<Users size={20} />} text="Patients" />
+          <SidebarLink to="/admin/appointments" icon={<Calendar size={20} />} text="Appointments" />
         </nav>
 
         <div className={`${isSidebarOpen ? "block" : "hidden md:block"} p-6 border-t border-slate-100`}>
@@ -109,56 +109,56 @@ const AdminDashboard = () => {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto p-4 lg:p-6 transition-all duration-300">
-        <div className="mb-8 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+      <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 transition-all duration-300">
+        <div className="mb-6 sm:mb-8 flex justify-between items-center">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="md:hidden p-2 rounded-md text-slate-500 hover:text-health-primary hover:bg-slate-100"
             >
-              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <h1 className="text-3xl font-bold text-health-text-h">Admin Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">Admin Dashboard</h1>
           </div>
         </div>
 
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <StatCard title="Total Patients" value={stats.totalPatients} icon={<Users size={24} />} color="blue" onClick={() => navigate('/admin-patients')} />
-          <StatCard title="Total Doctors" value={stats.totalDoctors} icon={<Stethoscope size={24} />} color="green" onClick={() => navigate('/admin-doctors')} />
-          <StatCard title="Total Appointments" value={stats.totalAppointments} icon={<Calendar size={24} />} color="purple" onClick={() => navigate('/admin-appointments')} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <StatCard title="Total Patients" value={stats.totalPatients} icon={<Users size={20} className="sm:w-6 sm:h-6" />} color="blue" onClick={() => navigate('/admin/patients')} />
+          <StatCard title="Total Doctors" value={stats.totalDoctors} icon={<Stethoscope size={20} className="sm:w-6 sm:h-6" />} color="green" onClick={() => navigate('/admin/doctors')} />
+          <StatCard title="Total Appointments" value={stats.totalAppointments} icon={<Calendar size={20} className="sm:w-6 sm:h-6" />} color="purple" onClick={() => navigate('/admin/appointments')} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
           <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100">
-            <h2 className="text-xl font-bold text-health-text-h p-6 flex items-center gap-2"><BarChart2 size={22} /> Doctors by Specialization</h2>
-            <div className="p-6 pt-0">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h p-3 sm:p-4 md:p-6 flex items-center gap-2"><BarChart2 size={18} className="sm:w-5 sm:h-5 md:w-6 md:h-6" /> Doctors by Specialization</h2>
+            <div className="p-3 sm:p-4 md:p-6 pt-0">
               {Object.keys(stats.doctorsBySpecialization).length > 0 ? (
                 <ul className="space-y-2">
                   {Object.entries(stats.doctorsBySpecialization).map(([specialization, count]) => (
-                    <li key={specialization} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                      <span className="font-medium">{specialization}</span>
-                      <span className="font-bold text-teal-600">{count}</span>
+                    <li key={specialization} className="flex justify-between items-center p-2 sm:p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium text-xs sm:text-sm md:text-base">{specialization}</span>
+                      <span className="font-bold text-teal-600 text-xs sm:text-sm md:text-base">{count}</span>
                     </li>
                   ))}
                 </ul>
-              ) : <p className="text-center py-8 text-health-text-p">No data available.</p>}
+              ) : <p className="text-center py-8 text-health-text-p text-xs sm:text-sm">No data available.</p>}
             </div>
           </div>
           
           <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100">
-            <h2 className="text-xl font-bold text-health-text-h p-6 flex items-center gap-2"><BarChart2 size={22} /> Appointments by Doctor</h2>
-            <div className="p-6 pt-0">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h p-3 sm:p-4 md:p-6 flex items-center gap-2"><BarChart2 size={18} className="sm:w-5 sm:h-5 md:w-6 md:h-6" /> Appointments by Doctor</h2>
+            <div className="p-3 sm:p-4 md:p-6 pt-0">
               {Object.keys(stats.appointmentsByDoctor).length > 0 ? (
                 <ul className="space-y-2">
                   {Object.entries(stats.appointmentsByDoctor).map(([doctorName, count]) => (
-                    <li key={doctorName} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                      <span className="font-medium">{doctorName}</span>
-                      <span className="font-bold text-teal-600">{count}</span>
+                    <li key={doctorName} className="flex justify-between items-center p-2 sm:p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium text-xs sm:text-sm md:text-base">{doctorName}</span>
+                      <span className="font-bold text-teal-600 text-xs sm:text-sm md:text-base">{count}</span>
                     </li>
                   ))}
                 </ul>
-              ) : <p className="text-center py-8 text-health-text-p">No data available.</p>}
+              ) : <p className="text-center py-8 text-health-text-p text-xs sm:text-sm">No data available.</p>}
             </div>
           </div>
         </div>

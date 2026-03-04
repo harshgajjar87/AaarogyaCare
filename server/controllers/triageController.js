@@ -115,7 +115,7 @@ Be human, caring, and helpful - not robotic. Always try to redirect to health co
       const response = await axios.post(
         'https://api.groq.com/openai/v1/chat/completions',
         {
-          model: 'llama-3.1-8b-instant',
+          model: 'llama-3.3-70b-versatile',
           messages,
           temperature: 0.3,
           max_tokens: 50

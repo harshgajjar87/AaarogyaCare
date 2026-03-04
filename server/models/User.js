@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   profileImage: { type: String, default: '' },
   profile: {
     age: { type: Number, min: 0, max: 120 },
-    gender: { type: String, enum: ['male', 'female', 'other'] },
+    gender: { type: String, enum: ['male', 'female', 'other', 'Male', 'Female', 'Other'] },
     phone: { type: String },
     address: { type: String },
     bloodGroup: { type: String, enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] },

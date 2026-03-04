@@ -10,15 +10,40 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
   const [history, setHistory] = useState([]);
   const [callLog, setCallLog] = useState([]);
   const [language, setLanguage] = useState('english');
+  const [selectedVoice, setSelectedVoice] = useState(null);
+  const [availableVoices, setAvailableVoices] = useState([]);
   const recognitionRef = useRef(null);
   const isSpeakingRef = useRef(false);
   const finalTranscriptRef = useRef('');
 
   useEffect(() => {
+    // Load available voices
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      // Filter for Indian English voices
+      const indianVoices = voices.filter(v => 
+        v.lang.includes('en-IN') || 
+        v.name.toLowerCase().includes('india') ||
+        v.name.toLowerCase().includes('rishi') ||
+        v.name.toLowerCase().includes('neel')
+      );
+      
+      // If no Indian voices, get all English voices
+      const englishVoices = indianVoices.length > 0 ? indianVoices : voices.filter(v => v.lang.startsWith('en'));
+      
+      setAvailableVoices(englishVoices);
+      if (englishVoices.length > 0 && !selectedVoice) {
+        setSelectedVoice(englishVoices[0]);
+      }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
+      recognitionRef.current.continuous = true; // Changed to true for continuous listening
       recognitionRef.current.interimResults = true;
 
       recognitionRef.current.onresult = (event) => {
@@ -27,7 +52,7 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
         let finalText = '';
         let interimText = '';
         
-        for (let i = 0; i < event.results.length; i++) {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
           if (result.isFinal) {
             finalText += result[0].transcript;
@@ -38,8 +63,8 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
         
         if (finalText) {
           console.log('Final transcript:', finalText);
-          finalTranscriptRef.current = finalText;
-          setTranscript(finalText);
+          setTranscript('');
+          handleVoiceInput(finalText.trim());
         } else if (interimText) {
           console.log('Interim transcript:', interimText);
           setTranscript(interimText);
@@ -47,32 +72,55 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       };
 
       recognitionRef.current.onend = () => {
-        console.log('Recognition ended');
-        console.log('Final transcript ref:', finalTranscriptRef.current);
-        console.log('Is recording:', isRecording);
-        
-        const finalText = finalTranscriptRef.current.trim();
-        if (finalText) {
-          console.log('Processing transcript:', finalText);
-          handleVoiceInput(finalText);
-          finalTranscriptRef.current = '';
-          setTranscript('');
-        } else {
-          console.log('No transcript to process');
-        }
+        console.log('Recognition ended, isSpeaking:', isSpeakingRef.current);
         setIsRecording(false);
+        // Auto-restart if not speaking (don't check isCallActive as it might be stale)
+        if (!isSpeakingRef.current) {
+          console.log('Auto-restarting recognition');
+          setTimeout(() => {
+            if (!isSpeakingRef.current && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+                setIsRecording(true);
+                console.log('Auto-restart successful');
+              } catch (e) {
+                console.log('Auto-restart failed:', e.message);
+                // Try one more time with longer delay
+                setTimeout(() => {
+                  if (!isSpeakingRef.current && recognitionRef.current) {
+                    try {
+                      recognitionRef.current.start();
+                      setIsRecording(true);
+                      console.log('Auto-restart retry successful');
+                    } catch (retryError) {
+                      console.error('Auto-restart retry failed:', retryError.message);
+                    }
+                  }
+                }, 1000);
+              }
+            }
+          }, 500);
+        }
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         setIsRecording(false);
-        
-        // If network error, try to process what we have
-        if (event.error === 'network' && finalTranscriptRef.current.trim()) {
-          console.log('Network error, processing partial:', finalTranscriptRef.current);
-          handleVoiceInput(finalTranscriptRef.current.trim());
-          finalTranscriptRef.current = '';
-          setTranscript('');
+        // Auto-restart on certain errors
+        if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'aborted') {
+          if (!isSpeakingRef.current) {
+            setTimeout(() => {
+              if (recognitionRef.current && !isSpeakingRef.current) {
+                try {
+                  recognitionRef.current.start();
+                  setIsRecording(true);
+                  console.log('Restarted after error:', event.error);
+                } catch (e) {
+                  console.error('Failed to restart after error:', e.message);
+                }
+              }
+            }, 1000);
+          }
         }
       };
     }
@@ -113,8 +161,17 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
         const langMap = { english: 'en-IN', hindi: 'hi-IN', gujarati: 'gu-IN' };
         utterance.lang = langMap[language] || 'en-IN';
         
-        utterance.voice = voices.find(v => v.lang === utterance.lang) || 
-                          voices.find(v => v.lang.startsWith(utterance.lang.split('-')[0])) || null;
+        // Use selected voice or find best match
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        } else {
+          utterance.voice = voices.find(v => v.lang === utterance.lang) || 
+                            voices.find(v => v.lang.startsWith(utterance.lang.split('-')[0])) || null;
+        }
+        
+        // Adjust speech parameters for more natural Indian accent
+        utterance.rate = 0.9; // Slightly slower for clarity
+        utterance.pitch = 1.0;
         
         console.log('Selected voice:', utterance.voice?.name || 'default');
         
@@ -147,13 +204,28 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsCallActive(true);
       const greetings = {
-        english: "Hello, I'm your A.I. doctor. Press and hold the microphone button to speak.",
-        hindi: "नमस्ते, मैं आपका A.I. डॉक्टर हूं। बोलने के लिए माइक्रोफोन बटन दबाएं और दबाए रखें।",
-        gujarati: "નમસ્તે, હું તમારો A.I.ડોક્ટર છું. બોલવા માટે માઇક્રોફોન બટન દબાવો અને દબાવી રાખો."
+        english: "Hello, I'm your A.I. doctor. How can I help you today?",
+        hindi: "नमस्ते, मैं आपका A.I. डॉक्टर हूं। मैं आपकी कैसे मदद कर सकता हूं?",
+        gujarati: "નમસ્તે, હું તમારો A.I. ડોક્ટર છું. હું તમને કેવી રીતે મદદ કરી શકું?"
       };
       const greeting = greetings[language];
       setCallLog([{ text: greeting, sender: 'ai' }]);
-      speak(greeting);
+      await speak(greeting);
+      
+      // Start continuous listening after greeting
+      setTimeout(() => {
+        if (recognitionRef.current) {
+          const langMap = { english: 'en-IN', hindi: 'hi-IN', gujarati: 'gu-IN' };
+          recognitionRef.current.lang = langMap[language] || 'en-IN';
+          try {
+            recognitionRef.current.start();
+            setIsRecording(true);
+            console.log('Continuous listening started');
+          } catch (e) {
+            console.log('Start failed:', e.message);
+          }
+        }
+      }, 500);
     } catch (error) {
       alert('Microphone access is required for voice calls. Please allow microphone permission.');
     }
@@ -161,46 +233,22 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
 
   const endCall = () => {
     setIsCallActive(false);
+    setIsRecording(false);
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
     }
     setIsSpeaking(false);
     onClose();
   };
 
-  const startRecording = () => {
-    if (isSpeaking || !recognitionRef.current || isRecording) return;
-    
-    finalTranscriptRef.current = '';
-    setTranscript('');
-    setIsRecording(true);
-    
-    const langMap = { english: 'en-IN', hindi: 'hi-IN', gujarati: 'gu-IN' };
-    recognitionRef.current.lang = langMap[language] || 'en-IN';
-    
-    try {
-      recognitionRef.current.start();
-      console.log('Recording started');
-    } catch (e) {
-      console.log('Start failed:', e.message);
-      setIsRecording(false);
-    }
-  };
-
-  const stopRecording = () => {
-    if (!isRecording || !recognitionRef.current) return;
-    try {
-      recognitionRef.current.stop();
-      console.log('Recording stopped');
-    } catch (e) {
-      console.log('Stop failed:', e.message);
-    }
-  };
-
   const handleVoiceInput = async (text) => {
+    // Stop listening while processing
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
+        setIsRecording(false);
       } catch (e) {}
     }
     
@@ -225,8 +273,35 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       console.log('Starting to speak:', res.data.message);
       await speak(res.data.message);
       console.log('Finished speaking');
-
-      if (res.data.completed) {
+      
+      // Resume listening after AI finishes speaking
+      if (!res.data.completed) {
+        setTimeout(() => {
+          if (recognitionRef.current) {
+            try {
+              console.log('Attempting to resume listening...');
+              recognitionRef.current.start();
+              setIsRecording(true);
+              console.log('Resumed listening successfully');
+            } catch (e) {
+              console.error('Resume failed:', e.message);
+              // Retry once more after a longer delay
+              setTimeout(() => {
+                if (recognitionRef.current) {
+                  try {
+                    recognitionRef.current.start();
+                    setIsRecording(true);
+                    console.log('Resumed listening on retry');
+                  } catch (retryError) {
+                    console.error('Retry also failed:', retryError.message);
+                  }
+                }
+              }, 1000);
+            }
+          }
+        }, 500);
+      } else {
+        // Conversation completed
         setTimeout(async () => {
           const finalMsg = "You can now book an appointment from the dashboard.";
           setCallLog(prev => [...prev, { text: finalMsg, sender: 'ai' }]);
@@ -239,6 +314,19 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       const errorMsg = "I'm having trouble connecting. Please try again.";
       setCallLog(prev => [...prev, { text: errorMsg, sender: 'ai' }]);
       await speak(errorMsg);
+      
+      // Resume listening after error message
+      setTimeout(() => {
+        if (recognitionRef.current) {
+          try {
+            recognitionRef.current.start();
+            setIsRecording(true);
+            console.log('Resumed listening after error');
+          } catch (e) {
+            console.error('Failed to resume after error:', e.message);
+          }
+        }
+      }, 500);
     }
   };
 
@@ -256,15 +344,35 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
             {isCallActive ? (isSpeaking ? 'AI is speaking...' : isRecording ? 'Listening...' : 'Press mic to speak') : 'Ready to start'}
           </p>
           {!isCallActive && (
-            <select 
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="bg-white bg-opacity-20 text-white text-sm px-4 py-2 rounded-full border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-white"
-            >
-              <option value="english" className="text-slate-800">English</option>
-              <option value="hindi" className="text-slate-800">हिंदी</option>
-              <option value="gujarati" className="text-slate-800">ગુજરાતી</option>
-            </select>
+            <div className="space-y-3">
+              <select 
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="w-full bg-white bg-opacity-20 text-white text-sm px-4 py-2 rounded-full border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-white"
+              >
+                <option value="english" className="text-slate-800">English</option>
+                <option value="hindi" className="text-slate-800">हिंदी</option>
+                <option value="gujarati" className="text-slate-800">ગુજરાતી</option>
+              </select>
+              
+              {availableVoices.length > 0 && (
+                <select 
+                  value={selectedVoice?.name || ''}
+                  onChange={(e) => {
+                    const voice = availableVoices.find(v => v.name === e.target.value);
+                    setSelectedVoice(voice);
+                  }}
+                  className="w-full bg-white bg-opacity-20 text-white text-sm px-4 py-2 rounded-full border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-white"
+                >
+                  <option value="" className="text-slate-800">Select Voice Accent</option>
+                  {availableVoices.map((voice) => (
+                    <option key={voice.name} value={voice.name} className="text-slate-800">
+                      {voice.name} ({voice.lang})
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           )}
         </div>
 
@@ -285,22 +393,20 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
 
         <div className="flex justify-center gap-4 mb-6">
           {isCallActive && (
-            <button
-              onMouseDown={startRecording}
-              onMouseUp={stopRecording}
-              onTouchStart={startRecording}
-              onTouchEnd={stopRecording}
-              disabled={isSpeaking}
-              className={`p-6 rounded-full transition-all shadow-lg ${
+            <div className="text-center">
+              <div className={`p-6 rounded-full transition-all shadow-lg ${
                 isRecording 
-                  ? 'bg-red-500 scale-110' 
+                  ? 'bg-red-500 animate-pulse' 
                   : isSpeaking 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-white bg-opacity-20 hover:bg-opacity-30'
-              }`}
-            >
-              <Mic size={32} />
-            </button>
+                  ? 'bg-gray-400' 
+                  : 'bg-green-500'
+              }`}>
+                <Mic size={32} />
+              </div>
+              <p className="text-sm mt-2">
+                {isSpeaking ? 'AI Speaking...' : isRecording ? 'Listening...' : 'Ready'}
+              </p>
+            </div>
           )}
         </div>
 

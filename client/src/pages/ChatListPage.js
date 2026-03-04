@@ -17,18 +17,19 @@ const ChatListPage = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-health-text-h">Your Chats</h1>
+    <div className="max-w-5xl mx-auto px-3 sm:px-4 md:px-6">
+      <div className="flex justify-between items-center mb-4 sm:mb-6 md:mb-8">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">Your Chats</h1>
         <button 
-          className="bg-slate-200 text-slate-800 px-4 py-2 rounded-full hover:bg-slate-300 transition-all font-medium flex items-center gap-2 text-sm"
+          className="bg-slate-200 text-slate-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full hover:bg-slate-300 transition-all font-medium flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
           onClick={handleBackToDashboard}
         >
-          <ArrowLeft size={16} />
-          <span>Back to Dashboard</span>
+          <ArrowLeft size={14} className="sm:w-4 sm:h-4" />
+          <span className="hidden sm:inline">Back to Dashboard</span>
+          <span className="sm:hidden">Back</span>
         </button>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border p-6">
+      <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border p-3 sm:p-4 md:p-6">
         <ChatList />
       </div>
     </div>

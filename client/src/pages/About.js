@@ -45,30 +45,30 @@ const About = () => {
   };
 
   const InfoSection = ({ title, children }) => (
-    <div className="mb-6">
-      <h4 className="text-xl font-bold text-health-text-h mb-2">{title}</h4>
-      <div className="text-health-text-p space-y-2">{children}</div>
+    <div className="mb-4 sm:mb-6">
+      <h4 className="text-lg sm:text-xl font-bold text-health-text-h mb-2">{ title}</h4>
+      <div className="text-health-text-p space-y-2 text-sm sm:text-base">{children}</div>
     </div>
   );
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
       {/* Back to Dashboard Button */}
       {user && (
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6">
           <button
             onClick={() => navigate(user?.role === 'doctor' ? '/doctor/dashboard' : user?.role === 'admin' ? '/admin/dashboard' : '/patient/dashboard')}
-            className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors"
+            className="p-1.5 sm:p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
           </button>
-          <span className="text-lg font-medium text-health-text-h">Back to Dashboard</span>
+          <span className="text-base sm:text-lg font-medium text-health-text-h">Back to Dashboard</span>
         </div>
       )}
       {/* About Section */}
-      <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-8 mb-8">
-        <h2 className="text-3xl font-bold text-center text-health-text-h mb-2">About AarogyaCare</h2>
-        <p className="text-center text-health-text-p mb-8">
+      <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center text-health-text-h mb-2">About AarogyaCare</h2>
+        <p className="text-center text-health-text-p mb-6 sm:mb-8 text-sm sm:text-base">
           Your trusted healthcare partner for comprehensive medical care.
         </p>
 
@@ -105,62 +105,62 @@ const About = () => {
       </div>
 
       {/* Contact Form */}
-      <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-8">
-        <h3 className="text-2xl font-bold text-center text-health-text-h mb-4">Contact Us</h3>
-        <p className="text-center text-health-text-p mb-8">
+      <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6 md:p-8">
+        <h3 className="text-xl sm:text-2xl font-bold text-center text-health-text-h mb-3 sm:mb-4">Contact Us</h3>
+        <p className="text-center text-health-text-p mb-6 sm:mb-8 text-sm sm:text-base">
           Have questions or need assistance? Send us a message.
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-health-text-p mb-2">Name *</label>
+              <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-health-text-p mb-1.5 sm:mb-2">Name *</label>
               <input
                 type="text"
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4"
+                className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 text-sm sm:text-base"
                 required
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-health-text-p mb-2">Email *</label>
+              <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-health-text-p mb-1.5 sm:mb-2">Email *</label>
               <input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4"
+                className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 text-sm sm:text-base"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-health-text-p mb-2">Subject *</label>
+            <label htmlFor="subject" className="block text-xs sm:text-sm font-medium text-health-text-p mb-1.5 sm:mb-2">Subject *</label>
             <input
               type="text"
               id="subject"
               name="subject"
               value={formData.subject}
               onChange={handleChange}
-              className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4"
+              className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 text-sm sm:text-base"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-health-text-p mb-2">Message *</label>
+            <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-health-text-p mb-1.5 sm:mb-2">Message *</label>
             <textarea
               id="message"
               name="message"
               rows="5"
               value={formData.message}
               onChange={handleChange}
-              className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4"
+              className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 text-sm sm:text-base"
               required
             ></textarea>
           </div>
@@ -168,7 +168,7 @@ const About = () => {
           <div className="text-center">
             <button
               type="submit"
-              className="bg-teal-600 text-white px-8 py-3 rounded-full hover:bg-teal-700 transition-all font-medium disabled:opacity-50"
+              className="bg-teal-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full hover:bg-teal-700 transition-all font-medium disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto"
               disabled={loading}
             >
               {loading ? 'Sending...' : 'Send Message'}

@@ -136,11 +136,11 @@ const AdminAnalytics = () => {
         </div>
 
         <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col`}>
-          <SidebarLink to="/admin-dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
-          <SidebarLink to="/admin-analytics" icon={<BarChart3 size={20} />} text="Analytics" />
-          <SidebarLink to="/admin-doctors" icon={<Stethoscope size={20} />} text="Doctors" />
-          <SidebarLink to="/admin-patients" icon={<Users size={20} />} text="Patients" />
-          <SidebarLink to="/admin-appointments" icon={<Calendar size={20} />} text="Appointments" />
+          <SidebarLink to="/admin/dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
+          <SidebarLink to="/admin/analytics" icon={<BarChart3 size={20} />} text="Analytics" />
+          <SidebarLink to="/admin/doctors" icon={<Stethoscope size={20} />} text="Doctors" />
+          <SidebarLink to="/admin/patients" icon={<Users size={20} />} text="Patients" />
+          <SidebarLink to="/admin/appointments" icon={<Calendar size={20} />} text="Appointments" />
         </nav>
 
         <div className={`${isSidebarOpen ? "block" : "hidden md:block"} p-6 border-t border-slate-100`}>
@@ -151,108 +151,116 @@ const AdminAnalytics = () => {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto p-4 lg:p-6">
-        <div className="mb-8 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+      <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6">
+        <div className="mb-6 sm:mb-8 flex justify-between items-center">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 rounded-md text-slate-500 hover:text-health-primary hover:bg-slate-100">
-              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <h1 className="text-3xl font-bold text-health-text-h">Analytics Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">Analytics Dashboard</h1>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-health-text-p">Total Appointments</p>
-                <p className="text-3xl font-bold text-health-text-h">{analytics.totalAppointments}</p>
+                <p className="text-[10px] sm:text-xs md:text-sm text-health-text-p">Total Appointments</p>
+                <p className="text-lg sm:text-2xl md:text-3xl font-bold text-health-text-h">{analytics.totalAppointments}</p>
               </div>
-              <div className="rounded-full p-3 bg-teal-100 text-teal-600">
-                <Calendar size={24} />
+              <div className="rounded-full p-2 sm:p-3 bg-teal-100 text-teal-600 flex-shrink-0">
+                <Calendar size={16} className="sm:w-5 sm:h-5 md:w-6 md:h-6" />
               </div>
             </div>
           </div>
 
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-health-text-p">Total Revenue</p>
-                <p className="text-3xl font-bold text-health-text-h">₹{analytics.totalRevenue.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs md:text-sm text-health-text-p">Total Revenue</p>
+                <p className="text-lg sm:text-2xl md:text-3xl font-bold text-health-text-h">₹{analytics.totalRevenue.toLocaleString()}</p>
               </div>
-              <div className="rounded-full p-3 bg-blue-100 text-blue-600">
-                <DollarSign size={24} />
+              <div className="rounded-full p-2 sm:p-3 bg-blue-100 text-blue-600 flex-shrink-0">
+                <DollarSign size={16} className="sm:w-5 sm:h-5 md:w-6 md:h-6" />
               </div>
             </div>
           </div>
 
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-health-text-p">Total Doctors</p>
-                <p className="text-3xl font-bold text-health-text-h">{analytics.totalDoctors}</p>
+                <p className="text-[10px] sm:text-xs md:text-sm text-health-text-p">Total Doctors</p>
+                <p className="text-lg sm:text-2xl md:text-3xl font-bold text-health-text-h">{analytics.totalDoctors}</p>
               </div>
-              <div className="rounded-full p-3 bg-green-100 text-green-600">
-                <Stethoscope size={24} />
+              <div className="rounded-full p-2 sm:p-3 bg-green-100 text-green-600 flex-shrink-0">
+                <Stethoscope size={16} className="sm:w-5 sm:h-5 md:w-6 md:h-6" />
               </div>
             </div>
           </div>
 
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-health-text-p">Total Patients</p>
-                <p className="text-3xl font-bold text-health-text-h">{analytics.totalPatients}</p>
+                <p className="text-[10px] sm:text-xs md:text-sm text-health-text-p">Total Patients</p>
+                <p className="text-lg sm:text-2xl md:text-3xl font-bold text-health-text-h">{analytics.totalPatients}</p>
               </div>
-              <div className="rounded-full p-3 bg-purple-100 text-purple-600">
-                <Users size={24} />
+              <div className="rounded-full p-2 sm:p-3 bg-purple-100 text-purple-600 flex-shrink-0">
+                <Users size={16} className="sm:w-5 sm:h-5 md:w-6 md:h-6" />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-xl font-bold text-health-text-h mb-4 flex items-center gap-2">
-              <TrendingUp size={20} /> Monthly Appointments
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h mb-3 sm:mb-4 flex items-center gap-2">
+              <TrendingUp size={16} className="sm:w-5 sm:h-5" /> Monthly Appointments
             </h2>
-            <Bar data={monthlyAppointmentsData} options={{ responsive: true, maintainAspectRatio: true }} />
+            <div className="h-48 sm:h-64">
+              <Bar data={monthlyAppointmentsData} options={{ responsive: true, maintainAspectRatio: false }} />
+            </div>
           </div>
 
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-xl font-bold text-health-text-h mb-4 flex items-center gap-2">
-              <DollarSign size={20} /> Monthly Revenue
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h mb-3 sm:mb-4 flex items-center gap-2">
+              <DollarSign size={16} className="sm:w-5 sm:h-5" /> Monthly Revenue
             </h2>
-            <Line data={monthlyRevenueData} options={{ responsive: true, maintainAspectRatio: true }} />
+            <div className="h-48 sm:h-64">
+              <Line data={monthlyRevenueData} options={{ responsive: true, maintainAspectRatio: false }} />
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-xl font-bold text-health-text-h mb-4">User Growth</h2>
-            <Line data={userGrowthData} options={{ responsive: true, maintainAspectRatio: true }} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h mb-3 sm:mb-4">User Growth</h2>
+            <div className="h-48 sm:h-64">
+              <Line data={userGrowthData} options={{ responsive: true, maintainAspectRatio: false }} />
+            </div>
           </div>
 
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-xl font-bold text-health-text-h mb-4">Top Doctors by Appointments</h2>
-            <Bar data={topDoctorsData} options={{ responsive: true, maintainAspectRatio: true, indexAxis: 'y' }} />
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h mb-3 sm:mb-4">Top Doctors by Appointments</h2>
+            <div className="h-48 sm:h-64">
+              <Bar data={topDoctorsData} options={{ responsive: true, maintainAspectRatio: false, indexAxis: 'y' }} />
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-xl font-bold text-health-text-h mb-4">Doctors by Specialization</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h mb-3 sm:mb-4">Doctors by Specialization</h2>
             <div className="flex justify-center">
-              <div className="w-64 h-64">
+              <div className="w-48 h-48 sm:w-64 sm:h-64">
                 <Pie data={specializationData} options={{ responsive: true, maintainAspectRatio: true }} />
               </div>
             </div>
           </div>
 
-          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-xl font-bold text-health-text-h mb-4">Appointment Status Distribution</h2>
+          <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h mb-3 sm:mb-4">Appointment Status Distribution</h2>
             <div className="flex justify-center">
-              <div className="w-64 h-64">
+              <div className="w-48 h-48 sm:w-64 sm:h-64">
                 <Doughnut data={statusData} options={{ responsive: true, maintainAspectRatio: true }} />
               </div>
             </div>

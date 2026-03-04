@@ -30,15 +30,15 @@ const AdminNavbar = () => {
   };
 
   const navLinks = [
-    { to: "/admin-dashboard", icon: <LayoutDashboard className="h-4 w-4" />, text: "Dashboard" },
-    { to: "/admin-doctor-verifications", icon: <Stethoscope className="h-4 w-4" />, text: "Doctor Verifications" },
-    { to: "/admin-queries", icon: <HelpCircle className="h-4 w-4" />, text: "Queries" }
+    { to: "/admin/dashboard", icon: <LayoutDashboard className="h-4 w-4" />, text: "Dashboard" },
+    { to: "/admin/verifications", icon: <Stethoscope className="h-4 w-4" />, text: "Doctor Verifications" },
+    { to: "/admin/queries", icon: <HelpCircle className="h-4 w-4" />, text: "Queries" }
   ];
 
   return (
     <>
       <nav className="w-full px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-        <Link to="/admin-dashboard" className="flex items-center gap-2 text-xl font-bold text-health-primary transition-transform hover:scale-105">
+        <Link to="/admin/dashboard" className="flex items-center gap-2 text-xl font-bold text-health-primary transition-transform hover:scale-105">
           <span className="text-2xl">👑</span>
           <span>Admin Panel</span>
         </Link>

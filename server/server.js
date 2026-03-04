@@ -68,6 +68,8 @@ app.use('/api/analysis', require('./routes/analysisRoutes'));
 app.use('/api/triage', require('./routes/triageRoutes'));
 app.use('/api/tts', require('./routes/ttsRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/health', require('./routes/healthPredictionRoutes'));
+app.use('/api/test', require('./routes/testRoutes'));
 
 // DB & Start
 mongoose.connect(process.env.MONGO_URI)

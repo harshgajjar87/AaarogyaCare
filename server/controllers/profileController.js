@@ -73,9 +73,11 @@ exports.updateUserProfile = async (req, res) => {
 
     // Validate gender if provided
     if (profile && profile.gender) {
-      if (!['male', 'female', 'other'].includes(profile.gender)) {
+      const validGenders = ['male', 'female', 'other', 'Male', 'Female', 'Other'];
+      if (!validGenders.includes(profile.gender)) {
         return res.status(400).json({ msg: 'Invalid gender value' });
       }
+      profile.gender = profile.gender.toLowerCase();
     }
 
     // Ensure age is a number

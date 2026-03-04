@@ -86,12 +86,12 @@ const DoctorDashboard = () => {
   );
   
   const StatCard = ({ title, value, icon, color }) => (
-    <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 p-6 flex items-center justify-between">
+    <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6 flex items-center justify-between">
       <div>
-        <p className="text-sm text-health-text-p">{title}</p>
-        <p className="text-3xl font-bold text-health-text-h">{value}</p>
+        <p className="text-xs sm:text-sm text-health-text-p">{title}</p>
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">{value}</p>
       </div>
-      <div className={`rounded-full p-3 bg-${color}-100 text-${color}-600`}>
+      <div className={`rounded-full p-2 sm:p-3 bg-${color}-100 text-${color}-600 flex-shrink-0`}>
         {icon}
       </div>
     </div>
@@ -111,7 +111,7 @@ const DoctorDashboard = () => {
           <p className="text-health-text-p mt-2">Welcome, Dr. {user.name}!</p>
         </div>
 
-        <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col`}>
+        <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col overflow-y-auto overflow-x-hidden`} style={{ maxHeight: 'calc(100vh - 240px)' }}>
           <SidebarLink to="/doctor/dashboard" icon={<LayoutDashboard size={20} />} text="Dashboard" />
           <SidebarLink to="/doctor/appointments" icon={<Calendar size={20} />} text="Appointments" />
           <SidebarLink to="/doctor/analytics" icon={<BarChart3 size={20} />} text="Analytics" />
@@ -130,95 +130,97 @@ const DoctorDashboard = () => {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto p-4 lg:p-6 transition-all duration-300">
-        <div className="mb-8 flex justify-between items-center">
-          <div className="flex items-center gap-4">
+      <main className="flex-1 overflow-auto p-2 sm:p-3 md:p-4 lg:p-6 transition-all duration-300">
+        <div className="mb-6 sm:mb-8 flex justify-between items-center">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="md:hidden p-2 rounded-md text-slate-500 hover:text-health-primary hover:bg-slate-100"
             >
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <h1 className="text-3xl font-bold text-health-text-h">Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">Dashboard</h1>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <StatCard title="Pending Appointments" value={stats.pendingAppointments} icon={<Calendar size={24} />} color="yellow" />
-          <StatCard title="Today's Appointments" value={stats.todaysAppointments} icon={<Calendar size={24} />} color="blue" />
-          <StatCard title="Total Patients" value={stats.totalPatients} icon={<Users size={24} />} color="green" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+          <StatCard title="Pending Appointments" value={stats.pendingAppointments} icon={<Calendar size={20} className="sm:w-6 sm:h-6" />} color="yellow" />
+          <StatCard title="Today's Appointments" value={stats.todaysAppointments} icon={<Calendar size={20} className="sm:w-6 sm:h-6" />} color="blue" />
+          <StatCard title="Total Patients" value={stats.totalPatients} icon={<Users size={20} className="sm:w-6 sm:h-6" />} color="green" />
         </div>
 
-        <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100 mb-8">
-          <h2 className="text-xl font-bold text-health-text-h p-6">Recent Appointment Requests</h2>
+        <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 mb-6 sm:mb-8">
+          <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h p-3 sm:p-4 md:p-6">Recent Appointment Requests</h2>
           <div className="overflow-x-auto">
             {appointments.filter(a => a.status === 'pending' && (!a.paymentInfo || a.paymentInfo.status !== 'completed')).length > 0 ? (
-              <table className="w-full text-sm text-left text-health-text-p">
-                <thead className="text-xs text-health-text-p uppercase bg-slate-50">
+              <table className="w-full text-xs sm:text-sm text-left text-health-text-p">
+                <thead className="text-[10px] sm:text-xs text-health-text-p uppercase bg-slate-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3">Patient</th>
-                    <th scope="col" className="px-6 py-3">Date & Time</th>
-                    <th scope="col" className="px-6 py-3">Reason</th>
-                    <th scope="col" className="px-6 py-3 text-center">Actions</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Patient</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Date & Time</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Reason</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {appointments.filter(app => app.status === 'pending' && (!app.paymentInfo || app.paymentInfo.status !== 'completed')).map(app => (
                     <tr key={app._id} className="bg-white border-b hover:bg-slate-50">
-                      <td className="px-6 py-4 font-medium text-health-text-h">{app.patientId?.name}</td>
-                      <td className="px-6 py-4">{new Date(app.date).toLocaleDateString()} at {app.time}</td>
-                      <td className="px-6 py-4">{app.reason}</td>
-                      <td className="px-6 py-4 text-center">
-                        <button onClick={() => handleStatus(app._id, 'approve')} className="bg-green-100 text-green-600 p-2 rounded-full hover:bg-green-200 transition-all mr-2">
-                          <Check size={16} />
-                        </button>
-                        <button onClick={() => handleStatus(app._id, 'reject')} className="bg-red-100 text-red-600 p-2 rounded-full hover:bg-red-200 transition-all">
-                          <X size={16} />
-                        </button>
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-health-text-h text-[10px] sm:text-xs md:text-sm">{app.patientId?.name}</td>
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{new Date(app.date).toLocaleDateString()} at {app.time}</td>
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{app.reason}</td>
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
+                        <div className="flex gap-1 sm:gap-2 justify-center">
+                          <button onClick={() => handleStatus(app._id, 'approve')} className="bg-green-100 text-green-600 p-1 sm:p-2 rounded-full hover:bg-green-200 transition-all">
+                            <Check size={14} className="sm:w-4 sm:h-4" />
+                          </button>
+                          <button onClick={() => handleStatus(app._id, 'reject')} className="bg-red-100 text-red-600 p-1 sm:p-2 rounded-full hover:bg-red-200 transition-all">
+                            <X size={14} className="sm:w-4 sm:h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             ) : (
-              <div className="text-center py-12 text-health-text-p">
+              <div className="text-center py-8 sm:py-12 text-health-text-p text-sm sm:text-base px-3">
                 <p>No pending appointment requests.</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="bg-health-surface rounded-xl shadow-sm border border-slate-100">
-          <h2 className="text-xl font-bold text-health-text-h p-6">Approved Appointments</h2>
+        <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100">
+          <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h p-3 sm:p-4 md:p-6">Approved Appointments</h2>
           <div className="overflow-x-auto">
             {appointments.filter(a => a.status === 'approved').length > 0 ? (
-              <table className="w-full text-sm text-left text-health-text-p">
-                <thead className="text-xs text-health-text-p uppercase bg-slate-50">
+              <table className="w-full text-xs sm:text-sm text-left text-health-text-p">
+                <thead className="text-[10px] sm:text-xs text-health-text-p uppercase bg-slate-50">
                   <tr>
-                    <th scope="col" className="px-6 py-3">Patient</th>
-                    <th scope="col" className="px-6 py-3">Date & Time</th>
-                    <th scope="col" className="px-6 py-3">Reason</th>
-                    <th scope="col" className="px-6 py-3">Payment</th>
-                    <th scope="col" className="px-6 py-3 text-center">Actions</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Patient</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Date & Time</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Reason</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Payment</th>
+                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {appointments.filter(app => app.status === 'approved').map(app => (
                     <tr key={app._id} className="bg-white border-b hover:bg-slate-50">
-                      <td className="px-6 py-4 font-medium text-health-text-h">{app.patientId?.name}</td>
-                      <td className="px-6 py-4">{new Date(app.date).toLocaleDateString()} at {app.time}</td>
-                      <td className="px-6 py-4">{app.reason}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-health-text-h text-[10px] sm:text-xs md:text-sm">{app.patientId?.name}</td>
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{new Date(app.date).toLocaleDateString()} at {app.time}</td>
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{app.reason}</td>
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
                         {app.paymentInfo?.status === 'completed' ? (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Paid</span>
+                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-800 rounded-full text-[10px] sm:text-xs">Paid</span>
                         ) : (
-                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Pending</span>
+                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-yellow-100 text-yellow-800 rounded-full text-[10px] sm:text-xs">Pending</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
                         <button 
                           onClick={() => handlePatientVisited(app._id)} 
-                          className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full hover:bg-blue-200 transition-all text-xs"
+                          className="bg-blue-100 text-blue-600 px-2 sm:px-3 py-1 rounded-full hover:bg-blue-200 transition-all text-[10px] sm:text-xs"
                         >
                           Patient Visited
                         </button>
@@ -228,7 +230,7 @@ const DoctorDashboard = () => {
                 </tbody>
               </table>
             ) : (
-              <div className="text-center py-12 text-health-text-p">
+              <div className="text-center py-8 sm:py-12 text-health-text-p text-sm sm:text-base px-3">
                 <p>No approved appointments.</p>
               </div>
             )}

@@ -134,102 +134,123 @@ const Profile = () => {
   if (loading) return <div className="text-center p-8">Loading profile...</div>;
 
   const FormSection = ({ title, icon, children }) => (
-    <div className="bg-white rounded-xl shadow-sm border p-6">
-      <h3 className="text-lg font-semibold text-health-text-h flex items-center gap-2 mb-4">
+    <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border p-3 sm:p-4 md:p-6">
+      <h3 className="text-base sm:text-lg font-semibold text-health-text-h flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
         {icon} {title}
       </h3>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-3 sm:space-y-4">{children}</div>
     </div>
   );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div className="flex items-center gap-4 mb-4">
+    <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 md:space-y-8 px-3 sm:px-4 md:px-6">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-2 sm:mb-3 md:mb-4">
         <button
           onClick={() => navigate(user?.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard')}
-          className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors"
+          className="p-1.5 sm:p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200 transition-colors"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
         </button>
-        <h1 className="text-3xl font-bold text-health-text-h">My Profile</h1>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">My Profile</h1>
       </div>
-      <div className="text-center -mt-4">
-        <p className="text-health-text-p">Manage your personal and professional information.</p>
+      <div className="text-center -mt-2 sm:-mt-3 md:-mt-4">
+        <p className="text-health-text-p text-xs sm:text-sm">Manage your personal and professional information.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 space-y-8">
-          <div className="bg-white rounded-xl shadow-sm border p-6 text-center">
-            <div className="relative w-32 h-32 mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6 md:space-y-8">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border p-4 sm:p-5 md:p-6 text-center">
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto">
               <img
                 src={previewImage || '/images/default-avtar.jpg'}
                 alt="Profile"
-                className="w-32 h-32 rounded-full object-cover mx-auto ring-4 ring-teal-100"
+                className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full object-cover mx-auto ring-4 ring-teal-100"
               />
-              <label htmlFor="profile-image-upload" className="absolute bottom-0 right-0 bg-teal-600 text-white p-2 rounded-full cursor-pointer hover:bg-teal-700">
-                <Camera size={16} />
+              <label htmlFor="profile-image-upload" className="absolute bottom-0 right-0 bg-teal-600 text-white p-1.5 sm:p-2 rounded-full cursor-pointer hover:bg-teal-700">
+                <Camera size={14} className="sm:w-4 sm:h-4" />
                 <input id="profile-image-upload" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
               </label>
             </div>
-            {profileImage && <button onClick={handleImageUpload} className="mt-4 bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-medium">Upload Image</button>}
-            <h2 className="mt-4 text-xl font-bold text-health-text-h">{formData.name}</h2>
-            <p className="text-health-text-p">{user.email}</p>
+            {profileImage && <button onClick={handleImageUpload} className="mt-3 sm:mt-4 bg-teal-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium">Upload Image</button>}
+            <h2 className="mt-3 sm:mt-4 text-lg sm:text-xl font-bold text-health-text-h">{formData.name}</h2>
+            <p className="text-health-text-p text-xs sm:text-sm">{user.email}</p>
           </div>
           {user.role === 'doctor' && (
-            <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-health-text-h flex items-center gap-2 mb-4"><ImageIcon /> Clinic Images</h3>
-              <input type="file" multiple accept="image/*" onChange={(e) => setClinicImageFiles(Array.from(e.target.files))} className="w-full text-sm" />
-              {clinicImageFiles.length > 0 && <button onClick={handleClinicImagesUpload} className="mt-2 w-full bg-teal-600 text-white px-4 py-2 rounded-full text-sm font-medium">Upload ({clinicImageFiles.length})</button>}
-              <div className="grid grid-cols-2 gap-2 mt-4">
-                {clinicImages.map((img, i) => <div key={i} className="relative"><img src={getClinicImageUrl(img)} className="w-full h-16 object-cover rounded-md" /><button onClick={() => handleDeleteClinicImage(img)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full"><X size={10} /></button></div>)}
+            <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border p-4 sm:p-5 md:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-health-text-h flex items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4"><ImageIcon size={18} className="sm:w-5 sm:h-5" /> Clinic Images</h3>
+              <input type="file" multiple accept="image/*" onChange={(e) => setClinicImageFiles(Array.from(e.target.files))} className="w-full text-xs sm:text-sm" />
+              {clinicImageFiles.length > 0 && <button onClick={handleClinicImagesUpload} className="mt-2 w-full bg-teal-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium">Upload ({clinicImageFiles.length})</button>}
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mt-3 sm:mt-4">
+                {clinicImages.map((img, i) => <div key={i} className="relative"><img src={getClinicImageUrl(img)} className="w-full h-14 sm:h-16 object-cover rounded-md" /><button onClick={() => handleDeleteClinicImage(img)} className="absolute top-0.5 sm:top-1 right-0.5 sm:right-1 bg-red-500 text-white p-0.5 sm:p-1 rounded-full"><X size={8} className="sm:w-2.5 sm:h-2.5" /></button></div>)}
               </div>
             </div>
           )}
         </div>
         <div className="lg:col-span-2">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <FormSection title="Personal Information" icon={<User size={20} />}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" className="w-full rounded-lg border-slate-300" />
-                    <input type="text" name="profile.phone" value={formData.profile.phone} onChange={handleChange} placeholder="Phone" className="w-full rounded-lg border-slate-300" />
-                    <input type="number" name="profile.age" value={formData.profile.age} onChange={handleChange} placeholder="Age" className="w-full rounded-lg border-slate-300" />
-                    <select name="profile.gender" value={formData.profile.gender} onChange={handleChange} className="w-full rounded-lg border-slate-300"><option value="">Gender</option><option>Male</option><option>Female</option><option>Other</option></select>
-                    <select name="profile.bloodGroup" value={formData.profile.bloodGroup} onChange={handleChange} className="w-full rounded-lg border-slate-300"><option value="">Blood Group</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
-                    <input type="text" name="profile.emergencyContact" value={formData.profile.emergencyContact} onChange={handleChange} placeholder="Emergency Contact" className="w-full rounded-lg border-slate-300" />
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 md:space-y-8">
+            <FormSection title="Personal Information" icon={<User size={18} className="sm:w-5 sm:h-5" />}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                      <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Full Name" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Phone</label>
+                      <input type="text" name="profile.phone" value={formData.profile.phone} onChange={handleChange} placeholder="Phone" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Age</label>
+                      <input type="number" name="profile.age" value={formData.profile.age} onChange={handleChange} placeholder="Age" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Gender</label>
+                      <select name="profile.gender" value={formData.profile.gender || ''} onChange={handleChange} className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"><option value="">Select Gender</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Blood Group</label>
+                      <select name="profile.bloodGroup" value={formData.profile.bloodGroup} onChange={handleChange} className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"><option value="">Select Blood Group</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select>
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Emergency Contact</label>
+                      <input type="text" name="profile.emergencyContact" value={formData.profile.emergencyContact} onChange={handleChange} placeholder="Emergency Contact" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                    </div>
                 </div>
-                <textarea name="profile.address" value={formData.profile.address} onChange={handleChange} placeholder="Address" rows="3" className="w-full rounded-lg border-slate-300"></textarea>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Address</label>
+                  <textarea name="profile.address" value={formData.profile.address} onChange={handleChange} placeholder="Address" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                </div>
             </FormSection>
             
             {user.role === 'doctor' && (
               <>
-                <FormSection title="Professional Details" icon={<Briefcase size={20} />}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" name="doctorDetails.specialization" value={formData.doctorDetails.specialization} onChange={handleChange} placeholder="Specialization" className="w-full rounded-lg border-slate-300" />
-                        <input type="number" name="doctorDetails.experience" value={formData.doctorDetails.experience} onChange={handleChange} placeholder="Experience (years)" className="w-full rounded-lg border-slate-300" />
-                        <input type="number" name="doctorDetails.consultationFee" value={formData.doctorDetails.consultationFee} onChange={handleChange} placeholder="Consultation Fee" className="w-full rounded-lg border-slate-300" />
-                        <input type="text" name="doctorDetails.qualifications" value={formData.doctorDetails.qualifications} onChange={handleChange} placeholder="Qualifications (comma-separated)" className="w-full rounded-lg border-slate-300" />
-                        <input type="text" name="doctorDetails.clinicName" value={formData.doctorDetails.clinicName} onChange={handleChange} placeholder="Clinic Name" className="w-full rounded-lg border-slate-300" />
+                <FormSection title="Professional Details" icon={<Briefcase size={18} className="sm:w-5 sm:h-5" />}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                        <input type="text" name="doctorDetails.specialization" value={formData.doctorDetails.specialization} onChange={handleChange} placeholder="Specialization" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        <input type="number" name="doctorDetails.experience" value={formData.doctorDetails.experience} onChange={handleChange} placeholder="Experience (years)" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        <input type="number" name="doctorDetails.consultationFee" value={formData.doctorDetails.consultationFee} onChange={handleChange} placeholder="Consultation Fee" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        <input type="text" name="doctorDetails.qualifications" value={formData.doctorDetails.qualifications} onChange={handleChange} placeholder="Qualifications (comma-separated)" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        <input type="text" name="doctorDetails.clinicName" value={formData.doctorDetails.clinicName} onChange={handleChange} placeholder="Clinic Name" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
                     </div>
-                    <textarea name="doctorDetails.clinicAddress" value={formData.doctorDetails.clinicAddress} onChange={handleChange} placeholder="Clinic Address" rows="3" className="w-full rounded-lg border-slate-300"></textarea>
-                    <textarea name="doctorDetails.about" value={formData.doctorDetails.about} onChange={handleChange} placeholder="About section..." rows="4" className="w-full rounded-lg border-slate-300"></textarea>
+                    <textarea name="doctorDetails.clinicAddress" value={formData.doctorDetails.clinicAddress} onChange={handleChange} placeholder="Clinic Address" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                    <textarea name="doctorDetails.about" value={formData.doctorDetails.about} onChange={handleChange} placeholder="About section..." rows="4" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
                 </FormSection>
-                <FormSection title="Expertise" icon={<Brain size={20} />}>
-                    <textarea name="doctorDetails.expertise.conditions" value={formData.doctorDetails.expertise.conditions} onChange={handleChange} placeholder="Conditions treated (comma-separated)" rows="3" className="w-full rounded-lg border-slate-300"></textarea>
-                    <textarea name="doctorDetails.expertise.treatments" value={formData.doctorDetails.expertise.treatments} onChange={handleChange} placeholder="Treatments & procedures (comma-separated)" rows="3" className="w-full rounded-lg border-slate-300"></textarea>
+                <FormSection title="Expertise" icon={<Brain size={18} className="sm:w-5 sm:h-5" />}>
+                    <textarea name="doctorDetails.expertise.conditions" value={formData.doctorDetails.expertise.conditions} onChange={handleChange} placeholder="Conditions treated (comma-separated)" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                    <textarea name="doctorDetails.expertise.treatments" value={formData.doctorDetails.expertise.treatments} onChange={handleChange} placeholder="Treatments & procedures (comma-separated)" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
                 </FormSection>
-                <FormSection title="Weekly Availability" icon={<Calendar size={20} />}>
+                <FormSection title="Weekly Availability" icon={<Calendar size={18} className="sm:w-5 sm:h-5" />}>
                     {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                         <div key={day} className="grid grid-cols-3 items-center gap-2">
-                            <label className="text-sm font-medium">{day}</label>
-                            <input type="time" name={`availability.${day}.startTime`} value={formData.availability[day]?.startTime || ''} onChange={handleChange} className="w-full rounded-lg border-slate-300 text-sm" />
-                            <input type="time" name={`availability.${day}.endTime`} value={formData.availability[day]?.endTime || ''} onChange={handleChange} className="w-full rounded-lg border-slate-300 text-sm" />
+                            <label className="text-xs sm:text-sm font-medium">{day}</label>
+                            <input type="time" name={`availability.${day}.startTime`} value={formData.availability[day]?.startTime || ''} onChange={handleChange} className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                            <input type="time" name={`availability.${day}.endTime`} value={formData.availability[day]?.endTime || ''} onChange={handleChange} className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
                         </div>
                     ))}
                 </FormSection>
               </>
             )}
             <div className="flex justify-end">
-              <button type="submit" className="bg-teal-600 text-white px-8 py-2 rounded-full hover:bg-teal-700 transition-all font-medium">Save Changes</button>
+              <button type="submit" className="bg-teal-600 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-full hover:bg-teal-700 transition-all font-medium text-sm sm:text-base w-full sm:w-auto">Save Changes</button>
             </div>
           </form>
         </div>

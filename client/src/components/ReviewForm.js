@@ -42,25 +42,25 @@ const ReviewForm = ({ doctorId, onReviewSubmitted, existingReview = null }) => {
   }
 
   return (
-    <div className="bg-slate-50 rounded-xl p-6 my-4">
-      <h5 className="text-lg font-bold text-health-text-h mb-4">
+    <div className="bg-slate-50 rounded-xl p-3 sm:p-4 md:p-6 my-3 sm:my-4">
+      <h5 className="text-base sm:text-lg font-bold text-health-text-h mb-3 sm:mb-4">
         {existingReview ? 'Edit Your Review' : 'Write a Review'}
       </h5>
       
-      {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg mb-4">{error}</div>}
-      {success && <div className="p-3 bg-green-100 text-green-700 rounded-lg mb-4">{success}</div>}
+      {error && <div className="p-2 sm:p-3 bg-red-100 text-red-700 rounded-lg mb-3 sm:mb-4 text-xs sm:text-sm">{error}</div>}
+      {success && <div className="p-2 sm:p-3 bg-green-100 text-green-700 rounded-lg mb-3 sm:mb-4 text-xs sm:text-sm">{success}</div>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         <div>
-          <label className="block text-sm font-medium text-health-text-p mb-2">Your Rating</label>
-          <StarRating rating={rating} onRatingChange={(r) => { setRating(r); setError(''); }} editable={true} size={28} />
+          <label className="block text-xs sm:text-sm font-medium text-health-text-p mb-2">Your Rating</label>
+          <StarRating rating={rating} onRatingChange={(r) => { setRating(r); setError(''); }} editable={true} size={24} />
         </div>
 
         <div>
-          <label htmlFor="reviewDescription" className="block text-sm font-medium text-health-text-p mb-2">Your Review</label>
+          <label htmlFor="reviewDescription" className="block text-xs sm:text-sm font-medium text-health-text-p mb-2">Your Review</label>
           <textarea
             id="reviewDescription"
-            className="w-full rounded-lg border-slate-300"
+            className="w-full rounded-lg border-slate-300 text-sm sm:text-base"
             rows="4"
             placeholder="Share your experience..."
             value={description}
@@ -72,12 +72,12 @@ const ReviewForm = ({ doctorId, onReviewSubmitted, existingReview = null }) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" id="anonymousCheck" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} />
-          <label htmlFor="anonymousCheck" className="text-sm font-medium text-health-text-p">Post anonymously</label>
+          <input type="checkbox" className="h-3.5 w-3.5 sm:h-4 sm:w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" id="anonymousCheck" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} />
+          <label htmlFor="anonymousCheck" className="text-xs sm:text-sm font-medium text-health-text-p">Post anonymously</label>
         </div>
 
-        <button type="submit" className="w-full bg-teal-600 text-white px-6 py-2 rounded-full hover:bg-teal-700 font-medium flex items-center justify-center gap-2 disabled:opacity-50" disabled={loading || rating === 0 || !description.trim()}>
-          {loading ? <><Loader2 className="animate-spin" size={16}/> Submitting...</> : <><Send size={16}/>{existingReview ? 'Update Review' : 'Submit Review'}</>}
+        <button type="submit" className="w-full bg-teal-600 text-white px-4 sm:px-6 py-1.5 sm:py-2 rounded-full hover:bg-teal-700 font-medium flex items-center justify-center gap-2 disabled:opacity-50 text-xs sm:text-sm md:text-base" disabled={loading || rating === 0 || !description.trim()}>
+          {loading ? <><Loader2 className="animate-spin" size={14}/> Submitting...</> : <><Send size={14}/>{existingReview ? 'Update Review' : 'Submit Review'}</>}
         </button>
       </form>
     </div>
