@@ -91,16 +91,16 @@ const generatePrescriptionPDF = (prescription, patient, doctor) => {
 
       // Instructions & Notes
       if (prescription.instructions) {
-        doc.fontSize(12).fillColor('#14b8a6').text('Instructions', { underline: true });
+        doc.fontSize(12).fillColor('#14b8a6').text('Instructions', { underline: true, align: 'left' });
         doc.moveDown(0.5);
-        doc.fontSize(10).fillColor('#000').text(prescription.instructions);
+        doc.fontSize(10).fillColor('#000').text(prescription.instructions, { align: 'left', width: 495 });
         doc.moveDown(1);
       }
 
       if (prescription.notes) {
-        doc.fontSize(12).fillColor('#14b8a6').text('Notes', { underline: true });
+        doc.fontSize(12).fillColor('#14b8a6').text('Notes', { underline: true, align: 'left' });
         doc.moveDown(0.5);
-        doc.fontSize(10).fillColor('#000').text(prescription.notes);
+        doc.fontSize(10).fillColor('#000').text(prescription.notes, { align: 'left', width: 495 });
         doc.moveDown(1);
       }
 
@@ -124,4 +124,120 @@ const generatePrescriptionPDF = (prescription, patient, doctor) => {
   });
 };
 
-module.exports = { generatePrescriptionPDF };
+const generatePaymentReceiptPDF = (appointment, patient, doctor) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const fileName = `receipt_${appointment._id}_${Date.now()}.pdf`;
+      const filePath = path.join(__dirname, '../uploads', fileName);
+      const stream = fs.createWriteStream(filePath);
+
+      doc.pipe(stream);
+
+      // Header with background
+      doc.rect(0, 0, 595, 100).fill('#14b8a6');
+      doc.fontSize(28).fillColor('#ffffff').text('PAYMENT RECEIPT', 50, 30, { align: 'center' });
+      doc.fontSize(11).fillColor('#ffffff').text('AarogyaCare - Quality Healthcare Services', 50, 65, { align: 'center' });
+      doc.fontSize(9).fillColor('#ffffff').text('Ahmedabad, Gujarat | Phone: +91 999 888 7777 | Email: aarogyacare55@gmail.com', 50, 82, { align: 'center' });
+      
+      doc.moveDown(3);
+      
+      // Receipt Info Box
+      const boxTop = 120;
+      doc.rect(50, boxTop, 495, 60).fillAndStroke('#f0fdfa', '#14b8a6');
+      doc.fontSize(10).fillColor('#000000');
+      doc.text('Receipt No: ' + appointment.paymentInfo.orderId, 60, boxTop + 10);
+      doc.text('Payment ID: ' + appointment.paymentInfo.paymentId, 60, boxTop + 25);
+      doc.text('Date: ' + new Date(appointment.createdAt).toLocaleDateString('en-IN', { 
+        year: 'numeric', month: 'long', day: 'numeric' 
+      }), 60, boxTop + 40);
+      doc.text('Time: ' + new Date(appointment.createdAt).toLocaleTimeString('en-IN'), 350, boxTop + 40);
+      doc.text('Status: PAID', 350, boxTop + 10, { underline: true });
+      
+      doc.moveDown(5);
+
+      // Patient Details
+      doc.fontSize(14).fillColor('#14b8a6').text('Patient Details', 50, 200, { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(11).fillColor('#000000');
+      doc.text('Name: ' + patient.name, 50);
+      doc.text('Email: ' + patient.email, 50);
+      doc.text('Phone: ' + (patient.phone || 'N/A'), 50);
+      doc.text('Age: ' + appointment.age + ' | Gender: ' + appointment.gender, 50);
+      
+      doc.moveDown(1.5);
+
+      // Doctor Details
+      doc.fontSize(14).fillColor('#14b8a6').text('Doctor Details', 50, doc.y, { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(11).fillColor('#000000');
+      doc.text('Name: Dr. ' + doctor.name, 50);
+      doc.text('Specialization: ' + (doctor.doctorDetails?.specialization || 'General Physician'), 50);
+      doc.text('Qualification: ' + (doctor.doctorDetails?.qualifications?.join(', ') || 'MBBS'), 50);
+      doc.text('Clinic: ' + (doctor.doctorDetails?.clinicName || 'AarogyaCare Clinic'), 50);
+      
+      doc.moveDown(1.5);
+
+      // Appointment Details
+      doc.fontSize(14).fillColor('#14b8a6').text('Appointment Details', 50, doc.y, { underline: true });
+      doc.moveDown(0.5);
+      doc.fontSize(11).fillColor('#000000');
+      doc.text('Date: ' + new Date(appointment.date).toLocaleDateString('en-IN', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      }), 50);
+      doc.text('Time: ' + appointment.time, 50);
+      doc.text('Reason: ' + appointment.reason, 50, doc.y, { width: 495 });
+      
+      doc.moveDown(2);
+
+      // Payment Summary Table
+      const tableTop = doc.y;
+      doc.fontSize(14).fillColor('#14b8a6').text('Payment Summary', 50, tableTop, { underline: true });
+      doc.moveDown(1);
+
+      const summaryTop = doc.y;
+      doc.rect(50, summaryTop, 495, 30).fillAndStroke('#f9fafb', '#e5e7eb');
+      doc.fontSize(11).fillColor('#000000');
+      doc.text('Consultation Fee', 60, summaryTop + 10);
+      doc.text('Rs. ' + appointment.fees.toFixed(2), 450, summaryTop + 10, { width: 85, align: 'right' });
+
+      doc.rect(50, summaryTop + 30, 495, 30).fill('#14b8a6');
+      doc.fontSize(12).fillColor('#ffffff').font('Helvetica-Bold');
+      doc.text('Total Amount Paid', 60, summaryTop + 40);
+      doc.text('Rs. ' + appointment.fees.toFixed(2), 450, summaryTop + 40, { width: 85, align: 'right' });
+      
+      doc.font('Helvetica');
+      doc.moveDown(3);
+
+      // Payment Method
+      doc.fontSize(10).fillColor('#666666');
+      doc.text('Payment Method: Online Payment (Razorpay)', 50, doc.y);
+      doc.text('Transaction Status: ' + appointment.paymentInfo.status.toUpperCase(), 50);
+      
+      doc.moveDown(2);
+
+      // Footer Note
+      const noteY = doc.y;
+      doc.rect(50, noteY, 495, 70).fillAndStroke('#eff6ff', '#3b82f6');
+      doc.fontSize(10).fillColor('#1e40af');
+      doc.text('Important Notes:', 60, noteY + 10, { underline: true });
+      doc.fontSize(9).fillColor('#1e3a8a');
+      doc.text('- Please arrive 10 minutes before your scheduled appointment time.', 60, noteY + 25);
+      doc.text('- Bring this receipt and a valid ID for verification.', 60, noteY + 38);
+      doc.text('- For any queries, contact us at aarogyacare55@gmail.com', 60, noteY + 51);
+      
+      // Footer
+      doc.fontSize(8).fillColor('#999999');
+      doc.text('This is a computer-generated receipt and does not require a signature.', 50, 750, { align: 'center' });
+      doc.text('Thank you for choosing AarogyaCare!', 50, 765, { align: 'center' });
+
+      doc.end();
+      stream.on('finish', () => resolve(fileName));
+      stream.on('error', reject);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+module.exports = { generatePrescriptionPDF, generatePaymentReceiptPDF };

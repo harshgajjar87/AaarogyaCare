@@ -62,10 +62,41 @@ exports.createAppointment = async (req, res) => {
     const { name, age, gender, date, time, reason, doctorId, fees } = req.body;
     const patientId = req.user._id;
 
+    // Validate that the date is not in the past
+    const appointmentDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    appointmentDate.setHours(0, 0, 0, 0);
+
+    if (appointmentDate < today) {
+      return res.status(400).json({ msg: 'Cannot book appointments for past dates' });
+    }
+
     // Get doctor details to fetch consultation fee
     const doctor = await User.findById(doctorId);
     if (!doctor || doctor.role !== 'doctor') {
       return res.status(404).json({ msg: 'Doctor not found' });
+    }
+
+    // Check if the time slot is already booked
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const existingAppointment = await Appointment.findOne({
+      doctorId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      time,
+      status: { $nin: ['cancelled', 'cancelled-by-patient', 'rejected'] }
+    });
+
+    if (existingAppointment) {
+      return res.status(400).json({ msg: 'This time slot is already booked. Please select another time.' });
     }
 
     const appointment = new Appointment({
@@ -459,6 +490,16 @@ exports.getAvailableSlots = async (req, res) => {
       return res.status(400).json({ msg: 'Doctor ID and date are required' });
     }
 
+    // Validate that the date is not in the past
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      return res.status(400).json({ msg: 'Cannot book appointments for past dates' });
+    }
+
     // Get doctor details
     const doctor = await User.findById(doctorId);
     if (!doctor || doctor.role !== 'doctor') {
@@ -466,7 +507,6 @@ exports.getAvailableSlots = async (req, res) => {
     }
 
     // Get day of week from date
-    const selectedDate = new Date(date);
     const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
 
     // Find doctor's availability for this day
@@ -478,7 +518,7 @@ exports.getAvailableSlots = async (req, res) => {
       return res.json({ availableSlots: [], message: 'Doctor not available on this day' });
     }
 
-    // Get already booked slots for this date
+    // Get already booked slots for this date (including pending, approved, and completed)
     const startOfDay = new Date(selectedDate);
     startOfDay.setHours(0, 0, 0, 0);
     
@@ -491,7 +531,8 @@ exports.getAvailableSlots = async (req, res) => {
         $gte: startOfDay,
         $lte: endOfDay
       },
-      status: { $in: ['pending', 'approved'] }
+      // Exclude only cancelled/rejected appointments - all other statuses block the slot
+      status: { $nin: ['cancelled', 'cancelled-by-patient', 'rejected'] }
     });
 
     const bookedSlots = bookedAppointments.map(apt => apt.time);

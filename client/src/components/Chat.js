@@ -4,7 +4,7 @@ import { getChatById, sendMessage, extendChatExpiration, endChat } from '../api/
 import { Send, Clock, Power, AlertCircle, User, Stethoscope, Loader2, Check, CheckCheck, Smile, Paperclip, Mic, MicOff, Image, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const EMOJIS = ['😊', '😂', '😍', '🤔', '😢', '😡', '👍', '👎', '❤️', '🙏', '💊', '🩺', '🏥', '📋', '📊', '⚕️', '🤒', '😷', '💉', '🔬'];
+const EMOJIS = ['😊', '😂', '😍', '🥰', '😘', '🤗', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥', '😮', '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😛', '😜', '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '☹️', '🙁', '😖', '😞', '😟', '😤', '😢', '😭', '😦', '😧', '😨', '😩', '🤯', '😬', '😰', '😱', '🥵', '🥶', '😳', '🤪', '😵', '🥴', '😠', '😡', '🤬', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '😇', '🥳', '🥺', '🤠', '🤡', '🤥', '🤫', '🤭', '🧐', '🤓', '😈', '👿', '👹', '👺', '💀', '☠️', '👻', '👽', '👾', '🤖', '💩', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', '🔠', '🔡', '🔢', '🔣', '🔤', '🅿️', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '💊', '💉', '🩺', '🩹', '🩼', '🩻', '🧬', '🦠', '🧫', '🧪', '🌡️', '🧹', '🧺', '🧻', '🚽', '🚰', '🚿', '🛁', '🛀', '🧴', '🧷', '🧹', '🧺', '🧻', '🪒', '🧽', '🧯', '🛒', '🚬', '⚰️', '🪦', '⚱️', '🗿', '🪧', '🏥', '🏨', '🏩', '🏪', '🏫', '🏬', '🏭', '🏯', '🏰', '💒', '🗼', '🗽', '⛪', '🕌', '🛕', '🕍', '⛩️', '🕋', '⛲', '⛺', '🌁', '🌃', '🏙️', '🌄', '🌅', '🌆', '🌇', '🌉', '♨️', '🎠', '🎡', '🎢', '💈', '🎪', '🚂', '🚃', '🚄', '🚅', '🚆', '🚇', '🚈', '🚉', '🚊', '🚝', '🚞', '🚋', '🚌', '🚍', '🚎', '🚐', '🚑', '🚒', '🚓', '🚔', '🚕', '🚖', '🚗', '🚘', '🚙', '🛻', '🚚', '🚛', '🚜', '🏎️', '🏍️', '🛵', '🦽', '🦼', '🛺', '🚲', '🛴', '🛹', '🛼', '🚏', '🛣️', '🛤️', '🛢️', '⛽', '🚨', '🚥', '🚦', '🛑', '🚧', '⚓', '⛵', '🛶', '🚤', '🛳️', '⛴️', '🛥️', '🚢', '✈️', '🛩️', '🛫', '🛬', '🪂', '💺', '🚁', '🚟', '🚠', '🚡', '🛰️', '🚀', '🛸', '🛎️', '🧳', '⌛', '⏳', '⌚', '⏰', '⏱️', '⏲️', '🕰️', '🕛', '🕧', '🕐', '🕜', '🕑', '🕝', '🕒', '🕞', '🕓', '🕟', '🕔', '🕠', '🕕', '🕡', '🕖', '🕢', '🕗', '🕣', '🕘', '🕤', '🕙', '🕥', '🕚', '🕦', '🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘', '🌙', '🌚', '🌛', '🌜', '🌡️', '☀️', '🌝', '🌞', '🪐', '⭐', '🌟', '🌠', '🌌', '☁️', '⛅', '⛈️', '🌤️', '🌥️', '🌦️', '🌧️', '🌨️', '🌩️', '🌪️', '🌫️', '🌬️', '🌀', '🌈', '🌂', '☂️', '☔', '⛱️', '⚡', '❄️', '☃️', '⛄', '☄️', '🔥', '💧', '🌊', '⚕️', '🔬', '🔭', '📡', '💉', '🩸', '💊', '🩹', '🩺', '🩻', '🩼', '🧬', '🦠', '🧫', '🧪', '🌡️', '🧹', '🧺', '🧻', '🚽', '🚰', '🚿', '🛁', '🛀', '🧴', '🧷', '🧹', '🧺', '🧻', '🪒', '🧽', '🧯', '🛒', '🚬', '⚰️', '🪦', '⚱️', '🗿', '🪧', '📋', '📊', '📈', '📉', '📌', '📍', '📎', '🖇️', '📏', '📐', '✂️', '🗃️', '🗄️', '🗑️'];
 
 const Chat = () => {
   const { chatId } = useParams();
@@ -60,16 +60,7 @@ const Chat = () => {
 
     setIsSending(true);
     try {
-      if (fileData) {
-        // Handle file upload
-        const formData = new FormData();
-        formData.append('message', content || 'File shared');
-        formData.append('file', fileData);
-        // You would need to modify the sendMessage API to handle files
-        await sendMessage(chat._id, content || 'File shared');
-      } else {
-        await sendMessage(chat._id, content);
-      }
+      await sendMessage(chat._id, content || 'File shared', fileData);
       setMessage('');
       const updatedChat = await getChatById(chat._id);
       setChat(updatedChat);
@@ -178,22 +169,36 @@ const Chat = () => {
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
-      <header className="bg-white shadow-sm border-b p-4 flex items-center justify-between">
-        <div className="flex items-center">
-            <img src={isDoctor ? chat.patientId?.profileImage : chat.doctorId?.profileImage} alt="Avatar" className="w-10 h-10 rounded-full object-cover mr-3"/>
-            <div>
-                <h3 className="font-semibold text-slate-800">{isDoctor ? chat.patientId?.name : chat.doctorId?.name}</h3>
+      <header className="bg-white shadow-sm border-b p-3 sm:p-4 flex items-center justify-between">
+        <div className="flex items-center min-w-0">
+            {(isDoctor ? chat.patientId?.profileImage : chat.doctorId?.profileImage) ? (
+              <img 
+                src={isDoctor ? chat.patientId?.profileImage : chat.doctorId?.profileImage} 
+                alt="Avatar" 
+                className="w-10 h-10 rounded-full object-cover mr-2 sm:mr-3 flex-shrink-0"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/images/default-avtar.jpg';
+                }}
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-slate-300 flex items-center justify-center mr-2 sm:mr-3 flex-shrink-0">
+                {isDoctor ? <User size={20} className="text-slate-600" /> : <Stethoscope size={20} className="text-slate-600" />}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-slate-800 truncate text-sm sm:text-base">{isDoctor ? chat.patientId?.name : chat.doctorId?.name}</h3>
                 <p className="text-xs text-slate-500">{isDoctor ? 'Patient' : 'Doctor'}</p>
             </div>
         </div>
-        <div className="flex items-center gap-4">
-            <div className={`px-3 py-1 rounded-full text-xs font-medium ${isReadOnly ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                {chat.endedByDoctor ? 'Ended' : remainingDays <= 0 ? 'Expired' : `Expires in ${remainingDays} days`}
+        <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
+            <div className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${isReadOnly ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                {chat.endedByDoctor ? 'Ended' : remainingDays <= 0 ? 'Expired' : `Expires in ${remainingDays} ${remainingDays === 1 ? 'day' : 'days'}`}
             </div>
             {isDoctor && !isReadOnly && (
-                <div className="flex gap-2">
-                    <button onClick={handleExtendChat} className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"><Clock size={20}/></button>
-                    <button onClick={handleEndChat} className="p-2 text-red-600 hover:bg-red-50 rounded-full"><Power size={20}/></button>
+                <div className="flex gap-1 sm:gap-2">
+                    <button onClick={handleExtendChat} className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-full"><Clock size={18} className="sm:w-5 sm:h-5"/></button>
+                    <button onClick={handleEndChat} className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-full"><Power size={18} className="sm:w-5 sm:h-5"/></button>
                 </div>
             )}
         </div>
@@ -214,22 +219,28 @@ const Chat = () => {
                             )}
                             <div className={`max-w-xs md:max-w-md p-3 rounded-2xl ${isMe ? 'bg-teal-600 text-white rounded-br-none' : 'bg-white text-slate-800 rounded-bl-none shadow-sm'}`}>
                                 <p className="text-sm">{msg.message}</p>
-                                {msg.message.includes('📎') && (
-                                  <div className="mt-2 p-2 bg-slate-100 rounded flex items-center gap-2">
-                                    <FileText size={16} />
-                                    <span className="text-xs">Document</span>
+                                {msg.fileType === 'audio' && msg.fileUrl ? (
+                                  <div className="mt-2">
+                                    <audio controls className="w-full max-w-xs">
+                                      <source src={`http://localhost:5000${msg.fileUrl}`} type="audio/wav" />
+                                      Your browser does not support the audio element.
+                                    </audio>
                                   </div>
-                                )}
-                                {msg.message.includes('🖼️') && (
-                                  <div className="mt-2 p-2 bg-slate-100 rounded flex items-center gap-2">
-                                    <Image size={16} />
-                                    <span className="text-xs">Image</span>
-                                  </div>
-                                )}
-                                {msg.message.includes('🎤') && (
+                                ) : msg.message.includes('🎤') && !msg.fileUrl && (
                                   <div className="mt-2 p-2 bg-slate-100 rounded flex items-center gap-2">
                                     <Mic size={16} />
-                                    <span className="text-xs">Voice message</span>
+                                    <span className="text-xs italic opacity-70">Legacy voice message (no audio file)</span>
+                                  </div>
+                                )}
+                                {msg.fileType === 'image' && msg.fileUrl && (
+                                  <div className="mt-2">
+                                    <img src={`http://localhost:5000${msg.fileUrl}`} alt="Shared" className="rounded max-w-xs" />
+                                  </div>
+                                )}
+                                {msg.fileType === 'document' && msg.fileUrl && (
+                                  <div className="mt-2 p-2 bg-slate-100 rounded flex items-center gap-2">
+                                    <FileText size={16} />
+                                    <a href={`http://localhost:5000${msg.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs underline">View Document</a>
                                   </div>
                                 )}
                                 <div className="text-xs opacity-70 mt-1">{formatDate(msg.timestamp)}</div>
@@ -248,36 +259,36 @@ const Chat = () => {
       </main>
 
       {!isReadOnly && (
-        <footer className="bg-white border-t p-4">
+        <footer className="bg-white border-t p-2 sm:p-4">
           {showEmojiPicker && (
-            <div className="mb-2 p-2 bg-slate-50 rounded-lg border emoji-picker">
-              <div className="grid grid-cols-10 gap-1">
+            <div className="absolute bottom-16 sm:bottom-20 left-2 right-2 sm:left-4 sm:right-4 max-h-48 sm:max-h-64 overflow-y-auto p-2 sm:p-3 bg-white rounded-lg border-2 border-slate-200 shadow-lg emoji-picker z-50">
+              <div className="grid grid-cols-8 sm:grid-cols-10 gap-1">
                 {EMOJIS.map((emoji, index) => (
-                  <button key={index} onClick={() => handleEmojiClick(emoji)} className="p-1 hover:bg-slate-200 rounded text-lg">
+                  <button key={index} onClick={() => handleEmojiClick(emoji)} className="p-1 hover:bg-slate-200 rounded text-base sm:text-lg">
                     {emoji}
                   </button>
                 ))}
               </div>
             </div>
           )}
-          <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
-              <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full">
-                <Smile size={20} />
+          <form onSubmit={handleSendMessage} className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-1.5 sm:p-2 text-slate-500 hover:bg-slate-100 rounded-full">
+                <Smile size={18} className="sm:w-5 sm:h-5" />
               </button>
-              <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full">
-                <Paperclip size={20} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="p-1.5 sm:p-2 text-slate-500 hover:bg-slate-100 rounded-full">
+                <Paperclip size={18} className="sm:w-5 sm:h-5" />
               </button>
-              <button type="button" onClick={() => imageInputRef.current?.click()} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full">
-                <Image size={20} />
+              <button type="button" onClick={() => imageInputRef.current?.click()} className="p-1.5 sm:p-2 text-slate-500 hover:bg-slate-100 rounded-full">
+                <Image size={18} className="sm:w-5 sm:h-5" />
               </button>
-              <button type="button" onClick={isRecording ? stopRecording : startRecording} className={`p-2 rounded-full ${isRecording ? 'bg-red-100 text-red-600' : 'text-slate-500 hover:bg-slate-100'}`}>
-                {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+              <button type="button" onClick={isRecording ? stopRecording : startRecording} className={`p-1.5 sm:p-2 rounded-full ${isRecording ? 'bg-red-100 text-red-600' : 'text-slate-500 hover:bg-slate-100'}`}>
+                {isRecording ? <MicOff size={18} className="sm:w-5 sm:h-5" /> : <Mic size={18} className="sm:w-5 sm:h-5" />}
               </button>
             </div>
-            <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." disabled={isSending} className="flex-1 rounded-full border-slate-300 focus:ring-2 focus:ring-teal-500 py-2 px-4" />
-            <button type="submit" disabled={isSending || !message.trim()} className="bg-teal-600 text-white rounded-full p-3 hover:bg-teal-700 disabled:opacity-50">
-              {isSending ? <Loader2 className="animate-spin" /> : <Send />}
+            <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a message..." disabled={isSending} className="flex-1 rounded-full border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent py-1.5 px-3 sm:py-2 sm:px-4 text-sm sm:text-base min-w-0" />
+            <button type="submit" disabled={isSending || !message.trim()} className="bg-teal-600 text-white rounded-full p-2 sm:p-3 hover:bg-teal-700 disabled:opacity-50 flex-shrink-0">
+              {isSending ? <Loader2 size={18} className="animate-spin sm:w-5 sm:h-5" /> : <Send size={18} className="sm:w-5 sm:h-5" />}
             </button>
           </form>
           <input ref={fileInputRef} type="file" onChange={handleFileUpload} className="hidden" accept=".pdf,.doc,.docx,.txt" />

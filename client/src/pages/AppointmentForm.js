@@ -53,13 +53,27 @@ const AppointmentForm = () => {
         try {
           const response = await getAvailableSlots(form.doctorId, form.date);
           setAvailableSlots(response.availableSlots || []);
+          
+          // Show message if no slots available
+          if (!response.availableSlots || response.availableSlots.length === 0) {
+            if (response.message) {
+              toast.info(response.message);
+            } else {
+              toast.info('No available time slots for this date');
+            }
+          }
         } catch (error) {
-          toast.error('Failed to load available time slots');
+          const errorMsg = error.response?.data?.msg || 'Failed to load available time slots';
+          toast.error(errorMsg);
+          setAvailableSlots([]);
         } finally {
           setSlotsLoading(false);
         }
       };
       fetchSlots();
+    } else {
+      // Reset slots when doctor or date is cleared
+      setAvailableSlots([]);
     }
   }, [form.doctorId, form.date]);
 
@@ -70,6 +84,14 @@ const AppointmentForm = () => {
     if (name === 'doctorId') {
       const doctor = doctors.find(doc => doc._id === value);
       setSelectedDoctor(doctor);
+      // Reset date and time when doctor changes
+      setForm(prev => ({ ...prev, date: '', time: '' }));
+      setAvailableSlots([]);
+    }
+    
+    if (name === 'date') {
+      // Reset time when date changes
+      setForm(prev => ({ ...prev, time: '' }));
     }
   };
 
@@ -188,11 +210,19 @@ const AppointmentForm = () => {
                 <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Time Slot</label>
                 <div className="relative">
                   <select name="time" value={form.time} onChange={handleChange} className="w-full rounded-lg border border-slate-300 py-1.5 sm:py-2 px-3 sm:px-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" required disabled={!form.date || slotsLoading || availableSlots.length === 0}>
-                    <option value="">{slotsLoading ? 'Loading slots...' : 'Select Time'}</option>
+                    <option value="">
+                      {slotsLoading ? 'Loading slots...' : 
+                       !form.date ? 'Select a date first' :
+                       availableSlots.length === 0 ? 'No slots available' : 
+                       'Select Time'}
+                    </option>
                     {availableSlots.map(slot => <option key={slot} value={slot}>{slot}</option>)}
                   </select>
                   {slotsLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400 pointer-events-none" size={18}/>}
                 </div>
+                {!slotsLoading && form.date && availableSlots.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">No available slots for this date. Please try another date.</p>
+                )}
               </div>
             </div>
           </FormSection>

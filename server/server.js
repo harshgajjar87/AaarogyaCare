@@ -59,6 +59,7 @@ app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/chatbot', require('./routes/chatbotRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/ai', require('./routes/aiExtractionRoutes'));
 app.use('/api/verification', require('./routes/doctorVerificationRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/upload', require('./routes/imageRoutes'));

@@ -49,6 +49,13 @@ const chatSchema = new mongoose.Schema({
       type: String, 
       required: true 
     },
+    fileUrl: {
+      type: String
+    },
+    fileType: {
+      type: String,
+      enum: ['audio', 'image', 'document', null]
+    },
     timestamp: { 
       type: Date, 
       default: Date.now 

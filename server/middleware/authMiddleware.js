@@ -53,4 +53,26 @@ const admin = (req, res, next) => {
   next();
 };
 
-module.exports = { protect, isDoctor, isPatient, admin, isPendingDoctor, isUser };
+// ✅ Optional Authentication - doesn't block if no token provided
+const optionalAuth = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  // If no auth header, continue without user
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    req.user = null;
+    return next();
+  }
+
+  try {
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.userId).select('-password');
+    next();
+  } catch (err) {
+    // If token is invalid, continue without user
+    req.user = null;
+    next();
+  }
+};
+
+module.exports = { protect, isDoctor, isPatient, admin, isPendingDoctor, isUser, optionalAuth };

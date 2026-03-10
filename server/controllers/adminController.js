@@ -224,6 +224,31 @@ exports.replyToQuery = async (req, res) => {
 
     await query.save();
 
+    // Find the user to create notification
+    const Notification = require('../models/Notification');
+    let user = null;
+    
+    // First try to use userId if it exists in the query
+    if (query.userId) {
+      user = await User.findById(query.userId);
+    }
+    
+    // If no userId or user not found, try to find by email
+    if (!user) {
+      user = await User.findOne({ email: query.email });
+    }
+    
+    // Create notification if user is found
+    if (user) {
+      await Notification.create({
+        userId: user._id,
+        message: `Admin replied to your query: "${query.subject}". Check your email for details.`
+      });
+      console.log(`✅ Notification created for user: ${user.email}`);
+    } else {
+      console.log(`ℹ️ No registered user found for email: ${query.email}. Email notification will be sent.`);
+    }
+
     // Send email to the original query sender
     try {
       const mailOptions = {

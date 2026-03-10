@@ -1,20 +1,6 @@
 const axios = require('axios');
 const User = require('../models/User');
 
-// Try to use Gemini if available, fallback to Groq
-let useGemini = false;
-let genAI = null;
-
-try {
-  const { GoogleGenerativeAI } = require('@google/generative-ai');
-  if (process.env.GOOGLE_API_KEY) {
-    genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    useGemini = true;
-  }
-} catch (e) {
-  console.log('Gemini not available, using Groq');
-}
-
 const SYSTEM_PROMPT = `You are a medical triage nurse. Your job is to ask ONE question at a time to understand the patient's condition.
 
 Rules:
@@ -75,37 +61,41 @@ Be human, caring, and helpful - not robotic. Always try to redirect to health co
 
     let aiResponse;
 
-    // Try Gemini first if available
-    if (useGemini && genAI) {
+    // Build conversation history
+    const conversationText = history.map(h => `${h.role === 'user' ? 'Patient' : 'Assistant'}: ${h.content}`).join('\n');
+    const fullPrompt = `${systemPrompt}\n\nConversation so far:\n${conversationText}\n\nPatient: ${message}\n\nAssistant:`;
+
+    // Try Gemini 2.0 Flash first
+    if (process.env.GOOGLE_API_KEY) {
       try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const chatHistory = [
-          { role: 'user', parts: [{ text: systemPrompt }] },
-          { role: 'model', parts: [{ text: 'OK. 5-8 words only.' }] }
-        ];
-        history.forEach(msg => {
-          chatHistory.push({
-            role: msg.role === 'user' ? 'user' : 'model',
-            parts: [{ text: msg.content }]
-          });
-        });
-        const chat = model.startChat({ 
-          history: chatHistory,
-          generationConfig: {
-            maxOutputTokens: 50,
-            temperature: 0.3
+        console.log('Attempting Gemini API for triage...');
+        
+        const geminiResponse = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GOOGLE_API_KEY}`,
+          {
+            contents: [{
+              parts: [{ text: fullPrompt }]
+            }],
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 100
+            }
+          },
+          {
+            headers: { 'Content-Type': 'application/json' }
           }
-        });
-        const result = await chat.sendMessage(message);
-        aiResponse = result.response.text();
+        );
+
+        aiResponse = geminiResponse.data.candidates[0].content.parts[0].text;
+        console.log('Gemini API succeeded for triage');
+        
       } catch (geminiError) {
-        console.log('Gemini failed, falling back to Groq:', geminiError.message);
-        useGemini = false; // Disable for future requests
+        console.log('Gemini failed for triage, falling back to Groq:', geminiError.message);
       }
     }
 
     // Fallback to Groq if Gemini not available or failed
-    if (!aiResponse) {
+    if (!aiResponse && process.env.GROQ_API_KEY) {
       const messages = [
         { role: 'system', content: systemPrompt },
         ...history.map(h => ({ role: h.role, content: h.content })),
@@ -118,7 +108,7 @@ Be human, caring, and helpful - not robotic. Always try to redirect to health co
           model: 'llama-3.3-70b-versatile',
           messages,
           temperature: 0.3,
-          max_tokens: 50
+          max_tokens: 100
         },
         {
           headers: {
@@ -128,6 +118,11 @@ Be human, caring, and helpful - not robotic. Always try to redirect to health co
         }
       );
       aiResponse = response.data.choices[0].message.content;
+      console.log('Groq API succeeded for triage');
+    }
+
+    if (!aiResponse) {
+      return res.status(500).json({ error: 'AI services unavailable' });
     }
 
     // Extract specialist tag and clean response

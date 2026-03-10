@@ -2,12 +2,14 @@ const express = require('express');
 const router = express.Router();
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const path = require('path');
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Chat = require('../models/Chat');
 const transporter = require('../config/mail');
 const { protect } = require('../middleware/authMiddleware');
+const { generatePaymentReceiptPDF } = require('../utils/pdfGenerator');
 
 // HTML sanitization function
 const escapeHtml = (text) => {
@@ -122,6 +124,43 @@ router.post('/verify-and-book', protect, async (req, res) => {
     
     console.log("Signature verification successful");
 
+    // Validate that the date is not in the past
+    const appointmentDate = new Date(bookingDetails.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    appointmentDate.setHours(0, 0, 0, 0);
+
+    if (appointmentDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot book appointments for past dates'
+      });
+    }
+
+    // Check if the time slot is already booked
+    const startOfDay = new Date(appointmentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(appointmentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const existingAppointment = await Appointment.findOne({
+      doctorId: bookingDetails.doctorId,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      },
+      time: bookingDetails.time,
+      status: { $nin: ['cancelled', 'cancelled-by-patient', 'rejected'] }
+    });
+
+    if (existingAppointment) {
+      return res.status(400).json({
+        success: false,
+        message: 'This time slot is already booked. Please select another time.'
+      });
+    }
+
     // Create appointment after successful payment verification
     const appointment = new Appointment({
       patientId: bookingDetails.patientId,
@@ -155,6 +194,7 @@ router.post('/verify-and-book', protect, async (req, res) => {
 
     // Get doctor details for notification
     const doctor = await User.findById(bookingDetails.doctorId);
+    const patient = await User.findById(bookingDetails.patientId);
 
     // Create a chat for the approved appointment
     try {
@@ -195,24 +235,229 @@ router.post('/verify-and-book', protect, async (req, res) => {
       message: `New appointment (approved) by ${bookingDetails.name} on ${bookingDetails.date} at ${bookingDetails.time}`
     });
 
+    // Generate payment receipt PDF
+    let receiptFileName = null;
+    try {
+      receiptFileName = await generatePaymentReceiptPDF(appointment, patient, doctor);
+      console.log('✅ Payment receipt PDF generated:', receiptFileName);
+    } catch (pdfErr) {
+      console.error('❌ Error generating payment receipt PDF:', pdfErr);
+    }
+
+    // Send email notification to patient with receipt PDF
+    if (process.env.MAIL_USER && patient.email) {
+      try {
+        const mailOptions = {
+          from: process.env.MAIL_USER,
+          to: patient.email,
+          subject: 'Appointment Booking Confirmation - AarogyaCare',
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+                .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #14b8a6; }
+                .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+                .info-label { font-weight: bold; color: #14b8a6; }
+                .info-value { color: #4b5563; }
+                .payment-box { background: #ecfdf5; padding: 20px; margin: 15px 0; border-radius: 8px; border: 2px solid #14b8a6; }
+                .amount { font-size: 24px; font-weight: bold; color: #14b8a6; text-align: center; margin: 10px 0; }
+                .footer { text-align: center; margin-top: 20px; padding: 20px; color: #6b7280; font-size: 12px; }
+                .button { display: inline-block; background: #14b8a6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+                .note { background: #eff6ff; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6; margin: 15px 0; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1 style="margin: 0;">🏥 AarogyaCare</h1>
+                  <p style="margin: 10px 0 0 0;">Appointment Confirmed!</p>
+                </div>
+                
+                <div class="content">
+                  <p>Dear <strong>${escapeHtml(patient.name)}</strong>,</p>
+                  
+                  <p>Thank you for booking your appointment with AarogyaCare. Your payment has been successfully processed and your appointment is confirmed.</p>
+                  
+                  <div class="payment-box">
+                    <h3 style="margin-top: 0; color: #14b8a6; text-align: center;">✓ Payment Successful</h3>
+                    <div class="amount">₹ ${appointment.fees.toFixed(2)}</div>
+                    <p style="text-align: center; margin: 5px 0; color: #6b7280;">Payment ID: ${escapeHtml(razorpay_payment_id)}</p>
+                  </div>
+                  
+                  <div class="info-box">
+                    <h3 style="margin-top: 0; color: #14b8a6;">📋 Appointment Details</h3>
+                    <div class="info-row">
+                      <span class="info-label">Doctor:</span>
+                      <span class="info-value">Dr. ${escapeHtml(doctor.name)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Specialization:</span>
+                      <span class="info-value">${escapeHtml(doctor.doctorDetails?.specialization || 'General Physician')}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Date:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.date)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Time:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.time)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Reason:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.reason)}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="note">
+                    <strong>📌 Important Notes:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                      <li>Please arrive 10 minutes before your scheduled appointment time</li>
+                      <li>Bring a valid ID and the attached payment receipt</li>
+                      <li>You can now chat with Dr. ${escapeHtml(doctor.name)} through your patient dashboard</li>
+                      <li>Your chat access will remain active for 5 days</li>
+                    </ul>
+                  </div>
+                  
+                  <p style="text-align: center;">
+                    <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}/patient-dashboard" class="button">View Dashboard</a>
+                  </p>
+                  
+                  <p>If you have any questions or need to reschedule, please contact us at <a href="mailto:aarogyacare55@gmail.com">aarogyacare55@gmail.com</a> or call +91 999 888 7777.</p>
+                  
+                  <p>We look forward to serving you!</p>
+                  
+                  <p style="margin-top: 20px;">
+                    Best regards,<br>
+                    <strong>Team AarogyaCare</strong>
+                  </p>
+                </div>
+                
+                <div class="footer">
+                  <p>This is an automated email. Please do not reply to this message.</p>
+                  <p>© ${new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
+                  <p>Ahmedabad, Gujarat | Phone: +91 999 888 7777</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `
+        };
+
+        // Attach PDF receipt if generated successfully
+        if (receiptFileName) {
+          const receiptPath = path.join(__dirname, '../uploads', receiptFileName);
+          mailOptions.attachments = [{
+            filename: `Payment_Receipt_${appointment._id}.pdf`,
+            path: receiptPath
+          }];
+        }
+
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Confirmation email sent to patient:', patient.email);
+      } catch (emailErr) {
+        console.error('❌ Failed to send email to patient:', emailErr);
+      }
+    }
+
     // Send email notification to doctor (if email is configured)
-    if (process.env.MAIL_USER && process.env.MAIL_PASS && doctor.email) {
+    if (process.env.MAIL_USER && doctor.email) {
       try {
         const mailOptions = {
           from: process.env.MAIL_USER,
           to: doctor.email,
-          subject: 'New Approved Appointment',
+          subject: 'New Approved Appointment - AarogyaCare',
           html: `
-            <p>Dear Dr. ${escapeHtml(doctor.name)},</p>
-            <p>You have a new approved appointment on <strong>${escapeHtml(bookingDetails.date)}</strong> at <strong>${escapeHtml(bookingDetails.time)}</strong>.</p>
-            <p>Patient: ${escapeHtml(bookingDetails.name)}</p>
-            <p>Payment ID: ${escapeHtml(razorpay_payment_id)}</p>
-            <p>This appointment has been automatically approved as payment was successful.</p>
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+                .info-box { background: white; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #14b8a6; }
+                .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+                .info-label { font-weight: bold; color: #14b8a6; }
+                .info-value { color: #4b5563; }
+                .footer { text-align: center; margin-top: 20px; padding: 20px; color: #6b7280; font-size: 12px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1 style="margin: 0;">🏥 AarogyaCare</h1>
+                  <p style="margin: 10px 0 0 0;">New Appointment Notification</p>
+                </div>
+                
+                <div class="content">
+                  <p>Dear <strong>Dr. ${escapeHtml(doctor.name)}</strong>,</p>
+                  
+                  <p>You have received a new approved appointment. The patient has completed the payment successfully.</p>
+                  
+                  <div class="info-box">
+                    <h3 style="margin-top: 0; color: #14b8a6;">👤 Patient Information</h3>
+                    <div class="info-row">
+                      <span class="info-label">Name:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.name)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Age:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.age.toString())}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Gender:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.gender)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Date:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.date)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Time:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.time)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Reason:</span>
+                      <span class="info-value">${escapeHtml(bookingDetails.reason)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Payment ID:</span>
+                      <span class="info-value">${escapeHtml(razorpay_payment_id)}</span>
+                    </div>
+                    <div class="info-row">
+                      <span class="info-label">Amount Paid:</span>
+                      <span class="info-value">₹ ${appointment.fees.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  
+                  <p>The appointment has been automatically approved as the payment was successful. You can now chat with the patient through your doctor dashboard.</p>
+                  
+                  <p>Please log in to your dashboard to view more details and manage this appointment.</p>
+                  
+                  <p style="margin-top: 20px;">
+                    Best regards,<br>
+                    <strong>Team AarogyaCare</strong>
+                  </p>
+                </div>
+                
+                <div class="footer">
+                  <p>This is an automated email. Please do not reply to this message.</p>
+                  <p>© ${new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+            </html>
           `
         };
         await transporter.sendMail(mailOptions);
+        console.log('✅ Notification email sent to doctor:', doctor.email);
       } catch (emailErr) {
-        console.error('Failed to send email to doctor:', emailErr);
+        console.error('❌ Failed to send email to doctor:', emailErr);
       }
     }
 

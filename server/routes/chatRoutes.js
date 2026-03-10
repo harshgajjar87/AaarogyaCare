@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const chatController = require('../controllers/chatController');
+const upload = require('../middleware/chatUpload');
 
 // All routes require authentication
 router.use(protect);
@@ -16,8 +17,11 @@ router.get('/', chatController.getUserChats);
 // Get a specific chat by ID
 router.get('/:chatId', chatController.getChatById);
 
+// Get messages for a specific chat
+router.get('/:chatId/messages', chatController.getMessages);
+
 // Send a message in a specific chat
-router.post('/:chatId/messages', chatController.sendMessage);
+router.post('/:chatId/messages', upload.single('file'), chatController.sendMessage);
 
 // Extend chat expiration (for approved appointments)
 router.put('/:chatId/extend', chatController.extendChatExpiration);

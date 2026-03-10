@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from '../utils/axios';
 import { ArrowLeft, Loader2, FileText, Activity, Droplet, Brain, Heart, Bone, Eye, Ear, CheckCircle, AlertCircle, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
+import MedicalReportUploader from './MedicalReportUploader';
 
 const REPORT_TYPES = [
   { 
@@ -178,11 +179,25 @@ const REPORT_TYPES = [
 const ReportAnalysis = ({ onBack }) => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [reportData, setReportData] = useState({});
+  const [autoFilledFields, setAutoFilledFields] = useState(new Set());
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleFieldChange = (fieldName, value) => {
     setReportData(prev => ({ ...prev, [fieldName]: value }));
+  };
+
+  // Handle AI-extracted data
+  const handleDataExtracted = (extractedData) => {
+    // Track which fields were auto-filled
+    const filledFields = new Set(Object.keys(extractedData));
+    setAutoFilledFields(filledFields);
+    
+    // Merge extracted data with existing report data
+    setReportData(prev => ({
+      ...prev,
+      ...extractedData
+    }));
   };
 
   const handleAnalyze = async () => {
@@ -218,25 +233,26 @@ const ReportAnalysis = ({ onBack }) => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 15;
     const maxWidth = pageWidth - 2 * margin;
     let yPosition = margin;
 
-    // Helper function to add text with word wrap
-    const addText = (text, fontSize = 10, isBold = false) => {
+    // Helper function to add text with word wrap and proper spacing
+    const addText = (text, fontSize = 10, isBold = false, spacing = 5) => {
       doc.setFontSize(fontSize);
       doc.setFont('helvetica', isBold ? 'bold' : 'normal');
       const lines = doc.splitTextToSize(text, maxWidth);
       
-      lines.forEach(line => {
-        if (yPosition > pageHeight - margin) {
+      lines.forEach((line, index) => {
+        // Check if we need a new page
+        if (yPosition + fontSize * 0.4 > pageHeight - margin - 10) {
           doc.addPage();
           yPosition = margin;
         }
         doc.text(line, margin, yPosition);
-        yPosition += fontSize * 0.5;
+        yPosition += fontSize * 0.4; // Consistent line height
       });
-      yPosition += 3;
+      yPosition += spacing; // Add spacing after text block
     };
 
     // Header
@@ -251,83 +267,85 @@ const ReportAnalysis = ({ onBack }) => {
     doc.setTextColor(0, 0, 0);
 
     // Report Type
-    addText(`Report Type: ${selectedReport.name}`, 14, true);
-    addText(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 10);
-    yPosition += 5;
+    addText(`Report Type: ${selectedReport.name}`, 14, true, 3);
+    addText(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 10, false, 8);
 
     // Summary
     if (analysis.summary) {
-      addText('SUMMARY', 14, true);
-      addText(analysis.summary, 10);
-      yPosition += 5;
+      addText('SUMMARY', 14, true, 3);
+      addText(analysis.summary, 10, false, 8);
     }
 
     // Parameters
     if (analysis.parameters && analysis.parameters.length > 0) {
-      addText('PARAMETER ANALYSIS', 14, true);
+      addText('PARAMETER ANALYSIS', 14, true, 3);
       analysis.parameters.forEach((param, idx) => {
         const statusColor = param.status === 'normal' ? [34, 197, 94] : 
                            param.status === 'borderline' ? [234, 179, 8] : [239, 68, 68];
         
-        addText(`${idx + 1}. ${param.name}`, 11, true);
+        addText(`${idx + 1}. ${param.name}`, 11, true, 2);
         doc.setTextColor(...statusColor);
-        addText(`   Status: ${param.status.toUpperCase()}`, 10, true);
+        addText(`   Status: ${param.status.toUpperCase()}`, 10, true, 2);
         doc.setTextColor(0, 0, 0);
-        addText(`   ${param.explanation}`, 10);
+        addText(`   ${param.explanation}`, 10, false, 2);
         if (param.normalRange) {
-          addText(`   Normal Range: ${param.normalRange}`, 9);
+          addText(`   Normal Range: ${param.normalRange}`, 9, false, 5);
+        } else {
+          yPosition += 3;
         }
-        yPosition += 2;
       });
-      yPosition += 5;
     }
 
     // Good Points
     if (analysis.goodPoints && analysis.goodPoints.length > 0) {
       doc.setTextColor(34, 197, 94);
-      addText('POSITIVE FINDINGS', 14, true);
+      addText('POSITIVE FINDINGS', 14, true, 3);
       doc.setTextColor(0, 0, 0);
       analysis.goodPoints.forEach((point, idx) => {
-        addText(`✓ ${point}`, 10);
+        addText(`✓ ${point}`, 10, false, 3);
       });
-      yPosition += 5;
+      yPosition += 3;
     }
 
     // Concerns
     if (analysis.concerns && analysis.concerns.length > 0) {
       doc.setTextColor(249, 115, 22);
-      addText('AREAS OF CONCERN', 14, true);
+      addText('AREAS OF CONCERN', 14, true, 3);
       doc.setTextColor(0, 0, 0);
       analysis.concerns.forEach((concern, idx) => {
-        addText(`⚠ ${concern}`, 10);
+        addText(`⚠ ${concern}`, 10, false, 3);
       });
-      yPosition += 5;
+      yPosition += 3;
     }
 
     // Recommendations
     if (analysis.recommendations && analysis.recommendations.length > 0) {
       doc.setTextColor(20, 184, 166);
-      addText('RECOMMENDATIONS', 14, true);
+      addText('RECOMMENDATIONS', 14, true, 3);
       doc.setTextColor(0, 0, 0);
       analysis.recommendations.forEach((rec, idx) => {
-        addText(`→ ${rec}`, 10);
+        addText(`→ ${rec}`, 10, false, 3);
       });
-      yPosition += 5;
+      yPosition += 3;
     }
 
     // Disclaimer
     if (analysis.disclaimer) {
-      doc.setFillColor(239, 246, 255);
-      const disclaimerHeight = 25;
-      if (yPosition + disclaimerHeight > pageHeight - margin) {
+      // Check if we need a new page for disclaimer
+      const disclaimerLines = doc.splitTextToSize(analysis.disclaimer, maxWidth - 10);
+      const disclaimerHeight = disclaimerLines.length * 4 + 15;
+      
+      if (yPosition + disclaimerHeight > pageHeight - margin - 10) {
         doc.addPage();
         yPosition = margin;
       }
+      
+      doc.setFillColor(239, 246, 255);
       doc.rect(margin - 5, yPosition - 5, maxWidth + 10, disclaimerHeight, 'F');
       doc.setTextColor(37, 99, 235);
-      addText('DISCLAIMER', 11, true);
+      addText('DISCLAIMER', 11, true, 3);
       doc.setTextColor(0, 0, 0);
-      addText(analysis.disclaimer, 9);
+      addText(analysis.disclaimer, 9, false, 5);
     }
 
     // Footer
@@ -377,7 +395,7 @@ const ReportAnalysis = ({ onBack }) => {
   if (analysis) {
     return (
       <div className="max-w-4xl mx-auto">
-        <button onClick={() => { setSelectedReport(null); setAnalysis(null); setReportData({}); }} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6">
+        <button onClick={() => { setSelectedReport(null); setAnalysis(null); setReportData({}); setAutoFilledFields(new Set()); }} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6">
           <ArrowLeft size={20} />
           Back to Report Types
         </button>
@@ -394,6 +412,25 @@ const ReportAnalysis = ({ onBack }) => {
         </div>
 
         <div className="bg-white rounded-xl shadow-md p-6 space-y-6">
+          {/* Urgency Alert */}
+          {analysis.urgencyLevel && analysis.urgencyLevel !== 'routine' && (
+            <div className={`p-4 rounded-lg border-2 ${
+              analysis.urgencyLevel === 'urgent' ? 'bg-red-50 border-red-300' : 'bg-yellow-50 border-yellow-300'
+            }`}>
+              <div className="flex items-start gap-3">
+                <AlertCircle className={analysis.urgencyLevel === 'urgent' ? 'text-red-600' : 'text-yellow-600'} size={24} />
+                <div>
+                  <h4 className={`font-bold ${analysis.urgencyLevel === 'urgent' ? 'text-red-800' : 'text-yellow-800'}`}>
+                    {analysis.urgencyLevel === 'urgent' ? 'Urgent Attention Needed' : 'Moderate Concern'}
+                  </h4>
+                  <p className={`text-sm mt-1 ${analysis.urgencyLevel === 'urgent' ? 'text-red-700' : 'text-yellow-700'}`}>
+                    {analysis.urgencyMessage}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {analysis.summary && (
             <div>
               <h3 className="text-xl font-semibold text-slate-800 mb-3">Summary</h3>
@@ -447,28 +484,183 @@ const ReportAnalysis = ({ onBack }) => {
                 <AlertCircle className="text-orange-500" size={24} />
                 Areas of Concern
               </h3>
-              <ul className="space-y-2">
+              <div className="space-y-4">
                 {analysis.concerns.map((concern, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-slate-700">
-                    <span className="text-orange-500 mt-1">⚠</span>
-                    <span>{concern}</span>
-                  </li>
+                  <div key={idx} className="border-l-4 border-orange-500 bg-orange-50 p-4 rounded-r-lg">
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-slate-800">{concern.issue || concern}</h4>
+                      {concern.severity && (
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          concern.severity === 'severe' ? 'bg-red-100 text-red-700' :
+                          concern.severity === 'moderate' ? 'bg-orange-100 text-orange-700' :
+                          'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {concern.severity}
+                        </span>
+                      )}
+                    </div>
+                    {concern.explanation && (
+                      <p className="text-slate-700 text-sm mb-2">{concern.explanation}</p>
+                    )}
+                    {concern.possibleCauses && concern.possibleCauses.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-slate-600 mb-1">Possible Causes:</p>
+                        <ul className="text-sm text-slate-600 list-disc list-inside">
+                          {concern.possibleCauses.map((cause, i) => (
+                            <li key={i}>{cause}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {concern.symptoms && concern.symptoms.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-slate-600 mb-1">Watch for these symptoms:</p>
+                        <ul className="text-sm text-slate-600 list-disc list-inside">
+                          {concern.symptoms.map((symptom, i) => (
+                            <li key={i}>{symptom}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
           {analysis.recommendations && analysis.recommendations.length > 0 && (
             <div>
               <h3 className="text-xl font-semibold text-slate-800 mb-3">Recommendations</h3>
-              <ul className="space-y-2">
-                {analysis.recommendations.map((rec, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-slate-700">
-                    <span className="text-teal-500 mt-1">→</span>
-                    <span>{rec}</span>
-                  </li>
+              <div className="space-y-3">
+                {analysis.recommendations.map((rec, idx) => {
+                  const isDetailed = typeof rec === 'object' && rec.action;
+                  return (
+                    <div key={idx} className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+                      {isDetailed ? (
+                        <>
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-start gap-2 flex-1">
+                              <span className="text-teal-600 mt-1">→</span>
+                              <div>
+                                <p className="font-medium text-slate-800">{rec.action}</p>
+                                {rec.explanation && (
+                                  <p className="text-sm text-slate-600 mt-1">{rec.explanation}</p>
+                                )}
+                                {rec.timeline && (
+                                  <p className="text-xs text-teal-700 mt-2">Timeline: {rec.timeline}</p>
+                                )}
+                              </div>
+                            </div>
+                            {rec.priority && (
+                              <span className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap ml-2 ${
+                                rec.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-blue-100 text-blue-700'
+                              }`}>
+                                {rec.priority} priority
+                              </span>
+                            )}
+                          </div>
+                          {rec.category && (
+                            <span className="inline-block text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded mt-2">
+                              {rec.category}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex items-start gap-2">
+                          <span className="text-teal-500 mt-1">→</span>
+                          <span className="text-slate-700">{rec}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Dietary Suggestions */}
+          {analysis.dietarySuggestions && analysis.dietarySuggestions.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                🥗 Dietary Suggestions
+              </h3>
+              <div className="space-y-3">
+                {analysis.dietarySuggestions.map((diet, idx) => (
+                  <div key={idx} className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-slate-800 mb-1">{diet.recommendation}</h4>
+                    <p className="text-sm text-slate-600 mb-2">{diet.reason}</p>
+                    {diet.examples && diet.examples.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-green-700 mb-1">Examples:</p>
+                        <ul className="text-sm text-slate-600 list-disc list-inside">
+                          {diet.examples.map((example, i) => (
+                            <li key={i}>{example}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Lifestyle Changes */}
+          {analysis.lifestyleChanges && analysis.lifestyleChanges.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                🏃 Lifestyle Changes
+              </h3>
+              <div className="space-y-3">
+                {analysis.lifestyleChanges.map((lifestyle, idx) => (
+                  <div key={idx} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-slate-800 mb-1">{lifestyle.change}</h4>
+                    <p className="text-sm text-slate-600 mb-2"><strong>Benefit:</strong> {lifestyle.benefit}</p>
+                    {lifestyle.howTo && (
+                      <p className="text-sm text-blue-700"><strong>How to:</strong> {lifestyle.howTo}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Monitoring Plan */}
+          {analysis.monitoringPlan && (
+            <div>
+              <h3 className="text-xl font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                📊 Monitoring Plan
+              </h3>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-3">
+                {analysis.monitoringPlan.frequency && (
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Retest Frequency:</p>
+                    <p className="text-slate-600">{analysis.monitoringPlan.frequency}</p>
+                  </div>
+                )}
+                {analysis.monitoringPlan.parameters && analysis.monitoringPlan.parameters.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 mb-1">Parameters to Track:</p>
+                    <ul className="text-sm text-slate-600 list-disc list-inside">
+                      {analysis.monitoringPlan.parameters.map((param, i) => (
+                        <li key={i}>{param}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {analysis.monitoringPlan.signs && analysis.monitoringPlan.signs.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 mb-1">Warning Signs to Watch:</p>
+                    <ul className="text-sm text-slate-600 list-disc list-inside">
+                      {analysis.monitoringPlan.signs.map((sign, i) => (
+                        <li key={i}>{sign}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -479,7 +671,7 @@ const ReportAnalysis = ({ onBack }) => {
           )}
         </div>
 
-        <button onClick={() => { setAnalysis(null); setReportData({}); }} className="w-full mt-6 bg-slate-600 text-white py-3 rounded-lg hover:bg-slate-700 transition-colors">
+        <button onClick={() => { setAnalysis(null); setReportData({}); setAutoFilledFields(new Set()); }} className="w-full mt-6 bg-slate-600 text-white py-3 rounded-lg hover:bg-slate-700 transition-colors">
           Analyze Another Report
         </button>
       </div>
@@ -495,22 +687,93 @@ const ReportAnalysis = ({ onBack }) => {
 
       <h1 className="text-3xl font-bold text-slate-800 mb-6">{selectedReport.name} Analysis</h1>
 
-      <div className="bg-white rounded-xl shadow-md p-6 space-y-6">
+      <div className="space-y-6">
+        {/* Option Selection */}
+        <div className="bg-gradient-to-r from-teal-50 to-blue-50 rounded-xl p-6 border-2 border-teal-200">
+          <h2 className="text-xl font-semibold text-slate-800 mb-4 text-center">Choose How to Add Your Report</h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg p-4 border-2 border-teal-300 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-teal-100 p-2 rounded-full">
+                  <FileText className="text-teal-600" size={24} />
+                </div>
+                <h3 className="font-semibold text-slate-800">Option 1: Upload Report</h3>
+              </div>
+              <p className="text-sm text-slate-600 mb-3">Upload an image or PDF of your medical report. Our AI will automatically extract the data for you.</p>
+              <div className="flex items-center gap-2 text-xs text-teal-700">
+                <CheckCircle size={16} />
+                <span>Fast & Automatic</span>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border-2 border-blue-300 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <Activity className="text-blue-600" size={24} />
+                </div>
+                <h3 className="font-semibold text-slate-800">Option 2: Enter Manually</h3>
+              </div>
+              <p className="text-sm text-slate-600 mb-3">Type in your report values manually using the form fields below.</p>
+              <div className="flex items-center gap-2 text-xs text-blue-700">
+                <CheckCircle size={16} />
+                <span>Precise Control</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Report Uploader */}
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="text-teal-600" size={24} />
+            <h3 className="text-lg font-semibold text-slate-800">Upload Your Report</h3>
+          </div>
+          <MedicalReportUploader 
+            onDataExtracted={handleDataExtracted}
+            reportType={selectedReport.id}
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 border-t border-slate-300"></div>
+          <span className="text-slate-500 font-medium">OR</span>
+          <div className="flex-1 border-t border-slate-300"></div>
+        </div>
+
+        {/* Manual Entry Form */}
+        <div className="bg-white rounded-xl shadow-md p-6 space-y-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="text-blue-600" size={24} />
+            <h3 className="text-lg font-semibold text-slate-800">Enter Values Manually</h3>
+          </div>
         {selectedReport.fields.length > 0 ? (
           <>
             <div className="grid md:grid-cols-2 gap-4">
-              {selectedReport.fields.map((field) => (
-                <div key={field.name}>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">{field.label}</label>
-                  <input
-                    type={field.type}
-                    value={reportData[field.name] || ''}
-                    onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                    placeholder={field.placeholder}
-                    className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                </div>
-              ))}
+              {selectedReport.fields.map((field) => {
+                const isAutoFilled = autoFilledFields.has(field.name);
+                return (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      {field.label}
+                      {isAutoFilled && (
+                        <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                          AI Filled
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      type={field.type}
+                      value={reportData[field.name] || ''}
+                      onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                      placeholder={field.placeholder}
+                      className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                        isAutoFilled ? 'border-green-300 bg-green-50' : 'border-slate-300'
+                      }`}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </>
         ) : (
@@ -535,6 +798,7 @@ const ReportAnalysis = ({ onBack }) => {
         >
           {loading ? <><Loader2 className="animate-spin" size={20} /> Analyzing Report...</> : 'Analyze Report'}
         </button>
+        </div>
       </div>
     </div>
   );

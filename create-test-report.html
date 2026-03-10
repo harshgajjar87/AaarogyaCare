@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Test Medical Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #14b8a6;
+            text-align: center;
+        }
+        .report {
+            background: white;
+            border: 2px solid #333;
+            padding: 40px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            margin: 0;
+            color: #14b8a6;
+        }
+        .info {
+            margin: 20px 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .result-row:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .test-name {
+            font-weight: bold;
+        }
+        .value {
+            color: #14b8a6;
+            font-weight: bold;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+        button {
+            background: #14b8a6;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        button:hover {
+            background: #0d9488;
+        }
+        .instructions {
+            background: #e0f2fe;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #0369a1;
+        }
+        .instructions ol {
+            margin: 10px 0;
+        }
+        .instructions li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Medical Report Generator</h1>
+        
+        <div class="report" id="report">
+            <div class="header">
+                <h2>MEDICAL LABORATORY</h2>
+                <p>AarogyaCare Diagnostics Center</p>
+                <p>123 Health Street, Medical City</p>
+                <p>Phone: (555) 123-4567</p>
+            </div>
+
+            <div class="info">
+                <div class="info-row">
+                    <span><strong>Patient Name:</strong> John Doe</span>
+                    <span><strong>Age:</strong> 35 Years</span>
+                </div>
+                <div class="info-row">
+                    <span><strong>Patient ID:</strong> PT-2024-001</span>
+                    <span><strong>Gender:</strong> Male</span>
+                </div>
+                <div class="info-row">
+                    <span><strong>Report Date:</strong> January 15, 2024</span>
+                    <span><strong>Sample ID:</strong> LAB-12345</span>
+                </div>
+                <div class="info-row">
+                    <span><strong>Referred By:</strong> Dr. Sarah Smith</span>
+                    <span><strong>Collection Date:</strong> January 14, 2024</span>
+                </div>
+            </div>
+
+            <div class="results">
+                <h3 style="border-bottom: 2px solid #333; padding-bottom: 10px;">COMPLETE BLOOD COUNT (CBC)</h3>
+                
+                <div class="result-row">
+                    <span class="test-name">Hemoglobin</span>
+                    <span class="value">13.5 g/dL</span>
+                    <span>Normal: 13.0-17.0</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">WBC Count</span>
+                    <span class="value">7500 cells/mcL</span>
+                    <span>Normal: 4000-11000</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">RBC Count</span>
+                    <span class="value">4.8 million/mcL</span>
+                    <span>Normal: 4.5-5.5</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">Platelet Count</span>
+                    <span class="value">250000 /mcL</span>
+                    <span>Normal: 150000-450000</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">Hematocrit</span>
+                    <span class="value">42 %</span>
+                    <span>Normal: 40-50</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">MCV</span>
+                    <span class="value">90 fL</span>
+                    <span>Normal: 80-100</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">MCH</span>
+                    <span class="value">30 pg</span>
+                    <span>Normal: 27-33</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">MCHC</span>
+                    <span class="value">34 g/dL</span>
+                    <span>Normal: 32-36</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">RDW</span>
+                    <span class="value">13.5 %</span>
+                    <span>Normal: 11.5-14.5</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">Neutrophils</span>
+                    <span class="value">60 %</span>
+                    <span>Normal: 40-70</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">Lymphocytes</span>
+                    <span class="value">30 %</span>
+                    <span>Normal: 20-40</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">Monocytes</span>
+                    <span class="value">5 %</span>
+                    <span>Normal: 2-8</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">Eosinophils</span>
+                    <span class="value">3 %</span>
+                    <span>Normal: 1-4</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">Basophils</span>
+                    <span class="value">1 %</span>
+                    <span>Normal: 0-1</span>
+                </div>
+                
+                <div class="result-row">
+                    <span class="test-name">ESR</span>
+                    <span class="value">10 mm/hr</span>
+                    <span>Normal: 0-15</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #333;">
+                <p><strong>Verified By:</strong> Dr. Michael Johnson, MD</p>
+                <p><strong>Lab Technician:</strong> Emily Davis</p>
+                <p style="font-size: 12px; color: #666; margin-top: 20px;">
+                    This is a computer-generated report. For any queries, please contact the laboratory.
+                </p>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button onclick="downloadAsImage()">📥 Download as Image</button>
+            <button onclick="window.print()">🖨️ Print Report</button>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 How to Use This Test Report</h3>
+            <ol>
+                <li><strong>Download the report:</strong> Click "Download as Image" button above</li>
+                <li><strong>Start your AarogyaCare app:</strong> Make sure both servers are running</li>
+                <li><strong>Navigate to:</strong> Health Prediction → Report Analysis</li>
+                <li><strong>Select:</strong> "Blood Test" or "CBC" as report type</li>
+                <li><strong>Upload:</strong> The downloaded image</li>
+                <li><strong>Click:</strong> "Extract Data with AI"</li>
+                <li><strong>Watch:</strong> The AI automatically fill all the values! ✨</li>
+            </ol>
+            <p><strong>Expected Results:</strong> All 15 blood test values should be extracted and auto-filled in the form.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        async function downloadAsImage() {
+            const report = document.getElementById('report');
+            const canvas = await html2canvas(report, {
+                scale: 2,
+                backgroundColor: '#ffffff'
+            });
+            
+            const link = document.createElement('a');
+            link.download = 'test-medical-report.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            alert('✅ Report downloaded! Now upload it to AarogyaCare to test the AI extraction.');
+        }
+    </script>
+</body>
+</html>

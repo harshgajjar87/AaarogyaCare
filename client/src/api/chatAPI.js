@@ -101,13 +101,29 @@ export const getChatById = async (chatId) => {
 };
 
 // Send a message in a specific chat
-export const sendMessage = async (chatId, message) => {
+export const sendMessage = async (chatId, message, file = null) => {
   try {
-    const response = await retryRequest(() => 
-      axios.post(`/chat/${chatId}/messages`, { message })
-    );
-    console.log('✅ Message sent successfully:', response.data);
-    return response.data;
+    if (file) {
+      // Send with file
+      const formData = new FormData();
+      formData.append('message', message);
+      formData.append('file', file);
+      
+      const response = await retryRequest(() => 
+        axios.post(`/chat/${chatId}/messages`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+      );
+      console.log('✅ Message with file sent successfully:', response.data);
+      return response.data;
+    } else {
+      // Send text only
+      const response = await retryRequest(() => 
+        axios.post(`/chat/${chatId}/messages`, { message })
+      );
+      console.log('✅ Message sent successfully:', response.data);
+      return response.data;
+    }
   } catch (error) {
     return handleApiError(error, 'sending message');
   }

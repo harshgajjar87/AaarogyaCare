@@ -21,6 +21,11 @@ const querySchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    // Optional - only set if the user is logged in when submitting
+  },
   status: {
     type: String,
     enum: ['new', 'read', 'replied', 'closed'],

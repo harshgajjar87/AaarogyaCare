@@ -23,12 +23,16 @@ exports.submitContact = async (req, res) => {
       });
     }
 
+    // Check if user is logged in (optional - from auth middleware if present)
+    const userId = req.user?._id || null;
+
     // Save query to database
     const newQuery = new Query({
       name,
       email,
       subject,
-      message
+      message,
+      userId // Will be null if user is not logged in
     });
 
     await newQuery.save();
@@ -39,6 +43,7 @@ exports.submitContact = async (req, res) => {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #2c5aa0;">New Contact Query Received</h2>
           <p><strong>From:</strong> ${name} (${email})</p>
+          ${userId ? `<p><strong>User ID:</strong> ${userId} (Registered User)</p>` : '<p><em>Submitted by guest user</em></p>'}
           <p><strong>Subject:</strong> ${subject}</p>
           <p><strong>Message:</strong></p>
           <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #2c5aa0;">

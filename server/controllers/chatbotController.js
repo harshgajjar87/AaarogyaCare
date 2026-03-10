@@ -1,7 +1,7 @@
 const OpenAI = require('openai');
+const axios = require('axios');
 
 // Initialize OpenAI client
-// Ensure you have OPENAI_API_KEY in your .env file
 let openai;
 if (process.env.OPENAI_API_KEY) {
   openai = new OpenAI({
@@ -12,7 +12,7 @@ if (process.env.OPENAI_API_KEY) {
 exports.chat = async (req, res) => {
   const { message } = req.body;
 
-  // Fallback logic function in case OpenAI is down or not configured
+  // Fallback logic function in case all AI services are down
   const fallbackResponse = () => {
     const lowerMsg = message ? message.toLowerCase() : '';
     let response = "I'm sorry, I didn't quite understand your question. However, I'm here to help you with AarogyaCare! You can ask me about booking appointments, viewing medical reports, finding doctors, using AI health tools, or navigating the platform. What would you like to know?";
@@ -47,18 +47,7 @@ exports.chat = async (req, res) => {
     return response;
   };
 
-  try {
-    // Check if API key is configured
-    if (!openai) {
-      console.warn('OpenAI client not initialized, using fallback logic.');
-      return res.json({ reply: fallbackResponse() });
-    }
-
-    const completion = await openai.chat.completions.create({
-      messages: [
-        { 
-          role: "system", 
-          content: `You are a warm, caring, and empathetic healthcare assistant for AarogyaCare. Communicate like a friendly human healthcare professional, not a robot.
+  const systemPrompt = `You are a warm, caring, and empathetic healthcare assistant for AarogyaCare. Communicate like a friendly human healthcare professional, not a robot.
           
           PLATFORM FEATURES & NAVIGATION:
           
@@ -122,19 +111,72 @@ exports.chat = async (req, res) => {
           - When asked about AI tools: Mention "Health Risk Calculator", "Chat with AI Doctor", "Voice Call with AI Doctor", "Symptom Checker"
           - When asked about registration: Mention "Register as Patient" or "Register as Doctor" buttons on home page
           - For complex issues or complaints: Suggest creating a support ticket for personalized help from the team
-          - Always use exact button/page names from the platform
-          ` 
-        },
-        { role: "user", content: message }
-      ],
-      model: "gpt-3.5-turbo",
-    });
+          - Always use exact button/page names from the platform`;
 
-    const botReply = completion.choices[0].message.content;
-    res.json({ reply: botReply });
+  try {
+    let botReply;
+
+    // Try Gemini 2.5 Flash first
+    if (process.env.GOOGLE_API_KEY) {
+      try {
+        console.log('Attempting Gemini API for chatbot...');
+        
+        const geminiResponse = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GOOGLE_API_KEY}`,
+          {
+            contents: [{
+              parts: [{
+                text: `${systemPrompt}\n\nUser: ${message}\n\nAssistant:`
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 500
+            }
+          },
+          {
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+
+        botReply = geminiResponse.data.candidates[0].content.parts[0].text;
+        console.log('Gemini API succeeded for chatbot');
+        return res.json({ reply: botReply });
+        
+      } catch (geminiError) {
+        console.log('Gemini API failed for chatbot, trying OpenAI:', geminiError.message);
+      }
+    }
+
+    // Fallback to OpenAI if Gemini fails or not configured
+    if (openai) {
+      try {
+        console.log('Using OpenAI as fallback for chatbot...');
+        
+        const completion = await openai.chat.completions.create({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: message }
+          ],
+          model: "gpt-3.5-turbo",
+        });
+
+        botReply = completion.choices[0].message.content;
+        console.log('OpenAI API succeeded for chatbot');
+        return res.json({ reply: botReply });
+        
+      } catch (openaiError) {
+        console.log('OpenAI API failed for chatbot:', openaiError.message);
+      }
+    }
+
+    // If both AI services fail, use rule-based fallback
+    console.log('All AI services failed, using rule-based fallback');
+    return res.json({ reply: fallbackResponse() });
+
   } catch (error) {
-    console.error('OpenAI API Error:', error.message);
-    // Use fallback logic if OpenAI fails
+    console.error('Chatbot Error:', error.message);
+    // Use fallback logic if all services fail
     res.json({ reply: fallbackResponse() });
   }
 };

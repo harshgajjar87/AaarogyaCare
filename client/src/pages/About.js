@@ -4,6 +4,10 @@ import axios from '../utils/axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeft } from 'lucide-react';
+import PaitentNavbar from '../components/PaitentNavbar';
+import DoctorNavbar from '../components/DoctorNavbar';
+import AdminNavbar from '../components/AdminNavbar';
+import PublicNavbar from '../components/PublicNavbar';
 
 const About = () => {
   const { user } = useAuth();
@@ -46,13 +50,31 @@ const About = () => {
 
   const InfoSection = ({ title, children }) => (
     <div className="mb-4 sm:mb-6">
-      <h4 className="text-lg sm:text-xl font-bold text-health-text-h mb-2">{ title}</h4>
+      <h4 className="text-lg sm:text-xl font-bold text-health-text-h mb-2">{title}</h4>
       <div className="text-health-text-p space-y-2 text-sm sm:text-base">{children}</div>
     </div>
   );
 
+  // Render appropriate navbar based on user role
+  const renderNavbar = () => {
+    if (!user) return <PublicNavbar />;
+    
+    switch (user.role) {
+      case 'patient':
+        return <PaitentNavbar />;
+      case 'doctor':
+        return <DoctorNavbar />;
+      case 'admin':
+        return <AdminNavbar />;
+      default:
+        return <PublicNavbar />;
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+    <>
+      {renderNavbar()}
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-6">
       {/* Back to Dashboard Button */}
       {user && (
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6">
@@ -177,6 +199,7 @@ const About = () => {
         </form>
       </div>
     </div>
+    </>
   );
 };
 

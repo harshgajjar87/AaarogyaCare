@@ -68,19 +68,19 @@ const ChatDoctor = () => {
         )}
       </main>
 
-      <footer className="bg-white p-4 shadow-inner">
-        <form onSubmit={handleSendMessage} className="flex items-center">
+      <footer className="bg-white p-2 sm:p-4 shadow-inner">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-1 sm:gap-0">
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Describe your symptoms..."
-            className="flex-1 p-3 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 p-2 sm:p-3 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base min-w-0"
             disabled={isLoading}
           />
           <button
             type="submit"
-            className="p-3 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 disabled:bg-blue-300"
+            className="px-3 py-2 sm:px-4 sm:py-3 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 disabled:bg-blue-300 text-sm sm:text-base whitespace-nowrap flex-shrink-0"
             disabled={isLoading || !message.trim()}
           >
             Send

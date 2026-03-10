@@ -339,12 +339,39 @@ exports.getChatById = async (req, res) => {
   }
 };
 
+// ✅ Get messages for a specific chat
+exports.getMessages = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user._id;
+
+    const chat = await Chat.findById(chatId)
+      .populate('messages.senderId', 'name profileImage');
+
+    if (!chat) {
+      return res.status(404).json({ msg: 'Chat not found' });
+    }
+
+    // Check if user is part of this chat
+    if (chat.patientId.toString() !== userId.toString() && 
+        chat.doctorId.toString() !== userId.toString()) {
+      return res.status(403).json({ msg: 'Not authorized to access this chat' });
+    }
+
+    res.json({ messages: chat.messages });
+  } catch (err) {
+    console.error('Error fetching messages:', err);
+    res.status(500).json({ msg: 'Error fetching messages', error: err.message });
+  }
+};
+
 // ✅ Send a message in a chat
 exports.sendMessage = async (req, res) => {
   try {
     const { chatId } = req.params;
     const { message } = req.body;
     const userId = req.user._id;
+    const file = req.file; // May be undefined if no file uploaded
 
     // Find the chat
     const chat = await Chat.findById(chatId);
@@ -366,11 +393,29 @@ exports.sendMessage = async (req, res) => {
       return res.status(400).json({ msg: 'Chat session has expired or has been ended by the doctor' });
     }
 
+    // Validate message content
+    if (!message && !file) {
+      return res.status(400).json({ msg: 'Message or file is required' });
+    }
+
     // Add the message
     const newMessage = {
       senderId: userId,
-      message
+      message: message || 'File shared'
     };
+
+    // Handle file upload
+    if (file) {
+      newMessage.fileUrl = `/uploads/chat/${file.filename}`;
+      // Determine file type
+      if (file.mimetype.startsWith('audio/')) {
+        newMessage.fileType = 'audio';
+      } else if (file.mimetype.startsWith('image/')) {
+        newMessage.fileType = 'image';
+      } else {
+        newMessage.fileType = 'document';
+      }
+    }
 
     chat.messages.push(newMessage);
     chat.updatedAt = new Date();
@@ -391,6 +436,7 @@ exports.sendMessage = async (req, res) => {
 
     res.json(chat);
   } catch (err) {
+    console.error('Error in sendMessage:', err);
     res.status(500).json({ msg: 'Error sending message', error: err.message });
   }
 };
