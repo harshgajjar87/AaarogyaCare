@@ -15,6 +15,7 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
   const [availableVoices, setAvailableVoices] = useState([]);
   const recognitionRef = useRef(null);
   const isSpeakingRef = useRef(false);
+  const isCallActiveRef = useRef(false);
   const finalTranscriptRef = useRef('');
   const pushToTalkRef = useRef(false);
 
@@ -74,51 +75,53 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       };
 
       recognitionRef.current.onend = () => {
-        console.log('Recognition ended, isSpeaking:', isSpeakingRef.current, 'pushToTalk:', pushToTalkRef.current);
+        console.log('Recognition ended, isSpeaking:', isSpeakingRef.current, 'pushToTalk:', pushToTalkRef.current, 'callActive:', isCallActiveRef.current);
         setIsRecording(false);
-        // Auto-restart only if not in push-to-talk mode and not speaking
-        if (!isSpeakingRef.current && !pushToTalkRef.current) {
+        // Auto-restart only if not in push-to-talk mode and not speaking and call is still active
+        if (!isSpeakingRef.current && !pushToTalkRef.current && isCallActiveRef.current) {
           console.log('Auto-restarting recognition');
           setTimeout(() => {
-            if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current) {
+            if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current && isCallActiveRef.current) {
               try {
                 recognitionRef.current.start();
                 setIsRecording(true);
-                console.log('Auto-restart successful');
+                console.log('✅ Auto-restart successful');
               } catch (e) {
-                console.log('Auto-restart failed:', e.message);
+                console.log('❌ Auto-restart failed:', e.message);
                 // Try one more time with longer delay
                 setTimeout(() => {
-                  if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current) {
+                  if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current && isCallActiveRef.current) {
                     try {
                       recognitionRef.current.start();
                       setIsRecording(true);
-                      console.log('Auto-restart retry successful');
+                      console.log('✅ Auto-restart retry successful');
                     } catch (retryError) {
-                      console.error('Auto-restart retry failed:', retryError.message);
+                      console.error('❌ Auto-restart retry failed:', retryError.message);
                     }
                   }
                 }, 1000);
               }
             }
           }, 500);
+        } else {
+          console.log('⏸️ Not restarting - isSpeaking:', isSpeakingRef.current, 'pushToTalk:', pushToTalkRef.current, 'callActive:', isCallActiveRef.current);
         }
       };
 
       recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
+        console.error('❌ Speech recognition error:', event.error);
         setIsRecording(false);
         // Auto-restart on certain errors
         if (event.error === 'no-speech' || event.error === 'audio-capture' || event.error === 'aborted') {
-          if (!isSpeakingRef.current) {
+          if (!isSpeakingRef.current && isCallActiveRef.current) {
             setTimeout(() => {
-              if (recognitionRef.current && !isSpeakingRef.current) {
+              if (recognitionRef.current && !isSpeakingRef.current && isCallActiveRef.current) {
                 try {
                   recognitionRef.current.start();
                   setIsRecording(true);
-                  console.log('Restarted after error:', event.error);
+                  console.log('✅ Restarted after error:', event.error);
                 } catch (e) {
-                  console.error('Failed to restart after error:', e.message);
+                  console.error('❌ Failed to restart after error:', e.message);
                 }
               }
             }, 1000);
@@ -174,29 +177,40 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
         // Adjust speech parameters for more natural Indian accent
         utterance.rate = 0.9; // Slightly slower for clarity
         utterance.pitch = 1.0;
+        utterance.volume = 1.0; // Ensure volume is at maximum
         
         console.log('Selected voice:', utterance.voice?.name || 'default');
+        console.log('Speech settings:', { rate: utterance.rate, pitch: utterance.pitch, volume: utterance.volume, lang: utterance.lang });
         
         utterance.onstart = () => {
-          console.log('Speech started');
+          console.log('✅ Speech started successfully');
         };
         
         utterance.onend = () => {
-          console.log('Speech ended');
+          console.log('✅ Speech ended successfully');
           setIsSpeaking(false);
           isSpeakingRef.current = false;
           resolve();
         };
         
         utterance.onerror = (e) => {
-          console.error('Speech error:', e);
+          console.error('❌ Speech error:', e);
+          console.error('Error details:', { error: e.error, message: e.message });
           setIsSpeaking(false);
           isSpeakingRef.current = false;
           resolve();
         };
         
+        // CRITICAL FIX: Resume speech synthesis context (fixes iOS/Safari and some Chrome issues)
+        window.speechSynthesis.resume();
+        
         window.speechSynthesis.speak(utterance);
-        console.log('Speech synthesis started');
+        console.log('🔊 Speech synthesis started, speaking:', text.substring(0, 50) + '...');
+        
+        // Additional fix for some browsers that pause immediately
+        setTimeout(() => {
+          window.speechSynthesis.resume();
+        }, 100);
       }, 200);
     });
   };
@@ -205,27 +219,32 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
       setIsCallActive(true);
+      isCallActiveRef.current = true;
+      
       const greetings = {
-        english: "Hello, I'm your A.I. doctor. How can I help you today?",
-        hindi: "नमस्ते, मैं आपका A.I. डॉक्टर हूं। मैं आपकी कैसे मदद कर सकता हूं?",
-        gujarati: "નમસ્તે, હું તમારો A.I. ડોક્ટર છું. હું તમને કેવી રીતે મદદ કરી શકું?"
+        english: "Hello! I'm here to help you. Could you tell me what's bothering you today?",
+        hindi: "नमस्ते! मैं आपकी मदद के लिए यहां हूं। आज आपको क्या परेशानी है?",
+        gujarati: "નમસ્તે! હું તમને મદદ કરવા માટે અહીં છું. આજે તમને શું તકલીફ છે?"
       };
+      
       const greeting = greetings[language];
       setCallLog([{ text: greeting, sender: 'ai' }]);
+      setHistory([{ role: 'model', content: greeting }]);
+      
       await speak(greeting);
       
       // Start continuous listening after greeting only if not in push-to-talk mode
       if (!isPushToTalk) {
         setTimeout(() => {
-          if (recognitionRef.current) {
+          if (recognitionRef.current && isCallActiveRef.current) {
             const langMap = { english: 'en-IN', hindi: 'hi-IN', gujarati: 'gu-IN' };
             recognitionRef.current.lang = langMap[language] || 'en-IN';
             try {
               recognitionRef.current.start();
               setIsRecording(true);
-              console.log('Continuous listening started');
+              console.log('🎤 Continuous listening started');
             } catch (e) {
-              console.log('Start failed:', e.message);
+              console.log('❌ Start failed:', e.message);
             }
           }
         }, 500);
@@ -265,18 +284,45 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
   };
 
   const endCall = () => {
-    setIsCallActive(false);
-    setIsRecording(false);
+    console.log('🔴 Ending call...');
+    
+    // Update ref first
+    isCallActiveRef.current = false;
+    
+    // Stop speech synthesis
+    window.speechSynthesis.cancel();
+    
+    // Stop recognition
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
-      } catch (e) {}
+        recognitionRef.current.abort();
+      } catch (e) {
+        console.log('Recognition stop error:', e);
+      }
     }
+    
+    // Reset all states
+    setIsCallActive(false);
+    setIsRecording(false);
     setIsSpeaking(false);
+    isSpeakingRef.current = false;
+    pushToTalkRef.current = false;
+    setTranscript('');
+    setCallLog([]);
+    setHistory([]);
+    
+    console.log('✅ Call ended, all states reset');
     onClose();
   };
 
   const handleVoiceInput = async (text) => {
+    // Ignore empty or very short inputs
+    if (!text || text.trim().length < 2) {
+      console.log('Ignoring empty/short input');
+      return;
+    }
+    
     // Stop listening while processing
     if (recognitionRef.current) {
       try {
@@ -288,78 +334,99 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
     setCallLog(prev => [...prev, { text, sender: 'user' }]);
 
     try {
-      console.log('Sending to AI:', text);
+      console.log('📤 Sending to AI:', text);
+      console.log('📜 History length:', history.length);
+      
       const res = await axios.post('/triage/chat', { 
         message: text, 
-        history: history.map(h => ({ role: h.role, content: h.content })),
+        history: history,
         language
       });
 
-      console.log('AI Response:', res.data);
-      setCallLog(prev => [...prev, { text: res.data.message, sender: 'ai' }]);
+      console.log('📥 AI Response:', res.data);
+      
+      const aiMessage = res.data.message;
+      setCallLog(prev => [...prev, { text: aiMessage, sender: 'ai' }]);
+      
+      // Update history with proper format
       setHistory(prev => [
         ...prev,
         { role: 'user', content: text },
-        { role: 'model', content: res.data.message }
+        { role: 'model', content: aiMessage }
       ]);
 
-      console.log('Starting to speak:', res.data.message);
-      await speak(res.data.message);
-      console.log('Finished speaking');
+      console.log('🔊 Starting to speak:', aiMessage);
+      await speak(aiMessage);
+      console.log('✅ Finished speaking');
       
-      // Resume listening after AI finishes speaking
-      if (!res.data.completed) {
+      // Check if specialist was recommended (conversation completed)
+      if (res.data.completed || res.data.specialization) {
+        console.log('✅ Triage completed, specialist:', res.data.specialization);
+        setTimeout(async () => {
+          const finalMsg = language === 'hindi' 
+            ? "आप अब डैशबोर्ड से अपॉइंटमेंट बुक कर सकते हैं।"
+            : language === 'gujarati'
+            ? "તમે હવે ડેશબોર્ડમાંથી એપોઇન્ટમેન્ટ બુક કરી શકો છો."
+            : "You can now book an appointment from the dashboard.";
+          
+          setCallLog(prev => [...prev, { text: finalMsg, sender: 'ai' }]);
+          await speak(finalMsg);
+          setTimeout(endCall, 3000);
+        }, 1000);
+      } else {
+        // Resume listening after AI finishes speaking
+        console.log('🔄 Preparing to resume listening...');
         setTimeout(() => {
-          if (recognitionRef.current && !isPushToTalk) {
+          console.log('🔍 Checking conditions - callActive:', isCallActiveRef.current, 'pushToTalk:', pushToTalkRef.current, 'speaking:', isSpeakingRef.current);
+          if (recognitionRef.current && !pushToTalkRef.current && isCallActiveRef.current && !isSpeakingRef.current) {
             try {
-              console.log('Attempting to resume listening...');
+              console.log('🎤 Attempting to resume listening...');
               recognitionRef.current.start();
               setIsRecording(true);
-              console.log('Resumed listening successfully');
+              console.log('✅ Resumed listening successfully');
             } catch (e) {
-              console.error('Resume failed:', e.message);
+              console.error('❌ Resume failed:', e.message);
               // Retry once more after a longer delay
               setTimeout(() => {
-                if (recognitionRef.current && !isPushToTalk) {
+                if (recognitionRef.current && !pushToTalkRef.current && isCallActiveRef.current && !isSpeakingRef.current) {
                   try {
                     recognitionRef.current.start();
                     setIsRecording(true);
-                    console.log('Resumed listening on retry');
+                    console.log('✅ Resumed listening on retry');
                   } catch (retryError) {
-                    console.error('Retry also failed:', retryError.message);
+                    console.error('❌ Retry also failed:', retryError.message);
                   }
                 }
               }, 1000);
             }
+          } else {
+            console.log('⏸️ Not resuming - conditions not met');
           }
-        }, 500);
-      } else {
-        // Conversation completed
-        setTimeout(async () => {
-          const finalMsg = "You can now book an appointment from the dashboard.";
-          setCallLog(prev => [...prev, { text: finalMsg, sender: 'ai' }]);
-          await speak(finalMsg);
-          setTimeout(endCall, 5000);
-        }, 2000);
+        }, 1000);
       }
     } catch (error) {
-      console.error('Voice input error:', error);
-      const errorMsg = "I'm having trouble connecting. Please try again.";
+      console.error('❌ Voice input error:', error);
+      const errorMsg = language === 'hindi'
+        ? "मुझे कनेक्ट करने में परेशानी हो रही है। कृपया पुनः प्रयास करें।"
+        : language === 'gujarati'
+        ? "મને કનેક્ટ કરવામાં મુશ્કેલી આવી રહી છે. કૃપા કરીને ફરી પ્રયાસ કરો."
+        : "I'm having trouble connecting. Please try again.";
+      
       setCallLog(prev => [...prev, { text: errorMsg, sender: 'ai' }]);
       await speak(errorMsg);
       
       // Resume listening after error message
       setTimeout(() => {
-        if (recognitionRef.current) {
+        if (recognitionRef.current && isCallActiveRef.current) {
           try {
             recognitionRef.current.start();
             setIsRecording(true);
-            console.log('Resumed listening after error');
+            console.log('✅ Resumed listening after error');
           } catch (e) {
-            console.error('Failed to resume after error:', e.message);
+            console.error('❌ Failed to resume after error:', e.message);
           }
         }
-      }, 500);
+      }, 1000);
     }
   };
 

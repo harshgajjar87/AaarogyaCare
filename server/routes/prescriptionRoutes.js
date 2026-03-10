@@ -9,6 +9,9 @@ router.put('/visit/:appointmentId', protect, isDoctor, prescriptionController.ma
 // Create prescription
 router.post('/', protect, isDoctor, prescriptionController.createPrescription);
 
+// Create direct prescription (without appointment)
+router.post('/direct', protect, isDoctor, prescriptionController.createDirectPrescription);
+
 // Get patient prescriptions (for patients)
 router.get('/patient', protect, prescriptionController.getPatientPrescriptions);
 

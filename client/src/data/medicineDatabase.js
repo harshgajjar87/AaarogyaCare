@@ -74,14 +74,30 @@ export const medicineDatabase = [
   "Neem", "Turmeric", "Ginger", "Garlic", "Aloe Vera", "Amla", "Fenugreek"
 ].sort();
 
-export const getAllMedicines = () => medicineDatabase;
+// Try to load India Drug Bank dataset if available
+let indiaDrugBankNames = [];
+try {
+  indiaDrugBankNames = require('./indiadrugbank-names.json');
+  console.log(`✅ Loaded ${indiaDrugBankNames.length} medicines from India Drug Bank`);
+} catch (e) {
+  console.log('ℹ️ India Drug Bank dataset not found, using default medicine list');
+}
+
+// Combine both datasets and remove duplicates
+const combinedMedicines = [...new Set([...medicineDatabase, ...indiaDrugBankNames])].sort();
+
+export const getAllMedicines = () => combinedMedicines;
 
 export const getMedicinesBySearch = (searchTerm) => {
   if (!searchTerm || searchTerm.length < 2) return [];
   
-  return medicineDatabase
+  const searchLower = searchTerm.toLowerCase();
+  
+  return combinedMedicines
     .filter(medicine => 
-      medicine.toLowerCase().includes(searchTerm.toLowerCase())
+      medicine.toLowerCase().includes(searchLower)
     )
-    .slice(0, 10);
+    .slice(0, 20); // Increased from 10 to 20 for better results
 };
+
+export const getMedicineCount = () => combinedMedicines.length;

@@ -3,6 +3,9 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Chat = require('../models/Chat');
 const transporter = require('../config/mail');
+const { generateReceiptPDF } = require('../utils/pdfGenerator');
+const path = require('path');
+const fs = require('fs');
 
 const ExcelJS = require('exceljs');
 
@@ -119,6 +122,98 @@ exports.createAppointment = async (req, res) => {
         userId: doctorId,
         message: `New appointment requested by ${name} on ${date} at ${time}`
       });
+    }
+
+    // Send confirmation email with PDF receipt to patient
+    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+      try {
+        // Populate patient and doctor details for PDF
+        const populatedAppointment = await Appointment.findById(appointment._id)
+          .populate('patientId', 'name email profile')
+          .populate('doctorId', 'name doctorDetails');
+
+        // Generate PDF receipt
+        const receiptFileName = await generateReceiptPDF(
+          populatedAppointment,
+          populatedAppointment.patientId,
+          populatedAppointment.doctorId
+        );
+        const receiptPath = path.join(__dirname, '../uploads', receiptFileName);
+
+        // Send email with PDF attachment
+        const mailOptions = {
+          from: process.env.MAIL_USER,
+          to: populatedAppointment.patientId.email,
+          subject: 'Appointment Confirmation - AarogyaCare',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #14b8a6 0%, #0891b2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">AarogyaCare</h1>
+                <p style="color: #e0f2fe; margin: 5px 0 0 0;">Quality Healthcare Services</p>
+              </div>
+              
+              <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none;">
+                <h2 style="color: #14b8a6; margin-top: 0;">✅ Appointment Confirmed!</h2>
+                
+                <p style="color: #374151; font-size: 16px;">Dear <strong>${name}</strong>,</p>
+                
+                <p style="color: #374151;">Your appointment has been successfully booked. Please find the details below:</p>
+                
+                <div style="background: #f0fdfa; border-left: 4px solid #14b8a6; padding: 20px; margin: 20px 0; border-radius: 5px;">
+                  <h3 style="color: #14b8a6; margin-top: 0;">Appointment Details</h3>
+                  <p style="margin: 8px 0; color: #374151;"><strong>Doctor:</strong> Dr. ${doctor.name}</p>
+                  <p style="margin: 8px 0; color: #374151;"><strong>Specialization:</strong> ${doctor.doctorDetails?.specialization || 'General Physician'}</p>
+                  <p style="margin: 8px 0; color: #374151;"><strong>Date:</strong> ${new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                  <p style="margin: 8px 0; color: #374151;"><strong>Time:</strong> ${time}</p>
+                  <p style="margin: 8px 0; color: #374151;"><strong>Consultation Fee:</strong> ₹${appointment.fees}</p>
+                  ${reason ? `<p style="margin: 8px 0; color: #374151;"><strong>Reason:</strong> ${reason}</p>` : ''}
+                </div>
+                
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 5px;">
+                  <p style="margin: 0; color: #92400e;"><strong>⏳ Status:</strong> Pending Approval</p>
+                  <p style="margin: 8px 0 0 0; color: #92400e; font-size: 14px;">Your appointment is pending approval from the doctor. You will receive a notification once it's approved.</p>
+                </div>
+                
+                <p style="color: #374151;">A detailed receipt is attached to this email for your records.</p>
+                
+                <div style="margin: 30px 0; text-align: center;">
+                  <a href="http://localhost:3000/my-appointments" style="background: #14b8a6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">View My Appointments</a>
+                </div>
+                
+                <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">If you have any questions, please contact us at <a href="mailto:aarogyacare55@gmail.com" style="color: #14b8a6;">aarogyacare55@gmail.com</a> or call +91 999 888 7777</p>
+              </div>
+              
+              <div style="background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none;">
+                <p style="color: #6b7280; font-size: 12px; margin: 0;">Thank you for choosing AarogyaCare!</p>
+                <p style="color: #9ca3af; font-size: 11px; margin: 5px 0 0 0;">This is an automated email. Please do not reply.</p>
+              </div>
+            </div>
+          `,
+          attachments: [
+            {
+              filename: `Appointment_Receipt_${name.replace(/\s+/g, '_')}.pdf`,
+              path: receiptPath
+            }
+          ]
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Confirmation email with receipt sent to patient');
+
+        // Delete the PDF file after sending
+        setTimeout(() => {
+          try {
+            fs.unlinkSync(receiptPath);
+            console.log('✅ Receipt PDF deleted after sending');
+          } catch (err) {
+            console.error('Error deleting receipt PDF:', err);
+          }
+        }, 5000);
+
+      } catch (emailErr) {
+        console.error('Failed to send confirmation email:', emailErr);
+        // Don't fail the appointment creation if email fails
+      }
     }
 
     res.status(201).json({ msg: 'Appointment Requested', appointment });

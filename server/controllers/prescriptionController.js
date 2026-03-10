@@ -107,6 +107,79 @@ exports.createPrescription = async (req, res) => {
   }
 };
 
+// Create direct prescription (without appointment)
+exports.createDirectPrescription = async (req, res) => {
+  try {
+    const { patientId, diagnosis, notes, medicines, followUpDate, instructions } = req.body;
+
+    // Verify patient exists
+    const patient = await User.findById(patientId);
+    if (!patient) {
+      return res.status(404).json({ msg: 'Patient not found' });
+    }
+
+    const prescription = new Prescription({
+      patientId,
+      doctorId: req.user._id,
+      diagnosis,
+      notes,
+      medicines,
+      followUpDate,
+      instructions
+      // appointmentId is optional for direct prescriptions
+    });
+
+    await prescription.save();
+
+    // Send prescription email to patient
+    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+      try {
+        const medicineList = medicines.map(med => {
+          const frequency = [];
+          if (med.frequency.morning) frequency.push('Morning');
+          if (med.frequency.evening) frequency.push('Evening');
+          if (med.frequency.night) frequency.push('Night');
+          
+          return `• ${med.name} - ${med.dosage} (${frequency.join(', ')}) ${med.timing.replace('_', ' ')} for ${med.days} days`;
+        }).join('\n');
+
+        const mailOptions = {
+          from: process.env.MAIL_USER,
+          to: patient.email,
+          subject: 'New Prescription - AarogyaCare',
+          html: `
+            <h2>Prescription from Dr. ${req.user.name}</h2>
+            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+            <p><strong>Patient:</strong> ${patient.name}</p>
+            
+            <h3>Diagnosis:</h3>
+            <p>${diagnosis}</p>
+            
+            ${notes ? `<h3>Notes:</h3><p>${notes}</p>` : ''}
+            
+            <h3>Medicines:</h3>
+            <pre>${medicineList}</pre>
+            
+            ${instructions ? `<h3>Instructions:</h3><p>${instructions}</p>` : ''}
+            
+            ${followUpDate ? `<p><strong>Follow-up Date:</strong> ${new Date(followUpDate).toLocaleDateString()}</p>` : ''}
+            
+            <p>You can view and download this prescription from your dashboard.</p>
+            <p>Thank you for choosing AarogyaCare!</p>
+          `
+        };
+        await transporter.sendMail(mailOptions);
+      } catch (emailErr) {
+        console.error('Failed to send prescription email:', emailErr);
+      }
+    }
+
+    res.json({ msg: 'Prescription created and sent to patient successfully', prescription });
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error', error: err.message });
+  }
+};
+
 // Get patient prescriptions
 exports.getPatientPrescriptions = async (req, res) => {
   try {

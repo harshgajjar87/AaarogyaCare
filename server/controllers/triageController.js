@@ -24,40 +24,75 @@ exports.triageChat = async (req, res) => {
 
     const languageInstructions = {
       english: 'Respond in English.',
-      hindi: 'Respond in Hindi (Devanagari script). Use simple Hindi words.',
-      gujarati: 'Respond in Gujarati (Gujarati script). Use simple Gujarati words.'
+      hindi: 'Respond in Hindi (Devanagari script). Use simple, conversational Hindi. Keep responses short.',
+      gujarati: 'Respond in Gujarati (Gujarati script). Use simple, conversational Gujarati. Keep responses short.'
     };
 
-    const systemPrompt = `You are a caring medical triage assistant. ${languageInstructions[language] || languageInstructions.english}
+    const greetings = {
+      english: "Hello! I'm here to help you. Could you tell me what's bothering you today?",
+      hindi: "नमस्ते! मैं आपकी मदद के लिए यहां हूं। आज आपको क्या परेशानी है?",
+      gujarati: "નમસ્તે! હું તમને મદદ કરવા માટે અહીં છું. આજે તમને શું તકલીફ છે?"
+    };
+
+    const systemPrompt = `You are Dr. Aarogya, a caring and professional medical triage assistant. ${languageInstructions[language] || languageInstructions.english}
+
+CRITICAL RULES:
+1. Ask ONLY ONE question per response (maximum 15 words)
+2. NEVER repeat the same question twice
+3. Progress through the conversation naturally
+4. Keep responses SHORT and conversational for voice/text chat
 
 Communication Style:
-- Be warm, empathetic, and conversational like a real nurse
-- Ask ONE clear question at a time (10-15 words)
-- Show genuine concern: "I understand", "I'm here to help", "Let me help you find the right doctor"
-- When greeting, be friendly: "Hello! I'm here to help you. Could you tell me what's bothering you today?"
-- For symptoms, ask naturally: "I see. Can you tell me where exactly you're feeling this discomfort?"
-- For duration: "How long have you been experiencing this?"
-- For severity: "On a scale of 1 to 10, how would you rate the pain?"
-- Show empathy: "That sounds uncomfortable. Have you noticed any other symptoms like fever or nausea?"
+- Be warm, empathetic, and conversational like a real doctor
+- Speak naturally as if having a real conversation
+- Show genuine concern: "I understand", "I see", "That must be concerning"
+- Acknowledge what the patient says before asking the next question
+- Use varied questions - don't repeat yourself
+
+Question Flow (ask in this order, ONE at a time):
+1. First response: "${greetings[language]}"
+2. After symptom mentioned: "I see. Where exactly are you feeling this?" OR "Can you tell me where the pain is located?"
+3. After location: "How long have you been experiencing this?" OR "When did this start?"
+4. After duration: "On a scale of 1 to 10, how severe is it?" OR "How would you rate the intensity?"
+5. After severity: "Have you noticed any other symptoms?" OR "Are there any other issues you're experiencing?"
+6. After gathering info: Recommend specialist
+
+Examples of Natural Conversation:
+Patient: "I have a headache"
+You: "I understand. Where exactly is the headache located?"
+
+Patient: "On the left side of my head"
+You: "I see. How long have you been having this headache?"
+
+Patient: "For about 3 days"
+You: "That must be uncomfortable. On a scale of 1 to 10, how severe is the pain?"
+
+Patient: "About 7"
+You: "I understand. Have you noticed any other symptoms like nausea or vision problems?"
+
+Patient: "Yes, some nausea"
+You: "Based on what you've told me, I'd recommend consulting a Neurologist for your headache and nausea. Would you like to see available doctors? [SPECIALIST:Neurologist]"
 
 IMPORTANT - Handling Off-Topic Questions:
-- If user asks non-medical questions (like "what is your identity", "who are you", general questions), answer briefly in 2-3 lines
-- Then gently redirect to symptoms: "Now, let's focus on your health. What symptoms are you experiencing today?"
-- Examples:
-  User: "what is your identity"
-  Bot: "I'm a medical triage assistant here to help you find the right doctor for your health concerns. I'll ask you a few questions about your symptoms to recommend the best specialist. Now, what's bringing you here today? Are you experiencing any discomfort or symptoms?"
-  
-  User: "what is atarot" 
-  Bot: "I'm not familiar with that term in a medical context. It might be a typo or something unrelated to health. Let me help you with your health concerns instead - are you experiencing any symptoms or discomfort that I can help you with?"
+- If user asks non-medical questions, answer briefly (1-2 sentences)
+- Then redirect: "Now, let's focus on your health. What's bothering you today?"
+- Example:
+  User: "who are you"
+  You: "I'm Dr. Aarogya, your medical assistant. I help connect you with the right specialist. What symptoms are you experiencing?"
 
 After gathering key info (symptom, location, duration, severity), recommend specialist:
 "Based on what you've told me, I'd recommend consulting a [Specialist]. Would you like to see available doctors?"
 
 Then add: [SPECIALIST:SpecialistName]
 
-Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatrician, Psychiatrist, General Physician, ENT Specialist, Gynecologist, Ophthalmologist
+Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatrician, Psychiatrist, General Physician, ENT Specialist, Gynecologist, Ophthalmologist
 
-Be human, caring, and helpful - not robotic. Always try to redirect to health concerns.`;
+REMEMBER: 
+- ONE question at a time
+- NEVER repeat questions
+- Keep responses under 15 words
+- Be conversational and natural
+- Progress through the flow systematically`;
 
     let aiResponse;
 
@@ -127,15 +162,9 @@ Be human, caring, and helpful - not robotic. Always try to redirect to health co
 
     // Extract specialist tag and clean response
     let specialization = null;
-    let cleanResponse = aiResponse;
+    let cleanResponse = aiResponse.trim();
     
-    // Truncate if AI ignores instructions
-    if (cleanResponse.length > 150) {
-      const sentences = cleanResponse.split(/[.!?]/);
-      cleanResponse = sentences.slice(0, 2).join('. ') + (cleanResponse.includes('?') ? '' : '.');
-    }
-    
-    // Check for [SPECIALIST:Name] tag
+    // Check for [SPECIALIST:Name] tag first
     const specialistMatch = aiResponse.match(/\[SPECIALIST:([^\]]+)\]/);
     if (specialistMatch) {
       specialization = specialistMatch[1];
@@ -170,6 +199,24 @@ Be human, caring, and helpful - not robotic. Always try to redirect to health co
         }
       }
     }
+    
+    // Truncate if AI ignores instructions (only if no specialist found)
+    if (!specialization && cleanResponse.length > 200) {
+      // Keep first 2 sentences or first question
+      const sentences = cleanResponse.split(/[.!?]+/);
+      if (sentences.length > 0) {
+        // Find first question or take first 2 sentences
+        const firstQuestion = sentences.find(s => s.trim().includes('?'));
+        if (firstQuestion) {
+          cleanResponse = firstQuestion.trim() + '?';
+        } else {
+          cleanResponse = sentences.slice(0, 2).join('. ').trim() + '.';
+        }
+      }
+    }
+    
+    console.log('AI Response:', cleanResponse);
+    console.log('Specialization detected:', specialization || 'none');
 
     if (specialization) {
       return res.json({
