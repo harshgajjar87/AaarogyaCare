@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, adminOnly } = require('../middleware/authMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 const RevenueSettings = require('../models/RevenueSettings');
 const Transaction = require('../models/Transaction');
 const Appointment = require('../models/Appointment');
@@ -9,7 +9,7 @@ const User = require('../models/User');
 // @route   GET /api/revenue/settings
 // @desc    Get current revenue settings
 // @access  Admin only
-router.get('/settings', protect, adminOnly, async (req, res) => {
+router.get('/settings', protect, admin, async (req, res) => {
   try {
     let settings = await RevenueSettings.findOne({ isActive: true });
     
@@ -35,7 +35,7 @@ router.get('/settings', protect, adminOnly, async (req, res) => {
 // @route   PUT /api/revenue/settings
 // @desc    Update revenue settings
 // @access  Admin only
-router.put('/settings', protect, adminOnly, async (req, res) => {
+router.put('/settings', protect, admin, async (req, res) => {
   try {
     const {
       platformCommissionPercentage,
@@ -77,7 +77,7 @@ router.put('/settings', protect, adminOnly, async (req, res) => {
 // @route   GET /api/revenue/analytics
 // @desc    Get revenue analytics
 // @access  Admin only
-router.get('/analytics', protect, adminOnly, async (req, res) => {
+router.get('/analytics', protect, admin, async (req, res) => {
   try {
     const { startDate, endDate, period = 'all' } = req.query;
 
@@ -189,7 +189,7 @@ router.get('/analytics', protect, adminOnly, async (req, res) => {
 // @route   GET /api/revenue/transactions
 // @desc    Get all transactions with filters
 // @access  Admin only
-router.get('/transactions', protect, adminOnly, async (req, res) => {
+router.get('/transactions', protect, admin, async (req, res) => {
   try {
     const { page = 1, limit = 20, status, payoutStatus, doctorId } = req.query;
 
@@ -223,7 +223,7 @@ router.get('/transactions', protect, adminOnly, async (req, res) => {
 // @route   PUT /api/revenue/payout/:transactionId
 // @desc    Mark doctor payout as completed
 // @access  Admin only
-router.put('/payout/:transactionId', protect, adminOnly, async (req, res) => {
+router.put('/payout/:transactionId', protect, admin, async (req, res) => {
   try {
     const { payoutReference, notes } = req.body;
 
