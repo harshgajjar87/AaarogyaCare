@@ -6,6 +6,7 @@ import { getDoctorAppointments, approveAppointment, rejectAppointment } from '..
 import { getDoctorPatients } from '../api/doctorAPI';
 import axios from '../utils/axios';
 import { LayoutDashboard, Calendar, Users, MessageSquare, Star, User, LogOut, Check, X, Menu, CreditCard, BarChart3 } from 'lucide-react';
+import NotificationSoundTest from '../components/NotificationSoundTest';
 
 const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);

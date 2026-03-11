@@ -64,6 +64,7 @@ app.use('/api/verification', require('./routes/doctorVerificationRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/upload', require('./routes/imageRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes'));
+app.use('/api/revenue', require('./routes/revenueRoutes'));
 app.use('/api/prescriptions', require('./routes/prescriptionRoutes'));
 app.use('/api/analysis', require('./routes/analysisRoutes'));
 app.use('/api/triage', require('./routes/triageRoutes'));

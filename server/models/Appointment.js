@@ -22,6 +22,20 @@ const appointmentSchema = new mongoose.Schema({
     amount: { type: Number },
     status: { type: String, enum: ['pending', 'completed', 'failed', 'refunded'], default: 'pending' }
   },
+  
+  // Revenue Breakdown
+  revenueBreakdown: {
+    doctorFees: { type: Number }, // Original doctor fees
+    platformCommission: { type: Number }, // Platform commission
+    platformCommissionPercentage: { type: Number },
+    gstAmount: { type: Number }, // GST amount
+    gstPercentage: { type: Number },
+    paymentGatewayCharges: { type: Number }, // Gateway charges
+    doctorPayout: { type: Number }, // Amount to be paid to doctor
+    platformRevenue: { type: Number }, // Net platform revenue
+    totalAmount: { type: Number } // Total amount paid by patient
+  },
+  
   chatEnabled: {
     type: Boolean,
     default: false

@@ -7,9 +7,12 @@ const Appointment = require('../models/Appointment');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Chat = require('../models/Chat');
+const Transaction = require('../models/Transaction');
+const RevenueSettings = require('../models/RevenueSettings');
 const transporter = require('../config/mail');
 const { protect } = require('../middleware/authMiddleware');
 const { generatePaymentReceiptPDF } = require('../utils/pdfGenerator');
+const { calculateRevenueBreakdown } = require('../utils/revenueCalculator');
 
 // HTML sanitization function
 const escapeHtml = (text) => {
@@ -124,6 +127,25 @@ router.post('/verify-and-book', protect, async (req, res) => {
     
     console.log("Signature verification successful");
 
+    // Get revenue settings
+    let revenueSettings = await RevenueSettings.findOne({ isActive: true });
+    if (!revenueSettings) {
+      // Create default settings if none exist
+      revenueSettings = await RevenueSettings.create({
+        platformCommissionPercentage: 10,
+        gstPercentage: 18,
+        gstAppliedOn: 'commission',
+        paymentGatewayPercentage: 2,
+        paymentGatewayFixedCharge: 0,
+        isActive: true
+      });
+      console.log('Created default revenue settings');
+    }
+
+    // Calculate revenue breakdown
+    const revenueBreakdown = calculateRevenueBreakdown(bookingDetails.fees, revenueSettings);
+    console.log('Revenue breakdown calculated:', revenueBreakdown);
+
     // Validate that the date is not in the past
     const appointmentDate = new Date(bookingDetails.date);
     const today = new Date();
@@ -177,9 +199,10 @@ router.post('/verify-and-book', protect, async (req, res) => {
         paymentId: razorpay_payment_id,
         orderId: razorpay_order_id,
         signature: razorpay_signature,
-        amount: bookingDetails.fees,
+        amount: revenueBreakdown.totalAmount, // Store actual amount paid
         status: 'completed'
       },
+      revenueBreakdown: revenueBreakdown, // Store complete revenue breakdown
       // Enable chat for the approved appointment
       chatEnabled: true,
       chatCreatedAt: new Date()
@@ -191,6 +214,30 @@ router.post('/verify-and-book', protect, async (req, res) => {
     appointment.chatExpiresAt = expirationDate;
 
     await appointment.save();
+
+    // Create transaction record for financial tracking
+    const transaction = new Transaction({
+      appointmentId: appointment._id,
+      patientId: bookingDetails.patientId,
+      doctorId: bookingDetails.doctorId,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpayOrderId: razorpay_order_id,
+      razorpaySignature: razorpay_signature,
+      totalAmount: revenueBreakdown.totalAmount,
+      doctorFees: revenueBreakdown.doctorFees,
+      platformCommission: revenueBreakdown.platformCommission,
+      platformCommissionPercentage: revenueBreakdown.platformCommissionPercentage,
+      gstAmount: revenueBreakdown.gstAmount,
+      gstPercentage: revenueBreakdown.gstPercentage,
+      paymentGatewayCharges: revenueBreakdown.paymentGatewayCharges,
+      doctorPayout: revenueBreakdown.doctorPayout,
+      platformRevenue: revenueBreakdown.platformRevenue,
+      status: 'completed',
+      doctorPayoutStatus: 'pending'
+    });
+
+    await transaction.save();
+    console.log('✅ Transaction record created:', transaction._id);
 
     // Get doctor details for notification
     const doctor = await User.findById(bookingDetails.doctorId);
@@ -247,6 +294,10 @@ router.post('/verify-and-book', protect, async (req, res) => {
     // Send email notification to patient with receipt PDF
     if (process.env.MAIL_USER && patient.email) {
       try {
+        const receiptDownloadUrl = receiptFileName 
+          ? `${process.env.SERVER_URL || 'http://localhost:5000'}/uploads/${receiptFileName}`
+          : null;
+
         const mailOptions = {
           from: process.env.MAIL_USER,
           to: patient.email,
@@ -267,8 +318,10 @@ router.post('/verify-and-book', protect, async (req, res) => {
                 .payment-box { background: #ecfdf5; padding: 20px; margin: 15px 0; border-radius: 8px; border: 2px solid #14b8a6; }
                 .amount { font-size: 24px; font-weight: bold; color: #14b8a6; text-align: center; margin: 10px 0; }
                 .footer { text-align: center; margin-top: 20px; padding: 20px; color: #6b7280; font-size: 12px; }
-                .button { display: inline-block; background: #14b8a6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+                .button { display: inline-block; background: #14b8a6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 10px 5px; }
+                .button-secondary { display: inline-block; background: #3b82f6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 10px 5px; }
                 .note { background: #eff6ff; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6; margin: 15px 0; }
+                .receipt-box { background: #fef3c7; padding: 20px; margin: 15px 0; border-radius: 8px; border: 2px solid #f59e0b; text-align: center; }
               </style>
             </head>
             <body>
@@ -288,6 +341,15 @@ router.post('/verify-and-book', protect, async (req, res) => {
                     <div class="amount">₹ ${appointment.fees.toFixed(2)}</div>
                     <p style="text-align: center; margin: 5px 0; color: #6b7280;">Payment ID: ${escapeHtml(razorpay_payment_id)}</p>
                   </div>
+                  
+                  ${receiptDownloadUrl ? `
+                  <div class="receipt-box">
+                    <h3 style="margin-top: 0; color: #f59e0b;">📄 Payment Receipt</h3>
+                    <p style="margin: 10px 0; color: #92400e;">Your payment receipt is attached to this email and can also be downloaded using the link below:</p>
+                    <a href="${receiptDownloadUrl}" class="button-secondary" style="display: inline-block; margin-top: 10px;">📥 Download Receipt</a>
+                    <p style="margin: 10px 0; font-size: 12px; color: #78716c;">Please save this receipt for your records</p>
+                  </div>
+                  ` : ''}
                   
                   <div class="info-box">
                     <h3 style="margin-top: 0; color: #14b8a6;">📋 Appointment Details</h3>
@@ -317,7 +379,7 @@ router.post('/verify-and-book', protect, async (req, res) => {
                     <strong>📌 Important Notes:</strong>
                     <ul style="margin: 10px 0; padding-left: 20px;">
                       <li>Please arrive 10 minutes before your scheduled appointment time</li>
-                      <li>Bring a valid ID and the attached payment receipt</li>
+                      <li>Bring a valid ID and your payment receipt (attached/downloaded)</li>
                       <li>You can now chat with Dr. ${escapeHtml(doctor.name)} through your patient dashboard</li>
                       <li>Your chat access will remain active for 5 days</li>
                     </ul>

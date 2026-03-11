@@ -78,9 +78,8 @@ export const medicineDatabase = [
 let indiaDrugBankNames = [];
 try {
   indiaDrugBankNames = require('./indiadrugbank-names.json');
-  console.log(`✅ Loaded ${indiaDrugBankNames.length} medicines from India Drug Bank`);
 } catch (e) {
-  console.log('ℹ️ India Drug Bank dataset not found, using default medicine list');
+  // India Drug Bank dataset not found, using default medicine list
 }
 
 // Combine both datasets and remove duplicates

@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
 import { getTotalPatients, getTotalDoctors, getTotalAppointments, getDoctorsBySpecialization, getAppointmentsByDoctor } from '../api/adminAPI';
 import { Users, Stethoscope, Calendar, LayoutDashboard, User, LogOut, BarChart2, Menu, X, BarChart3 } from 'lucide-react';
+import NotificationSoundTest from '../components/NotificationSoundTest';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();

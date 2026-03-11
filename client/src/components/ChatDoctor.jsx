@@ -28,7 +28,7 @@ const ChatDoctor = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://127.0.0.1:5001/chat', {
+      const response = await axios.post(`${process.env.REACT_APP_FLASK_API_URL || 'http://127.0.0.1:5001'}/chat`, {
         message: userMessage.content,
         history: history, // Send the history *before* the new user message
         language: 'English'

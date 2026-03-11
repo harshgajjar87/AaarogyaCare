@@ -86,7 +86,7 @@ const VoiceDoctor = () => {
         setIsProcessing(true);
         try {
           // `prevHistory` is the correct, up-to-date history before the user's new message
-          const response = await axios.post('http://127.0.0.1:5001/chat', {
+          const response = await axios.post(`${process.env.REACT_APP_FLASK_API_URL || 'http://127.0.0.1:5001'}/chat`, {
             message: transcript,
             history: prevHistory,
             language: language,

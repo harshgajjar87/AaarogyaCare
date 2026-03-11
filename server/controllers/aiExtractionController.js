@@ -75,6 +75,7 @@ exports.extractMedicalReport = async (req, res) => {
     const fileType = req.file.mimetype;
 
     let extractedData;
+    let fullReportText = ''; // Store the complete report text
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
@@ -162,6 +163,7 @@ exports.extractMedicalReport = async (req, res) => {
     } else if (fileType === 'application/pdf') {
       // Handle PDF files
       const extractedText = await extractTextFromPDF(filePath);
+      fullReportText = extractedText || ''; // Store the full PDF text
 
       if (!extractedText) {
         await fs.unlink(filePath);
@@ -234,10 +236,11 @@ exports.extractMedicalReport = async (req, res) => {
     // Clean up uploaded file
     await fs.unlink(filePath);
 
-    // Return the extracted data
+    // Return the extracted data AND the full report text
     res.json({
       success: true,
       extractedData,
+      fullText: fullReportText, // Include full text for comprehensive analysis
       message: 'Medical report data extracted successfully'
     });
 

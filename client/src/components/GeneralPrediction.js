@@ -377,51 +377,51 @@ const GeneralPrediction = ({ onBack }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <button onClick={onBack} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6">
-        <ArrowLeft size={20} />
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+      <button onClick={onBack} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-4 sm:mb-6 text-sm sm:text-base">
+        <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
         Back to Options
       </button>
 
-      <h1 className="text-3xl font-bold text-slate-800 mb-6">General Health Prediction</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4 sm:mb-6">General Health Prediction</h1>
 
       {!prediction ? (
         <div className="space-y-6">
           {/* Progress Indicator */}
-          <div className="bg-white rounded-xl shadow-md p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4 overflow-x-auto">
               {[1, 2, 3].map((section) => (
-                <div key={section} className="flex items-center flex-1">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold ${
+                <div key={section} className="flex items-center flex-1 min-w-0">
+                  <div className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full font-bold text-sm sm:text-base flex-shrink-0 ${
                     currentSection === section ? 'bg-teal-600 text-white' :
                     currentSection > section ? 'bg-green-500 text-white' :
                     'bg-slate-200 text-slate-600'
                   }`}>
                     {currentSection > section ? '✓' : section}
                   </div>
-                  <div className="flex-1 ml-2">
-                    <p className={`text-sm font-medium ${currentSection >= section ? 'text-teal-600' : 'text-slate-400'}`}>
-                      {section === 1 ? 'Basic Health' : section === 2 ? 'Lifestyle & Habits' : 'Sleep & Activity'}
+                  <div className="flex-1 ml-1 sm:ml-2 min-w-0">
+                    <p className={`text-xs sm:text-sm font-medium truncate ${currentSection >= section ? 'text-teal-600' : 'text-slate-400'}`}>
+                      {section === 1 ? 'Basic Health' : section === 2 ? 'Lifestyle' : 'Sleep & Activity'}
                     </p>
                   </div>
                   {section < 3 && (
-                    <div className={`h-1 flex-1 mx-2 rounded ${currentSection > section ? 'bg-green-500' : 'bg-slate-200'}`} />
+                    <div className={`h-1 flex-1 mx-1 sm:mx-2 rounded ${currentSection > section ? 'bg-green-500' : 'bg-slate-200'}`} />
                   )}
                 </div>
               ))}
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Section 1: Basic Health Information */}
             {currentSection === 1 && (
-              <div className="space-y-6">
-                <div className="border-b pb-4">
-                  <h3 className="text-2xl font-bold text-slate-800">Basic Health Information</h3>
-                  <p className="text-slate-600 text-sm mt-1">Tell us about your basic health metrics</p>
+              <div className="space-y-4 sm:space-y-6">
+                <div className="border-b pb-3 sm:pb-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-800">Basic Health Information</h3>
+                  <p className="text-slate-600 text-xs sm:text-sm mt-1">Tell us about your basic health metrics</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Age *</label>
                     <input type="number" name="age" value={formData.age} onChange={handleChange} required className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent" />
@@ -503,13 +503,13 @@ const GeneralPrediction = ({ onBack }) => {
 
             {/* Section 2: Lifestyle & Habits */}
             {currentSection === 2 && (
-              <div className="space-y-6">
-                <div className="border-b pb-4">
-                  <h3 className="text-2xl font-bold text-slate-800">Lifestyle & Habits</h3>
-                  <p className="text-slate-600 text-sm mt-1">Tell us about your daily habits and diet</p>
+              <div className="space-y-4 sm:space-y-6">
+                <div className="border-b pb-3 sm:pb-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-800">Lifestyle & Habits</h3>
+                  <p className="text-slate-600 text-xs sm:text-sm mt-1">Tell us about your daily habits and diet</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Smoking Status</label>
                     <select name="smokingStatus" value={formData.smokingStatus} onChange={handleChange} className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent">
@@ -644,13 +644,13 @@ const GeneralPrediction = ({ onBack }) => {
 
             {/* Section 3: Sleep & Activity Patterns */}
             {currentSection === 3 && (
-              <div className="space-y-6">
-                <div className="border-b pb-4">
-                  <h3 className="text-2xl font-bold text-slate-800">Sleep & Activity Patterns</h3>
-                  <p className="text-slate-600 text-sm mt-1">Tell us about your sleep and physical activity</p>
+              <div className="space-y-4 sm:space-y-6">
+                <div className="border-b pb-3 sm:pb-4">
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-800">Sleep & Activity Patterns</h3>
+                  <p className="text-slate-600 text-xs sm:text-sm mt-1">Tell us about your sleep and physical activity</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Sleep Hours (per night)</label>
                     <select name="sleepHours" value={formData.sleepHours} onChange={handleChange} className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500 focus:border-transparent">
@@ -776,19 +776,19 @@ const GeneralPrediction = ({ onBack }) => {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between pt-6 border-t">
+            <div className="flex justify-between pt-4 sm:pt-6 border-t gap-2 sm:gap-4">
               {currentSection > 1 && (
-                <button type="button" onClick={(e) => prevSection(e)} className="px-6 py-3 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors">
+                <button type="button" onClick={(e) => prevSection(e)} className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors">
                   Previous
                 </button>
               )}
               {currentSection < 3 ? (
-                <button type="button" onClick={(e) => nextSection(e)} className="ml-auto px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                <button type="button" onClick={(e) => nextSection(e)} className="ml-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
                   Next
                 </button>
               ) : (
-                <button type="submit" disabled={loading} className="ml-auto px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center gap-2">
-                  {loading ? <><Loader2 className="animate-spin" size={20} /> Analyzing...</> : 'Get Health Prediction'}
+                <button type="submit" disabled={loading} className="ml-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center gap-2">
+                  {loading ? <><Loader2 className="animate-spin" size={18} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Analyzing...</span><span className="sm:hidden">Analyzing</span></> : <><span className="hidden sm:inline">Get Health Prediction</span><span className="sm:hidden">Analyze</span></>}
                 </button>
               )}
             </div>

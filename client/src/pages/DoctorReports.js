@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from '../utils/axios';
 import { toast } from 'react-toastify';
 import { FileText, Download, Info } from 'lucide-react';
+import { getFullImageUrl } from '../utils/imageUtils';
 
 const DoctorReports = () => {
   const [reports, setReports] = useState([]);
@@ -49,7 +50,7 @@ const DoctorReports = () => {
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}</td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
                       {r.file ? (
-                        <a href={`http://localhost:5000/uploads/${r.file}`} target="_blank" rel="noopener noreferrer" className="bg-teal-600 text-white px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1 text-[10px] sm:text-xs">
+                        <a href={getFullImageUrl(`/uploads/${r.file}`)} target="_blank" rel="noopener noreferrer" className="bg-teal-600 text-white px-2 sm:px-3 py-1 rounded-full inline-flex items-center gap-1 text-[10px] sm:text-xs">
                           <Download size={12} className="sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">View Report</span><span className="sm:hidden">View</span>
                         </a>
                       ) : (

@@ -392,29 +392,43 @@ Return ONLY valid JSON, no markdown.`;
 
 const analyzeReport = async (req, res) => {
   try {
-    const { reportType, reportData } = req.body;
+    const { reportType, reportData, fullReportText, hasUploadedReport } = req.body;
 
-    console.log('Received analyze-report request:', { reportType, hasData: !!reportData });
+    console.log('Received analyze-report request:', { 
+      reportType, 
+      hasData: !!reportData, 
+      hasFullText: !!fullReportText,
+      hasUploadedReport 
+    });
 
-    if (!reportType || !reportData) {
+    if (!reportType || (!reportData && !fullReportText)) {
       return res.status(400).json({ message: 'Report type and data are required' });
     }
 
     const systemPrompt = 'You are an exceptionally insightful medical AI with deep pattern recognition abilities for medical reports. You can identify subtle abnormalities and predict potential health issues before they become serious. Your analysis should make patients think "Wow, the AI really understands my health!"';
     
+    // Construct comprehensive prompt with both structured data and full text
+    let dataSection = '';
+    if (fullReportText && fullReportText.trim()) {
+      dataSection = `COMPLETE REPORT CONTENT:\n${fullReportText}\n\n`;
+    }
+    if (reportData && reportData.trim()) {
+      dataSection += `EXTRACTED VALUES:\n${reportData}\n\n`;
+    }
+    
     const prompt = `You are an expert medical AI assistant analyzing a ${reportType} for a patient. Provide a DEEPLY INSIGHTFUL, COMPREHENSIVE analysis that demonstrates exceptional understanding of medical patterns.
 
-Report Data:
-${reportData}
+${dataSection}
 
-CRITICAL INSTRUCTIONS - Make it DEEPLY INSIGHTFUL:
-1. Analyze EVERY parameter in the report with exceptional detail
-2. Identify PATTERNS and CONNECTIONS between parameters
-3. Make PREDICTIONS about what the patient might be experiencing
-4. Show SURPRISING insights that demonstrate deep understanding
-5. Explain the SCIENCE in simple, fascinating terms
-6. Be SPECIFIC about their unique situation
-7. Provide ACTIONABLE steps with expected outcomes
+CRITICAL INSTRUCTIONS - Analyze the ENTIRE report:
+1. Analyze EVERY parameter found in the complete report, not just the extracted values
+2. Look for ALL values, notes, comments, and observations in the full report text
+3. Identify PATTERNS and CONNECTIONS between all parameters
+4. Make PREDICTIONS about what the patient might be experiencing
+5. Show SURPRISING insights that demonstrate deep understanding
+6. Explain the SCIENCE in simple, fascinating terms
+7. Be SPECIFIC about their unique situation based on ALL available information
+8. Provide ACTIONABLE steps with expected outcomes
 
 Return a JSON object with this EXACT structure:
 

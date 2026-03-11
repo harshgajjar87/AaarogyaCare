@@ -3,6 +3,7 @@ import axios from '../utils/axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { Download, Info, ArrowLeft } from 'lucide-react';
+import { getFullImageUrl } from '../utils/imageUtils';
 
 const ReportList = () => {
   const [reports, setReports] = useState([]);
@@ -68,7 +69,7 @@ const ReportList = () => {
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
                       {report.file ? (
                         <a
-                          href={`http://localhost:5000/uploads/${report.file}`}
+                          href={getFullImageUrl(`/uploads/${report.file}`)}
                           className="bg-teal-600 text-white px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full hover:bg-teal-700 transition-all font-medium inline-flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs"
                           target="_blank"
                           rel="noopener noreferrer"

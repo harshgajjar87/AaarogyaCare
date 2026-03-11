@@ -9,10 +9,7 @@ const useRazorpay = () => {
         return new Promise(async (resolve, reject) => {
             setIsProcessing(true);
             try {
-                console.log("Starting payment process with booking details:", bookingDetails);
-                
                 // Load Razorpay script
-                console.log("Loading Razorpay script...");
                 const isScriptLoaded = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
 
                 if (!isScriptLoaded) {
@@ -20,24 +17,20 @@ const useRazorpay = () => {
                     console.error("Failed to load Razorpay script");
                     return reject(new Error('Failed to load payment gateway'));
                 }
-                console.log("Razorpay script loaded successfully");
 
                 // 1. Create a Razorpay order
-                console.log("Creating payment order with amount:", bookingDetails.fees);
                 const orderResponse = await createPaymentOrder(bookingDetails.fees);
-                console.log("Order response:", orderResponse);
                 
                 // Check if order was created successfully
                 if (!orderResponse || !orderResponse.order) {
                     setIsProcessing(false);
-                    console.error("Invalid order response:", orderResponse);
+                    console.error("Invalid order response");
                     return reject(new Error('Failed to create payment order'));
                 }
                 
                 const { order } = orderResponse;
 
                 // 2. Configure Razorpay options
-                console.log("Configuring Razorpay options with order ID:", order.id);
                 const options = {
                     key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_RbbXXNYeUDInu0',
                     amount: order.amount,
@@ -46,7 +39,6 @@ const useRazorpay = () => {
                     description: `Appointment with Dr. ${bookingDetails.doctorName}`,
                     order_id: order.id,
                     handler: async (response) => {
-                        console.log("Payment successful, verifying payment with response:", response);
                         // 3. Verify payment and book appointment
                         try {
                             const verificationData = {
@@ -55,19 +47,17 @@ const useRazorpay = () => {
                                 razorpay_signature: response.razorpay_signature,
                                 bookingDetails: { ...bookingDetails, patientId: bookingDetails.patientId }
                             };
-                            console.log("Sending verification data:", verificationData);
                             const verificationResponse = await verifyPaymentAndBook(verificationData);
-                            console.log("Verification response:", verificationResponse);
                             
                             // Check if verification was successful
                             if (!verificationResponse || !verificationResponse.success) {
-                                console.error("Payment verification failed:", verificationResponse);
+                                console.error("Payment verification failed");
                                 return reject(verificationResponse?.message || "Payment verification failed");
                             }
                             
                             resolve(verificationResponse);
                         } catch (error) {
-                            console.error("Error during payment verification:", error);
+                            console.error("Error during payment verification:", error.message);
                             reject(error.response?.data || { message: "Payment verification failed" });
                         }
                     },
@@ -81,20 +71,17 @@ const useRazorpay = () => {
                     modal: {
                         ondismiss: function() {
                             setIsProcessing(false);
-                            console.log("Payment modal dismissed by user");
                             reject(new Error('Payment cancelled'));
                         }
                     }
                 };
 
                 // 4. Open Razorpay checkout
-                console.log("Opening Razorpay checkout with options:", options);
                 const rzp = new window.Razorpay(options);
                 rzp.open();
             } catch (error) {
                 setIsProcessing(false);
-                console.error("Error in payment process:", error);
-                console.error("Error response:", error.response);
+                console.error("Error in payment process:", error.message);
                 reject(error.response?.data || { message: "An error occurred during payment" });
             }
         });

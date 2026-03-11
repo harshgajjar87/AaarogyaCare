@@ -182,16 +182,26 @@ const ReportAnalysis = ({ onBack }) => {
   const [autoFilledFields, setAutoFilledFields] = useState(new Set());
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [fullReportText, setFullReportText] = useState('');
 
   const handleFieldChange = (fieldName, value) => {
     setReportData(prev => ({ ...prev, [fieldName]: value }));
   };
 
   // Handle AI-extracted data
-  const handleDataExtracted = (extractedData) => {
+  const handleDataExtracted = (extractedData, fullText, file) => {
     // Track which fields were auto-filled
     const filledFields = new Set(Object.keys(extractedData));
     setAutoFilledFields(filledFields);
+    
+    // Store the full report text and file for comprehensive analysis
+    if (fullText) {
+      setFullReportText(fullText);
+    }
+    if (file) {
+      setUploadedFile(file);
+    }
     
     // Merge extracted data with existing report data
     setReportData(prev => ({
@@ -205,25 +215,49 @@ const ReportAnalysis = ({ onBack }) => {
       ? reportData.customData?.trim()
       : Object.values(reportData).some(val => val?.toString().trim());
 
-    if (!hasData) {
-      alert('Please enter report details');
+    const hasUploadedReport = fullReportText || uploadedFile;
+
+    if (!hasData && !hasUploadedReport) {
+      alert('Please enter report details or upload a report');
       return;
     }
 
     setLoading(true);
     try {
+      // Format the extracted field data
       const formattedData = selectedReport.fields.length === 0
         ? reportData.customData
         : selectedReport.fields.map(field => `${field.label}: ${reportData[field.name] || 'Not provided'}`).join('\n');
 
-      const res = await axios.post('/health/analyze-report', {
+      // Prepare the payload with both extracted fields and full report content
+      const payload = {
         reportType: selectedReport.name,
-        reportData: formattedData
-      });
-      setAnalysis(res.data);
+        reportData: formattedData,
+        fullReportText: fullReportText || '', // Include the full extracted text
+        hasUploadedReport: !!hasUploadedReport // Flag to indicate if a report was uploaded
+      };
+
+      // If there's an uploaded file and no full text yet, we need to send the file
+      if (uploadedFile && !fullReportText) {
+        const formData = new FormData();
+        formData.append('file', uploadedFile);
+        formData.append('reportType', selectedReport.name);
+        formData.append('reportData', formattedData);
+        
+        const res = await axios.post('/health/analyze-report-with-file', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        setAnalysis(res.data);
+      } else {
+        // Send as JSON if we have the full text
+        const res = await axios.post('/health/analyze-report', payload);
+        setAnalysis(res.data);
+      }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to analyze report');
+      alert(error.response?.data?.msg || 'Failed to analyze report');
     } finally {
       setLoading(false);
     }
@@ -361,28 +395,28 @@ const ReportAnalysis = ({ onBack }) => {
 
   if (!selectedReport) {
     return (
-      <div className="max-w-6xl mx-auto">
-        <button onClick={onBack} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6">
-          <ArrowLeft size={20} />
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6">
+        <button onClick={onBack} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-4 sm:mb-6 text-sm sm:text-base">
+          <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
           Back to Options
         </button>
 
-        <h1 className="text-3xl font-bold text-slate-800 mb-6">Select Report Type</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4 sm:mb-6">Select Report Type</h1>
 
-        <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           {REPORT_TYPES.map((report) => {
             const Icon = report.icon;
             return (
               <div
                 key={report.id}
                 onClick={() => setSelectedReport(report)}
-                className="bg-white rounded-xl shadow-md p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-teal-500"
+                className="bg-white rounded-lg sm:rounded-xl shadow-md p-3 sm:p-4 md:p-6 cursor-pointer hover:shadow-xl transition-all border-2 border-transparent hover:border-teal-500"
               >
-                <div className="flex flex-col items-center text-center space-y-3">
-                  <div className={`bg-${report.color}-100 p-3 rounded-full`}>
-                    <Icon className={`text-${report.color}-600`} size={32} />
+                <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3">
+                  <div className={`bg-${report.color}-100 p-2 sm:p-3 rounded-full`}>
+                    <Icon className={`text-${report.color}-600`} size={24} className="sm:w-8 sm:h-8" />
                   </div>
-                  <h3 className="font-semibold text-slate-800">{report.name}</h3>
+                  <h3 className="font-semibold text-slate-800 text-xs sm:text-sm md:text-base">{report.name}</h3>
                 </div>
               </div>
             );
@@ -394,24 +428,25 @@ const ReportAnalysis = ({ onBack }) => {
 
   if (analysis) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <button onClick={() => { setSelectedReport(null); setAnalysis(null); setReportData({}); setAutoFilledFields(new Set()); }} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6">
-          <ArrowLeft size={20} />
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+        <button onClick={() => { setSelectedReport(null); setAnalysis(null); setReportData({}); setAutoFilledFields(new Set()); }} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-4 sm:mb-6 text-sm sm:text-base">
+          <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
           Back to Report Types
         </button>
 
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-slate-800">{selectedReport.name} Analysis</h1>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800">{selectedReport.name} Analysis</h1>
           <button
             onClick={handleDownloadPDF}
-            className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors"
+            className="flex items-center gap-2 bg-teal-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors text-sm sm:text-base whitespace-nowrap"
           >
-            <Download size={20} />
-            Download PDF
+            <Download size={18} className="sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Download PDF</span>
+            <span className="sm:hidden">PDF</span>
           </button>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6 space-y-6">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Urgency Alert */}
           {analysis.urgencyLevel && analysis.urgencyLevel !== 'routine' && (
             <div className={`p-4 rounded-lg border-2 ${
@@ -671,7 +706,7 @@ const ReportAnalysis = ({ onBack }) => {
           )}
         </div>
 
-        <button onClick={() => { setAnalysis(null); setReportData({}); setAutoFilledFields(new Set()); }} className="w-full mt-6 bg-slate-600 text-white py-3 rounded-lg hover:bg-slate-700 transition-colors">
+        <button onClick={() => { setAnalysis(null); setReportData({}); setAutoFilledFields(new Set()); }} className="w-full mt-4 sm:mt-6 bg-slate-600 text-white py-2 sm:py-3 rounded-lg hover:bg-slate-700 transition-colors text-sm sm:text-base">
           Analyze Another Report
         </button>
       </div>
@@ -679,43 +714,43 @@ const ReportAnalysis = ({ onBack }) => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <button onClick={() => setSelectedReport(null)} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-6">
-        <ArrowLeft size={20} />
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+      <button onClick={() => setSelectedReport(null)} className="flex items-center gap-2 text-teal-600 hover:text-teal-700 mb-4 sm:mb-6 text-sm sm:text-base">
+        <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
         Back to Report Types
       </button>
 
-      <h1 className="text-3xl font-bold text-slate-800 mb-6">{selectedReport.name} Analysis</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4 sm:mb-6">{selectedReport.name} Analysis</h1>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Option Selection */}
-        <div className="bg-gradient-to-r from-teal-50 to-blue-50 rounded-xl p-6 border-2 border-teal-200">
-          <h2 className="text-xl font-semibold text-slate-800 mb-4 text-center">Choose How to Add Your Report</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-white rounded-lg p-4 border-2 border-teal-300 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-teal-100 p-2 rounded-full">
-                  <FileText className="text-teal-600" size={24} />
+        <div className="bg-gradient-to-r from-teal-50 to-blue-50 rounded-xl p-4 sm:p-6 border-2 border-teal-200">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-800 mb-3 sm:mb-4 text-center">Choose How to Add Your Report</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-white rounded-lg p-3 sm:p-4 border-2 border-teal-300 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                <div className="bg-teal-100 p-1.5 sm:p-2 rounded-full flex-shrink-0">
+                  <FileText className="text-teal-600" size={20} className="sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="font-semibold text-slate-800">Option 1: Upload Report</h3>
+                <h3 className="font-semibold text-slate-800 text-sm sm:text-base">Option 1: Upload Report</h3>
               </div>
-              <p className="text-sm text-slate-600 mb-3">Upload an image or PDF of your medical report. Our AI will automatically extract the data for you.</p>
+              <p className="text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3">Upload an image or PDF of your medical report. Our AI will automatically extract the data for you.</p>
               <div className="flex items-center gap-2 text-xs text-teal-700">
-                <CheckCircle size={16} />
+                <CheckCircle size={14} className="sm:w-4 sm:h-4" />
                 <span>Fast & Automatic</span>
               </div>
             </div>
             
-            <div className="bg-white rounded-lg p-4 border-2 border-blue-300 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-blue-100 p-2 rounded-full">
-                  <Activity className="text-blue-600" size={24} />
+            <div className="bg-white rounded-lg p-3 sm:p-4 border-2 border-blue-300 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                <div className="bg-blue-100 p-1.5 sm:p-2 rounded-full flex-shrink-0">
+                  <Activity className="text-blue-600" size={20} className="sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="font-semibold text-slate-800">Option 2: Enter Manually</h3>
+                <h3 className="font-semibold text-slate-800 text-sm sm:text-base">Option 2: Enter Manually</h3>
               </div>
-              <p className="text-sm text-slate-600 mb-3">Type in your report values manually using the form fields below.</p>
+              <p className="text-xs sm:text-sm text-slate-600 mb-2 sm:mb-3">Type in your report values manually using the form fields below.</p>
               <div className="flex items-center gap-2 text-xs text-blue-700">
-                <CheckCircle size={16} />
+                <CheckCircle size={14} className="sm:w-4 sm:h-4" />
                 <span>Precise Control</span>
               </div>
             </div>
@@ -723,10 +758,10 @@ const ReportAnalysis = ({ onBack }) => {
         </div>
 
         {/* AI Report Uploader */}
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FileText className="text-teal-600" size={24} />
-            <h3 className="text-lg font-semibold text-slate-800">Upload Your Report</h3>
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <FileText className="text-teal-600" size={20} className="sm:w-6 sm:h-6" />
+            <h3 className="text-base sm:text-lg font-semibold text-slate-800">Upload Your Report</h3>
           </div>
           <MedicalReportUploader 
             onDataExtracted={handleDataExtracted}
@@ -735,21 +770,21 @@ const ReportAnalysis = ({ onBack }) => {
         </div>
 
         {/* Divider */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex-1 border-t border-slate-300"></div>
-          <span className="text-slate-500 font-medium">OR</span>
+          <span className="text-slate-500 font-medium text-sm sm:text-base">OR</span>
           <div className="flex-1 border-t border-slate-300"></div>
         </div>
 
         {/* Manual Entry Form */}
-        <div className="bg-white rounded-xl shadow-md p-6 space-y-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="text-blue-600" size={24} />
-            <h3 className="text-lg font-semibold text-slate-800">Enter Values Manually</h3>
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <Activity className="text-blue-600" size={20} className="sm:w-6 sm:h-6" />
+            <h3 className="text-base sm:text-lg font-semibold text-slate-800">Enter Values Manually</h3>
           </div>
         {selectedReport.fields.length > 0 ? (
           <>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {selectedReport.fields.map((field) => {
                 const isAutoFilled = autoFilledFields.has(field.name);
                 return (
@@ -794,9 +829,9 @@ const ReportAnalysis = ({ onBack }) => {
         <button
           onClick={handleAnalyze}
           disabled={loading}
-          className="w-full bg-teal-600 text-white py-3 rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full bg-teal-600 text-white py-2 sm:py-3 rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm sm:text-base"
         >
-          {loading ? <><Loader2 className="animate-spin" size={20} /> Analyzing Report...</> : 'Analyze Report'}
+          {loading ? <><Loader2 className="animate-spin" size={18} className="sm:w-5 sm:h-5" /> <span className="hidden sm:inline">Analyzing Report...</span><span className="sm:hidden">Analyzing...</span></> : <><span className="hidden sm:inline">Analyze Report</span><span className="sm:hidden">Analyze</span></>}
         </button>
         </div>
       </div>

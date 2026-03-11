@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getPendingVerifications, approveVerification, rejectVerification } from '../api/doctorVerificationAPI';
 import { ArrowLeft, CheckCircle, XCircle, Eye, X } from 'lucide-react';
+import { getFullImageUrl } from '../utils/imageUtils';
 
 const AdminDoctorVerifications = () => {
   const navigate = useNavigate();
@@ -110,7 +111,7 @@ const AdminDoctorVerifications = () => {
                 <p><strong>Submitted:</strong> {new Date(verification.submittedAt).toLocaleDateString()}</p>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                   <a 
-                    href={`http://localhost:5000/${verification.idProof}`} 
+                    href={getFullImageUrl(`/${verification.idProof}`)} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-health-primary hover:underline flex items-center gap-1"
@@ -119,7 +120,7 @@ const AdminDoctorVerifications = () => {
                     <span>View ID Proof</span>
                   </a>
                   <a 
-                    href={`http://localhost:5000/${verification.license}`} 
+                    href={getFullImageUrl(`/${verification.license}`)} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-health-primary hover:underline flex items-center gap-1"

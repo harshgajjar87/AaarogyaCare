@@ -65,7 +65,12 @@ const MedicalReportUploader = ({ onDataExtracted, reportType }) => {
 
       if (response.data.success && response.data.extractedData) {
         setSuccess(true);
-        onDataExtracted(response.data.extractedData);
+        // Pass extracted data, full text, and file to parent
+        onDataExtracted(
+          response.data.extractedData, 
+          response.data.fullText || response.data.rawText || '', 
+          file
+        );
         
         // Clear file after 2 seconds
         setTimeout(() => {
