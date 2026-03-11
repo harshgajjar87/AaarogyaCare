@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from '../utils/axios';
@@ -7,6 +7,30 @@ import { AuthContext } from '../context/AuthContext';
 const GoogleAuthButton = ({ mode = 'signin', role = 'patient' }) => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
+  const buttonContainerRef = useRef(null);
+  const [buttonWidth, setButtonWidth] = useState(350);
+
+  useEffect(() => {
+    // Calculate responsive width
+    const updateWidth = () => {
+      if (buttonContainerRef.current) {
+        const containerWidth = buttonContainerRef.current.offsetWidth;
+        // Use container width but cap at 400px for desktop
+        const width = Math.min(containerWidth - 20, 400);
+        setButtonWidth(width);
+      }
+    };
+
+    // Initial calculation
+    updateWidth();
+
+    // Update on window resize
+    window.addEventListener('resize', updateWidth);
+
+    return () => {
+      window.removeEventListener('resize', updateWidth);
+    };
+  }, []);
 
   useEffect(() => {
     // Load Google Sign-In script
@@ -17,22 +41,29 @@ const GoogleAuthButton = ({ mode = 'signin', role = 'patient' }) => {
     document.body.appendChild(script);
 
     script.onload = () => {
-      if (window.google) {
+      if (window.google && buttonWidth) {
         window.google.accounts.id.initialize({
           client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
           callback: handleCredentialResponse,
         });
 
-        window.google.accounts.id.renderButton(
-          document.getElementById('googleSignInButton'),
-          {
-            theme: 'outline',
-            size: 'large',
-            width: 350, // Use pixel value instead of percentage
-            text: mode === 'signup' ? 'signup_with' : 'signin_with',
-            shape: 'rectangular',
-          }
-        );
+        const buttonContainer = document.getElementById('googleSignInButton');
+        if (buttonContainer) {
+          // Clear previous button
+          buttonContainer.innerHTML = '';
+          
+          window.google.accounts.id.renderButton(
+            buttonContainer,
+            {
+              theme: 'outline',
+              size: 'large',
+              width: buttonWidth,
+              text: mode === 'signup' ? 'signup_with' : 'signin_with',
+              shape: 'rectangular',
+              logo_alignment: 'left',
+            }
+          );
+        }
       }
     };
 
@@ -41,7 +72,7 @@ const GoogleAuthButton = ({ mode = 'signin', role = 'patient' }) => {
         document.body.removeChild(script);
       }
     };
-  }, [mode]);
+  }, [mode, buttonWidth]);
 
   const handleCredentialResponse = async (response) => {
     try {
@@ -74,16 +105,20 @@ const GoogleAuthButton = ({ mode = 'signin', role = 'patient' }) => {
   };
 
   return (
-    <div className="w-full">
-      <div className="relative my-6">
+    <div className="w-full" ref={buttonContainerRef}>
+      <div className="relative my-4 sm:my-6">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-slate-300"></div>
         </div>
-        <div className="relative flex justify-center text-sm">
+        <div className="relative flex justify-center text-xs sm:text-sm">
           <span className="px-2 bg-health-surface text-health-text-p">Or continue with</span>
         </div>
       </div>
-      <div id="googleSignInButton" className="w-full flex justify-center"></div>
+      <div 
+        id="googleSignInButton" 
+        className="w-full flex justify-center items-center"
+        style={{ minHeight: '44px' }}
+      ></div>
     </div>
   );
 };
