@@ -4,7 +4,7 @@ import ReviewsCarousel from '../components/ReviewsCarousel';
 import DoctorCard from '../components/DoctorCard';
 import { getAllDoctors } from '../api/doctorAPI';
 import { AuthContext } from '../context/AuthContext';
-import { ArrowDown, Stethoscope, Activity, Heart, MessageCircle, Calendar, Shield } from 'lucide-react';
+import { ArrowDown, Stethoscope, Activity, Heart, MessageCircle, Calendar, Shield, FileText } from 'lucide-react';
 import useScrollAnimation from '../hooks/useScrollAnimation';
 
 
@@ -20,32 +20,44 @@ const Home = () => {
 
   const heroDoctors = [
     {
-      image: '/images/doctor-hero.jpg',
-      name: 'Dr. Sarah Johnson',
+      image: '/images/Doctor1.jpg',
+      name: 'Dr. Arman Aly',
       specialty: 'Cardiologist',
       patients: '1000+'
     },
     {
-      image: '/images/default-avtar.jpg',
-      name: 'Dr. Rajesh Kumar',
+      image: '/images/Doctor2.jpg',
+      name: 'Dr. Rasmika Nandani',
       specialty: 'General Physician',
       patients: '850+'
     },
     {
-      image: '/images/doctor-hero.jpg',
+      image: '/images/Doctor3.jpeg',
       name: 'Dr. Priya Sharma',
       specialty: 'Pediatrician',
       patients: '1200+'
     },
     {
-      image: '/images/default-avtar.jpg',
-      name: 'Dr. Michael Chen',
+      image: '/images/Doctor4.jpg',
+      name: 'Dr. Ashish Gajjar',
       specialty: 'Dermatologist',
       patients: '950+'
     },
     {
-      image: '/images/doctor-hero.jpg',
-      name: 'Dr. Anita Desai',
+      image: '/images/Doctor5.jpg',
+      name: 'Dr. Amrita Patel',
+      specialty: 'Neurologist',
+      patients: '750+'
+    },
+    {
+      image: '/images/Doctor6.jpg',
+      name: 'Dr. Rajesh Rao',
+      specialty: 'Orthopedic Surgeon',
+      patients: '650+'
+    },
+    {
+      image: '/images/Doctor7.jpg',
+      name: 'Dr. Vinay Mehta',
       specialty: 'Gynecologist',
       patients: '1100+'
     }
@@ -151,7 +163,7 @@ const Home = () => {
                     <img 
                       src={heroDoctors[currentDoctorIndex].image}
                       alt={heroDoctors[currentDoctorIndex].name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-center scale-110"
                       onError={(e) => {
                         e.target.src = '/images/default-avtar.jpg';
                       }}
@@ -200,13 +212,27 @@ const Home = () => {
         </div>
 
         {/* Decorative Elements */}
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce hidden sm:block">
+        <button 
+          onClick={() => {
+            const section = document.getElementById('ai-tools-section');
+            if (section) {
+              section.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+              });
+            } else {
+              window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
+            }
+          }}
+          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce hidden sm:block cursor-pointer hover:scale-110 transition-transform bg-transparent border-none"
+          aria-label="Scroll to content"
+        >
           <ArrowDown className="w-5 h-5 md:w-6 md:h-6 text-teal-600" />
-        </div>
+        </button>
       </section>
 
       {/* AI Tools Section */}
-      <section ref={aiToolsRef} className="py-12 md:py-16 bg-gradient-to-br from-teal-50 via-white to-emerald-50 relative overflow-hidden">
+      <section id="ai-tools-section" ref={aiToolsRef} className="py-12 md:py-16 bg-gradient-to-br from-teal-50 via-white to-emerald-50 relative overflow-hidden">
         {/* Floating Elements */}
         <div className="absolute top-20 left-10 w-20 h-20 bg-teal-200/30 rounded-full animate-float"></div>
         <div className="absolute top-40 right-20 w-16 h-16 bg-emerald-200/30 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
@@ -272,6 +298,24 @@ const Home = () => {
                 >
                   <span>Start Voice Call</span>
                   <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Report Analyzer Card */}
+            <div className={`bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 p-4 sm:p-6 flex flex-col md:flex-row items-center md:items-start gap-3 md:gap-4 hover-lift scroll-animate-right stagger-4 ${aiToolsVisible ? 'visible' : ''}`}>
+              <div className="bg-purple-100 rounded-full p-3 md:p-4 flex-shrink-0 animate-pulse-slow">
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
+              </div>
+              <div className="flex-grow text-center md:text-left">
+                <h3 className="text-lg sm:text-xl font-semibold text-health-text-h mb-2">AI Report Analyzer</h3>
+                <p className="text-sm sm:text-base text-health-text-p mb-3 md:mb-4">Upload your medical reports and get instant AI-powered analysis with easy-to-understand insights.</p>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="bg-purple-600 text-white px-4 sm:px-6 py-2 rounded-full hover:bg-purple-700 transition-all duration-300 font-medium flex items-center gap-2 mx-auto md:mx-0 text-sm sm:text-base transform hover:scale-105"
+                >
+                  <span>Analyze Report</span>
+                  <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
