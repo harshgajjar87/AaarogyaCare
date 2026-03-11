@@ -3,6 +3,7 @@ import axios from '../utils/axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import OTPVerification from '../components/OTPVerification';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 import { AuthContext } from '../context/AuthContext';
 
 const Register = () => {
@@ -207,6 +208,8 @@ const Register = () => {
               >
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>
+
+              <GoogleAuthButton mode="signup" role="patient" />
 
               <p className="text-center text-health-text-p text-xs sm:text-sm">
                 Already have an account?{' '}

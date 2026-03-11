@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from '../utils/axios';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 import { Stethoscope, UploadCloud, FileText, Send, User, Mail, Key, Briefcase, GraduationCap, Building, IndianRupee } from 'lucide-react';
 
 const DoctorRegister = () => {
@@ -123,6 +124,9 @@ const DoctorRegister = () => {
                 {loading ? 'Submitting...' : <><Send size={14} className="sm:w-4 sm:h-4" /><span>Submit for Verification</span></>}
               </button>
             </div>
+
+            <GoogleAuthButton mode="signup" role="doctor" />
+
             <p className="text-center text-health-text-p text-xs sm:text-sm">Already have an account? <Link to='/login' className="text-health-primary hover:text-teal-700 font-medium">Login</Link></p>
           </form>
         </div>

@@ -184,3 +184,80 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 };
+
+// POST /api/auth/google
+exports.googleAuth = async (req, res) => {
+  try {
+    const { credential, role = 'patient' } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ msg: 'Google credential is required' });
+    }
+
+    // Verify Google token (you'll need to install google-auth-library)
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    let payload;
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch (error) {
+      return res.status(401).json({ msg: 'Invalid Google token' });
+    }
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    // Check if user exists
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+    if (user) {
+      // User exists - update Google ID if not set
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.authProvider = 'google';
+        if (picture && !user.profileImage) {
+          user.profileImage = picture;
+        }
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = new User({
+        name,
+        email,
+        googleId,
+        authProvider: 'google',
+        role: role === 'doctor' ? 'pending_doctor' : 'patient',
+        profileImage: picture || '',
+        password: await bcrypt.hash(Math.random().toString(36), 10) // Random password for Google users
+      });
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(200).json({
+      msg: user.isNew ? 'User registered successfully' : 'Login successful',
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage
+      }
+    });
+  } catch (err) {
+    console.error('Google auth error:', err);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
+  }
+};

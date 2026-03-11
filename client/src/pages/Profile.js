@@ -5,10 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { getProfileImageUrl, getClinicImageUrl } from '../utils/imageUtils';
 import { updateDoctorProfile } from '../api/doctorAPI';
 import { AuthContext } from '../context/AuthContext';
-import { Camera, User, Briefcase, Brain, Calendar, ArrowLeft, X, Image as ImageIcon } from 'lucide-react';
+import EmailChangeModal from '../components/EmailChangeModal';
+import { Camera, User, Briefcase, Brain, Calendar, ArrowLeft, X, Image as ImageIcon, Mail } from 'lucide-react';
 
 const Profile = () => {
-  const { user } = useContext(AuthContext);
+  const { user, login } = useContext(AuthContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
@@ -21,6 +22,8 @@ const Profile = () => {
   const [clinicImages, setClinicImages] = useState([]);
   const [clinicImageFiles, setClinicImageFiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [currentEmail, setCurrentEmail] = useState('');
 
   useEffect(() => {
     if (user) fetchUserProfile();
@@ -39,6 +42,7 @@ const Profile = () => {
         }, {}) || {}
       });
 
+      setCurrentEmail(data.email || '');
       setPreviewImage(data.profileImage ? getProfileImageUrl(data.profileImage) : null);
       setClinicImages(data.doctorDetails?.clinicImages || []);
       setLoading(false);
@@ -131,6 +135,15 @@ const Profile = () => {
     }
   };
 
+  const handleEmailChanged = async (newEmail) => {
+    setCurrentEmail(newEmail);
+    // Update the user context with new email
+    const updatedUser = { ...user, email: newEmail };
+    login(updatedUser);
+    // Refresh profile data
+    fetchUserProfile();
+  };
+
   if (loading) return <div className="text-center p-8">Loading profile...</div>;
 
   const FormSection = ({ title, icon, children }) => (
@@ -180,7 +193,14 @@ const Profile = () => {
               </button>
             )}
             <h2 className="mt-3 sm:mt-4 text-lg sm:text-xl font-bold text-health-text-h">{formData.name}</h2>
-            <p className="text-health-text-p text-xs sm:text-sm mt-1">{user.email}</p>
+            <p className="text-health-text-p text-xs sm:text-sm mt-1">{currentEmail}</p>
+            <button
+              onClick={() => setIsEmailModalOpen(true)}
+              className="mt-2 text-xs text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1 mx-auto"
+            >
+              <Mail size={14} />
+              Change Email
+            </button>
             <div className="mt-3 sm:mt-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-teal-50 text-teal-700">
               {user.role === 'doctor' ? 'Doctor' : 'Patient'}
             </div>
@@ -295,6 +315,13 @@ const Profile = () => {
           </form>
         </div>
       </div>
+
+      <EmailChangeModal
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+        currentEmail={currentEmail}
+        onEmailChanged={handleEmailChanged}
+      />
     </div>
   );
 };

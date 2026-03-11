@@ -3,7 +3,9 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  password: { type: String, required: function() { return !this.googleId; } }, // Password not required for Google OAuth
+  googleId: { type: String, unique: true, sparse: true }, // Google OAuth ID
+  authProvider: { type: String, enum: ['local', 'google'], default: 'local' }, // Authentication provider
   role: { type: String, enum: ['patient', 'pending_doctor', 'doctor', 'admin'], default: 'patient' },
   isActive: { type: Boolean, default: true }, // New field for active/inactive status
   profileImage: { type: String, default: '' },

@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
 const Login = () => {
   const { user, login } = useContext(AuthContext);
@@ -125,6 +126,8 @@ const Login = () => {
               >
                 Login
               </button>
+
+              {/* <GoogleAuthButton mode="signin" role="patient" /> */}
 
               <p className="text-center text-health-text-p text-xs sm:text-sm">
                 Don't have an account?{' '}
