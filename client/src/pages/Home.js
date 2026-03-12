@@ -110,12 +110,13 @@ const Home = () => {
     }
   }, [user, navigate]);
 
-  if (user) {
-    return null; // Render nothing while redirecting
+  // Don't render if user is logged in (will redirect)
+  if (user && user.role) {
+    return null;
   }
 
   return (
-    <>
+    <div className="w-full">
       {/* Modern Hero Section */}
       <section className="relative min-h-[50vh] sm:min-h-[55vh] lg:min-h-[70vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-teal-50 via-white to-emerald-50">
         {/* Floating Elements */}
@@ -488,7 +489,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 };
 

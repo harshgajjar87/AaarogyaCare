@@ -12,24 +12,36 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
-    if (saved && saved !== 'undefined') {
-      try {
-        const parsed = JSON.parse(saved);
-        // ✅ One-time fix: migrate id → _id
-        if (parsed.id && !parsed._id) {
-          parsed._id = parsed.id;
-          delete parsed.id;
-          localStorage.setItem('user', JSON.stringify(parsed));
-        }
-        return parsed;
-      } catch (e) {
-        // If parsing fails, remove the invalid data
+    try {
+      const saved = localStorage.getItem('user');
+      if (!saved || saved === 'undefined' || saved === 'null') {
         localStorage.removeItem('user');
         return null;
       }
+      
+      const parsed = JSON.parse(saved);
+      
+      // Validate that parsed is an object with expected properties
+      if (!parsed || typeof parsed !== 'object') {
+        localStorage.removeItem('user');
+        return null;
+      }
+      
+      // ✅ One-time fix: migrate id → _id
+      if (parsed.id && !parsed._id) {
+        parsed._id = parsed.id;
+        delete parsed.id;
+        localStorage.setItem('user', JSON.stringify(parsed));
+      }
+      
+      return parsed;
+    } catch (e) {
+      // If parsing fails, remove the invalid data
+      console.error('Error parsing user from localStorage:', e);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      return null;
     }
-    return null;
   });
 
   const login = (userData) => {

@@ -52,12 +52,15 @@ const useRazorpay = () => {
                             // Check if verification was successful
                             if (!verificationResponse || !verificationResponse.success) {
                                 console.error("Payment verification failed");
+                                setIsProcessing(false);
                                 return reject(verificationResponse?.message || "Payment verification failed");
                             }
                             
+                            setIsProcessing(false);
                             resolve(verificationResponse);
                         } catch (error) {
                             console.error("Error during payment verification:", error.message);
+                            setIsProcessing(false);
                             reject(error.response?.data || { message: "Payment verification failed" });
                         }
                     },

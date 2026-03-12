@@ -23,6 +23,9 @@ router.get('/:chatId/messages', chatController.getMessages);
 // Send a message in a specific chat
 router.post('/:chatId/messages', upload.single('file'), chatController.sendMessage);
 
+// Mark messages as read
+router.put('/:chatId/mark-read', chatController.markMessagesAsRead);
+
 // Extend chat expiration (for approved appointments)
 router.put('/:chatId/extend', chatController.extendChatExpiration);
 

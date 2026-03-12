@@ -65,52 +65,34 @@ function Layout() {
   const location = useLocation();
   const { user } = useContext(AuthContext);
 
-  const isPatientRoute =
-    location.pathname.startsWith('/patient') ||
-    location.pathname === '/doctor-verification' ||
-    location.pathname === '/health-prediction' ||
-    location.pathname === '/health-risk' ||
-    location.pathname === '/symptom-checker' ||
-    (location.pathname.match(/^\/doctor\/[a-f0-9]{24}$/) && user?.role === 'patient') ||
-    (location.pathname.match(/^\/doctor\/[a-f0-9]{24}\/.*$/) && user?.role === 'patient') ||
-    (user?.role === 'patient' &&
-      location.pathname !== '/about' &&
-      (location.pathname === '/profile' ||
-        location.pathname === '/notifications' ||
-        location.pathname.startsWith('/chats')));
-
-  const isDoctorRoute =
-    user?.role === 'doctor' &&
-    (location.pathname.startsWith('/doctor') ||
-      location.pathname === '/about' ||
-      location.pathname === '/profile' ||
-      location.pathname === '/notifications' ||
-      location.pathname.startsWith('/chats'));
-
-  const isAdminRoute = location.pathname.startsWith('/admin') ||
-    (user?.role === 'admin' && (
-      location.pathname === '/about' ||
-      location.pathname === '/profile' ||
-      location.pathname === '/notifications' ||
-      location.pathname.startsWith('/chats')
-    ));
-
-  const isPublicRoute = !user && !isPatientRoute && !isDoctorRoute && !isAdminRoute;
+  // Simple navbar selection logic
+  let NavbarComponent = PublicNavbar;
+  
+  if (user?.role === 'patient' && location.pathname.startsWith('/patient')) {
+    NavbarComponent = PatientNavbar;
+  } else if (user?.role === 'doctor' && location.pathname.startsWith('/doctor')) {
+    NavbarComponent = DoctorNavbar;
+  } else if (user?.role === 'admin' && location.pathname.startsWith('/admin')) {
+    NavbarComponent = AdminNavbar;
+  } else if (user?.role === 'patient' && (location.pathname === '/profile' || location.pathname === '/notifications' || location.pathname.startsWith('/chats'))) {
+    NavbarComponent = PatientNavbar;
+  } else if (user?.role === 'doctor' && (location.pathname === '/profile' || location.pathname === '/notifications' || location.pathname.startsWith('/chats'))) {
+    NavbarComponent = DoctorNavbar;
+  } else if (user?.role === 'admin' && (location.pathname === '/profile' || location.pathname === '/notifications' || location.pathname.startsWith('/chats'))) {
+    NavbarComponent = AdminNavbar;
+  }
 
   return (
-    <div className="min-h-screen bg-health-secondary text-health-text-p font-sans antialiased">
+    <div className="flex flex-col min-h-screen bg-health-secondary text-health-text-p font-sans antialiased">
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-100">
-        {isPatientRoute && <PatientNavbar />}
-        {isDoctorRoute && <DoctorNavbar />}
-        {isAdminRoute && <AdminNavbar />}
-        {isPublicRoute && <PublicNavbar />}
+        <NavbarComponent />
       </header>
 
-      <main className="relative px-3 sm:px-4 md:px-6 py-4 sm:py-6">
+      <main className="relative flex-1">
         <Outlet />
       </main>
 
-      <footer className="border-t border-slate-100 bg-white/80 backdrop-blur">
+      <footer className="border-t border-slate-100 bg-white/80 backdrop-blur mt-auto">
         <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 py-8 md:py-10">
           <div className="grid gap-6 md:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <div className="space-y-3 md:space-y-4">

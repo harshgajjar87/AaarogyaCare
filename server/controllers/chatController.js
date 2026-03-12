@@ -369,7 +369,7 @@ exports.getMessages = async (req, res) => {
 exports.sendMessage = async (req, res) => {
   try {
     const { chatId } = req.params;
-    const { message } = req.body;
+    const { message, audioData } = req.body;
     const userId = req.user._id;
     const file = req.file; // May be undefined if no file uploaded
 
@@ -394,8 +394,8 @@ exports.sendMessage = async (req, res) => {
     }
 
     // Validate message content
-    if (!message && !file) {
-      return res.status(400).json({ msg: 'Message or file is required' });
+    if (!message && !file && !audioData) {
+      return res.status(400).json({ msg: 'Message, file, or audio data is required' });
     }
 
     // Add the message
@@ -404,8 +404,16 @@ exports.sendMessage = async (req, res) => {
       message: message || 'File shared'
     };
 
+    // Handle audio data (base64 from voice recording)
+    if (audioData) {
+      newMessage.audioData = audioData;
+      newMessage.fileType = 'audio';
+      console.log('✅ Audio message received');
+      console.log('   - Audio data length:', audioData.length);
+      console.log('   - Audio data preview:', audioData.substring(0, 50) + '...');
+    }
     // Handle file upload
-    if (file) {
+    else if (file) {
       newMessage.fileUrl = `/uploads/chat/${file.filename}`;
       // Determine file type
       if (file.mimetype.startsWith('audio/')) {
@@ -415,6 +423,7 @@ exports.sendMessage = async (req, res) => {
       } else {
         newMessage.fileType = 'document';
       }
+      console.log('✅ File message received:', file.filename);
     }
 
     chat.messages.push(newMessage);
@@ -438,6 +447,50 @@ exports.sendMessage = async (req, res) => {
   } catch (err) {
     console.error('Error in sendMessage:', err);
     res.status(500).json({ msg: 'Error sending message', error: err.message });
+  }
+};
+
+// ✅ Mark messages as read
+exports.markMessagesAsRead = async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const userId = req.user._id;
+
+    // Find the chat
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ msg: 'Chat not found' });
+    }
+
+    // Check if user is part of this chat
+    if (chat.patientId.toString() !== userId.toString() && 
+        chat.doctorId.toString() !== userId.toString()) {
+      return res.status(403).json({ msg: 'Not authorized to access this chat' });
+    }
+
+    // Mark all unread messages from the other user as read
+    let updatedCount = 0;
+    chat.messages.forEach(msg => {
+      // Only mark messages from the other user that are not already read
+      if (msg.senderId.toString() !== userId.toString() && !msg.read) {
+        msg.read = true;
+        msg.readAt = new Date();
+        updatedCount++;
+      }
+    });
+
+    if (updatedCount > 0) {
+      await chat.save();
+      console.log(`✅ Marked ${updatedCount} messages as read in chat ${chatId}`);
+    }
+
+    // Populate sender details
+    await chat.populate('messages.senderId', 'name profileImage');
+
+    res.json({ msg: `${updatedCount} messages marked as read`, chat });
+  } catch (err) {
+    console.error('Error in markMessagesAsRead:', err);
+    res.status(500).json({ msg: 'Error marking messages as read', error: err.message });
   }
 };
 

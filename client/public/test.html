@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #0D9488; }
+        button {
+            background: #0D9488;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #0f766e; }
+        .info { 
+            background: #e0f2f1; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 15px 0;
+        }
+        .success { color: #0D9488; font-weight: bold; }
+        .error { color: #dc2626; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🩺 AarogyaCare - Diagnostic Page</h1>
+        
+        <div class="info">
+            <h3>Current Storage Status:</h3>
+            <p id="storage-status">Checking...</p>
+        </div>
+
+        <h3>Actions:</h3>
+        <button onclick="clearStorage()">Clear All Storage</button>
+        <button onclick="checkStorage()">Check Storage</button>
+        <button onclick="goToApp()">Go to App</button>
+
+        <div class="info" style="margin-top: 20px;">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click "Clear All Storage" to remove any corrupted data</li>
+                <li>Click "Go to App" to return to the main application</li>
+                <li>If the issue persists, try a hard refresh (Ctrl+F5)</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function checkStorage() {
+            const user = localStorage.getItem('user');
+            const token = localStorage.getItem('token');
+            const statusEl = document.getElementById('storage-status');
+            
+            let html = '';
+            if (user) {
+                html += `<p><strong>User:</strong> ${user.substring(0, 100)}${user.length > 100 ? '...' : ''}</p>`;
+            } else {
+                html += '<p class="success">✓ No user data (clean)</p>';
+            }
+            
+            if (token) {
+                html += `<p><strong>Token:</strong> ${token.substring(0, 50)}...</p>`;
+            } else {
+                html += '<p class="success">✓ No token (clean)</p>';
+            }
+            
+            const allKeys = Object.keys(localStorage);
+            html += `<p><strong>Total items in localStorage:</strong> ${allKeys.length}</p>`;
+            
+            statusEl.innerHTML = html;
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Also clear any cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            alert('✓ All storage cleared successfully!\n\nYou can now go back to the app.');
+            checkStorage();
+        }
+
+        function goToApp() {
+            window.location.href = '/';
+        }
+
+        // Check storage on load
+        checkStorage();
+    </script>
+</body>
+</html>

@@ -155,6 +155,21 @@ export const endChat = async (chatId) => {
   }
 };
 
+// Mark messages as read
+export const markMessagesAsRead = async (chatId) => {
+  try {
+    const response = await retryRequest(() => 
+      axios.put(`/chat/${chatId}/mark-read`, {})
+    );
+    console.log('✅ Messages marked as read:', response.data);
+    return response.data;
+  } catch (error) {
+    // Don't throw error for mark as read - it's not critical
+    console.warn('⚠️ Failed to mark messages as read:', error.message);
+    return null;
+  }
+};
+
 // Debug function: Check if user has approved appointments
 export const checkApprovedAppointments = async () => {
   try {

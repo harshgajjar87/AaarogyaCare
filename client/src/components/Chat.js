@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { getChatById, sendMessage, extendChatExpiration, endChat } from '../api/chatAPI';
+import { getChatById, sendMessage, extendChatExpiration, endChat, markMessagesAsRead } from '../api/chatAPI';
+import axios from '../utils/axios';
 import { Send, Clock, Power, AlertCircle, User, Stethoscope, Loader2, Check, CheckCheck, Smile, Paperclip, Mic, MicOff, Image, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getFullImageUrl } from '../utils/imageUtils';
@@ -33,6 +34,9 @@ const Chat = () => {
         setError(null);
         const chatData = await getChatById(chatId);
         setChat(chatData);
+        
+        // Mark messages as read when chat is opened
+        await markMessagesAsRead(chatId);
       } catch (err) {
         setError(err.response?.data?.msg || 'Failed to load chat');
       } finally {
@@ -53,6 +57,23 @@ const Chat = () => {
   }, [showEmojiPicker]);
 
   useEffect(scrollToBottom, [chat?.messages]);
+
+  // Periodically refresh chat to get updated read receipts
+  useEffect(() => {
+    if (!chatId) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const updatedChat = await getChatById(chatId);
+        setChat(updatedChat);
+      } catch (err) {
+        // Silently fail - don't show error for background refresh
+        console.warn('Failed to refresh chat:', err);
+      }
+    }, 5000); // Refresh every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [chatId]);
 
   const handleSendMessage = async (e, messageContent = null, fileData = null) => {
     e?.preventDefault();
@@ -98,10 +119,42 @@ const Chat = () => {
       const chunks = [];
 
       recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/wav' });
-        const file = new File([blob], 'voice-message.wav', { type: 'audio/wav' });
-        handleSendMessage(null, '🎤 Voice message', file);
+      recorder.onstop = async () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        
+        // Convert blob to base64
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Audio = reader.result; // Keep the full data URL with mime type
+          
+          console.log('🎤 Voice recording completed');
+          console.log('   - Audio size:', blob.size, 'bytes');
+          console.log('   - Audio type:', blob.type);
+          console.log('   - Base64 length:', base64Audio.length);
+          console.log('   - Base64 preview:', base64Audio.substring(0, 100) + '...');
+          
+          // Send the voice message with base64 audio data
+          setIsSending(true);
+          try {
+            const response = await axios.post(`/chat/${chat._id}/messages`, {
+              message: '🎤 Voice message',
+              audioData: base64Audio
+            });
+            
+            console.log('✅ Voice message sent successfully');
+            
+            // Update chat with the response
+            setChat(response.data);
+          } catch (err) {
+            console.error('❌ Failed to send voice message:', err);
+            console.error('   - Error response:', err.response?.data);
+            setError(err.response?.data?.msg || 'Failed to send voice message');
+          } finally {
+            setIsSending(false);
+          }
+        };
+        reader.readAsDataURL(blob);
+        
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -220,14 +273,21 @@ const Chat = () => {
                             )}
                             <div className={`max-w-xs md:max-w-md p-3 rounded-2xl ${isMe ? 'bg-teal-600 text-white rounded-br-none' : 'bg-white text-slate-800 rounded-bl-none shadow-sm'}`}>
                                 <p className="text-sm">{msg.message}</p>
-                                {msg.fileType === 'audio' && msg.fileUrl ? (
+                                {msg.fileType === 'audio' && msg.audioData ? (
                                   <div className="mt-2">
-                                    <audio controls className="w-full max-w-xs">
-                                      <source src={getFullImageUrl(msg.fileUrl)} type="audio/wav" />
+                                    <audio controls className="w-full max-w-xs" style={{ height: '40px' }}>
+                                      <source src={msg.audioData.startsWith('data:') ? msg.audioData : `data:audio/webm;base64,${msg.audioData}`} />
                                       Your browser does not support the audio element.
                                     </audio>
                                   </div>
-                                ) : msg.message.includes('🎤') && !msg.fileUrl && (
+                                ) : msg.fileType === 'audio' && msg.fileUrl ? (
+                                  <div className="mt-2">
+                                    <audio controls className="w-full max-w-xs" style={{ height: '40px' }}>
+                                      <source src={getFullImageUrl(msg.fileUrl)} />
+                                      Your browser does not support the audio element.
+                                    </audio>
+                                  </div>
+                                ) : msg.message.includes('🎤') && !msg.fileUrl && !msg.audioData && (
                                   <div className="mt-2 p-2 bg-slate-100 rounded flex items-center gap-2">
                                     <Mic size={16} />
                                     <span className="text-xs italic opacity-70">Legacy voice message (no audio file)</span>
@@ -247,8 +307,12 @@ const Chat = () => {
                                 <div className="text-xs opacity-70 mt-1">{formatDate(msg.timestamp)}</div>
                             </div>
                             {isMe && (
-                                <div className="text-slate-400">
-                                    {msg.read ? <CheckCheck size={16} className="text-blue-500"/> : <Check size={16} />}
+                                <div className="text-slate-400 flex-shrink-0">
+                                    {msg.read ? (
+                                      <CheckCheck size={16} className="text-blue-500" title={`Read ${msg.readAt ? new Date(msg.readAt).toLocaleString() : ''}`} />
+                                    ) : (
+                                      <CheckCheck size={16} className="text-slate-400" title="Delivered" />
+                                    )}
                                 </div>
                             )}
                         </div>

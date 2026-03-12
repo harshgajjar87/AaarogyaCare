@@ -56,6 +56,16 @@ const chatSchema = new mongoose.Schema({
       type: String,
       enum: ['audio', 'image', 'document', null]
     },
+    audioData: {
+      type: String // Base64 encoded audio data for voice messages
+    },
+    read: {
+      type: Boolean,
+      default: false
+    },
+    readAt: {
+      type: Date
+    },
     timestamp: { 
       type: Date, 
       default: Date.now 

@@ -4,7 +4,7 @@ import { getAllDoctors } from '../api/doctorAPI';
 import { createAppointment, getAvailableSlots } from '../api/appointmentAPI';
 import { createPaymentOrder, verifyPaymentAndBook } from '../api/paymentAPI';
 import useRazorpay from '../hooks/useRazorpay';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Calendar, Clock, MessageSquare, Stethoscope, Book, Loader2, ArrowLeft, CreditCard } from 'lucide-react';
 import VoiceInput from '../components/VoiceInput';
 
@@ -20,6 +20,7 @@ const FormSection = ({ title, icon, children }) => (
 
 const AppointmentForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { processPayment, isProcessing } = useRazorpay();
   const [form, setForm] = useState({
     name: '', age: '', gender: '', date: '', time: '', reason: '', doctorId: ''
@@ -34,8 +35,16 @@ const AppointmentForm = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await getAllDoctors();
+        // Fetch ALL doctors for the dropdown (no pagination limit)
+        const response = await getAllDoctors({ limit: 1000 }); // Set high limit to get all doctors
         setDoctors(response.doctors || []);
+        
+        // Check if doctor was passed via navigation state
+        const preSelectedDoctor = location.state?.selectedDoctor;
+        if (preSelectedDoctor) {
+          setForm(prev => ({ ...prev, doctorId: preSelectedDoctor._id }));
+          setSelectedDoctor(preSelectedDoctor);
+        }
       } catch (error) {
         toast.error('Failed to load doctors');
       } finally {
@@ -44,7 +53,7 @@ const AppointmentForm = () => {
     };
     fetchDoctors();
     setMinDate(new Date().toISOString().split('T')[0]);
-  }, []);
+  }, [location.state]);
 
   useEffect(() => {
     if (form.doctorId && form.date) {
@@ -126,14 +135,19 @@ const AppointmentForm = () => {
       // Process payment using the useRazorpay hook
       const result = await processPayment(bookingDetails);
       
-      if (result.success) {
-        toast.success('Payment Successful! Appointment booked');
-        setForm({ name: '', age: '', gender: '', date: '', time: '', reason: '', doctorId: '' });
-        setAvailableSlots([]);
-        setSelectedDoctor(null);
+      // Payment successful - navigate regardless of result structure
+      toast.success('Payment Successful! Appointment booked');
+      setForm({ name: '', age: '', gender: '', date: '', time: '', reason: '', doctorId: '' });
+      setAvailableSlots([]);
+      setSelectedDoctor(null);
+      
+      // Navigate after a short delay to ensure toast is visible
+      setTimeout(() => {
         navigate('/my-appointments');
-      }
+      }, 1000);
+      
     } catch (err) {
+      console.error('Payment error:', err);
       toast.error(err.message || err.response?.data?.msg || 'Payment Failed');
     }
   };
