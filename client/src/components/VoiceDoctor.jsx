@@ -29,8 +29,14 @@ const VoiceDoctor = () => {
     if (lastSpokenText.current === text) return;
     lastSpokenText.current = text;
 
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = langCode;
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
     
     const selectedVoice = voices.find(voice => voice.name === langConfig[language]?.voiceName && voice.lang === langCode);
     if (selectedVoice) {
@@ -42,11 +48,33 @@ const VoiceDoctor = () => {
     }
 
     utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      // Mobile fix: ensure speech synthesis is ready for next use
+      setTimeout(() => window.speechSynthesis.resume(), 100);
+    };
+    utterance.onerror = (e) => {
+      console.error('Speech error:', e);
+      setIsSpeaking(false);
+    };
     
-    window.speechSynthesis.cancel(); // Cancel any previous speech
+    // Mobile fix: Resume context before speaking
+    window.speechSynthesis.resume();
     window.speechSynthesis.speak(utterance);
-  }, [language, voices, langConfig]); // Re-create this function if language or voices change
+    
+    // Mobile fix: Keep speech alive on long utterances
+    const keepAlive = setInterval(() => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      } else {
+        clearInterval(keepAlive);
+      }
+    }, 5000);
+    
+    // Additional mobile fix
+    setTimeout(() => window.speechSynthesis.resume(), 100);
+  }, [language, voices, langConfig]);
 
   // Effect to load speech synthesis voices
   useEffect(() => {
@@ -127,37 +155,77 @@ const VoiceDoctor = () => {
 
     recognition.continuous = false;
     recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
     recognition.lang = langConfig[language].code;
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
+    recognition.onstart = () => {
+      console.log('Recognition started');
+      setIsListening(true);
+    };
+    
+    recognition.onend = () => {
+      console.log('Recognition ended');
+      setIsListening(false);
+    };
+    
     recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
+        
+        // Mobile: Auto-retry on certain errors
+        if (event.error === 'no-speech' || event.error === 'audio-capture') {
+          console.log('Retrying recognition after error:', event.error);
+        }
     };
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
+      console.log('Transcript received:', transcript);
       handleUserSpeech(transcript);
     };
 
     // Cleanup on component unmount or when dependencies change
     return () => {
-      recognition.abort();
+      try {
+        recognition.abort();
+      } catch (e) {
+        console.log('Recognition cleanup error:', e);
+      }
     };
-  }, [language, handleUserSpeech, langConfig]); // Re-configure only when language or the handler function changes
+  }, [language, handleUserSpeech, langConfig]);
 
   const toggleListen = () => {
     const recognition = recognitionRef.current;
     if (!recognition) return;
 
     if (isListening) {
-      recognition.stop();
+      try {
+        recognition.stop();
+      } catch (e) {
+        console.error('Stop recognition error:', e);
+      }
     } else {
       // Stop any ongoing speech before listening
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
-      recognition.start();
+      
+      // Mobile: Small delay before starting recognition
+      setTimeout(() => {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error('Start recognition error:', e);
+          // Retry once
+          setTimeout(() => {
+            try {
+              recognition.start();
+            } catch (retryError) {
+              console.error('Retry recognition error:', retryError);
+              alert('Unable to start voice recognition. Please try again.');
+            }
+          }, 500);
+        }
+      }, 100);
     }
   };
 

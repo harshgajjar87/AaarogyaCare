@@ -20,9 +20,11 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
   const pushToTalkRef = useRef(false);
 
   useEffect(() => {
-    // Load available voices
+    // Load available voices - critical for mobile
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
+      console.log('Available voices:', voices.length);
+      
       // Filter for Indian English voices
       const indianVoices = voices.filter(v => 
         v.lang.includes('en-IN') || 
@@ -40,14 +42,21 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       }
     };
 
+    // Mobile Safari requires voices to be loaded after user interaction
     loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+    
+    // Additional load attempt for mobile
+    setTimeout(loadVoices, 100);
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = true; // Changed to true for continuous listening
+      recognitionRef.current.continuous = false; // Mobile works better with false
       recognitionRef.current.interimResults = true;
+      recognitionRef.current.maxAlternatives = 1;
 
       recognitionRef.current.onresult = (event) => {
         if (isSpeakingRef.current) return;
@@ -77,34 +86,35 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       recognitionRef.current.onend = () => {
         console.log('Recognition ended, isSpeaking:', isSpeakingRef.current, 'pushToTalk:', pushToTalkRef.current, 'callActive:', isCallActiveRef.current);
         setIsRecording(false);
-        // Auto-restart only if not in push-to-talk mode and not speaking and call is still active
+        
+        // Mobile: Restart recognition manually after each result
         if (!isSpeakingRef.current && !pushToTalkRef.current && isCallActiveRef.current) {
-          console.log('Auto-restarting recognition');
+          console.log('Preparing to restart recognition for mobile');
           setTimeout(() => {
             if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current && isCallActiveRef.current) {
               try {
                 recognitionRef.current.start();
                 setIsRecording(true);
-                console.log('✅ Auto-restart successful');
+                console.log('✅ Recognition restarted for mobile');
               } catch (e) {
-                console.log('❌ Auto-restart failed:', e.message);
-                // Try one more time with longer delay
-                setTimeout(() => {
-                  if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current && isCallActiveRef.current) {
-                    try {
-                      recognitionRef.current.start();
-                      setIsRecording(true);
-                      console.log('✅ Auto-restart retry successful');
-                    } catch (retryError) {
-                      console.error('❌ Auto-restart retry failed:', retryError.message);
+                console.log('❌ Restart failed:', e.message);
+                if (e.name !== 'InvalidStateError') {
+                  // Try again with longer delay
+                  setTimeout(() => {
+                    if (!isSpeakingRef.current && recognitionRef.current && !pushToTalkRef.current && isCallActiveRef.current) {
+                      try {
+                        recognitionRef.current.start();
+                        setIsRecording(true);
+                        console.log('✅ Recognition restarted on retry');
+                      } catch (retryError) {
+                        console.error('❌ Retry failed:', retryError.message);
+                      }
                     }
-                  }
-                }, 1000);
+                  }, 1500);
+                }
               }
             }
-          }, 500);
-        } else {
-          console.log('⏸️ Not restarting - isSpeaking:', isSpeakingRef.current, 'pushToTalk:', pushToTalkRef.current, 'callActive:', isCallActiveRef.current);
+          }, 800);
         }
       };
 
@@ -147,11 +157,13 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
+          recognitionRef.current.abort();
           console.log('Recognition stopped before speaking');
         } catch (e) {}
       }
       setIsSpeaking(true);
       isSpeakingRef.current = true;
+      setIsRecording(false);
       
       // Small delay to ensure recognition is fully stopped
       setTimeout(() => {
@@ -174,10 +186,10 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
                             voices.find(v => v.lang.startsWith(utterance.lang.split('-')[0])) || null;
         }
         
-        // Adjust speech parameters for more natural Indian accent
-        utterance.rate = 0.9; // Slightly slower for clarity
+        // Mobile-optimized speech parameters
+        utterance.rate = 0.95;
         utterance.pitch = 1.0;
-        utterance.volume = 1.0; // Ensure volume is at maximum
+        utterance.volume = 1.0;
         
         console.log('Selected voice:', utterance.voice?.name || 'default');
         console.log('Speech settings:', { rate: utterance.rate, pitch: utterance.pitch, volume: utterance.volume, lang: utterance.lang });
@@ -201,23 +213,44 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
           resolve();
         };
         
-        // CRITICAL FIX: Resume speech synthesis context (fixes iOS/Safari and some Chrome issues)
+        // CRITICAL FIX: Resume speech synthesis context (fixes iOS/Safari and mobile Chrome)
         window.speechSynthesis.resume();
         
         window.speechSynthesis.speak(utterance);
         console.log('🔊 Speech synthesis started, speaking:', text.substring(0, 50) + '...');
         
-        // Additional fix for some browsers that pause immediately
+        // Mobile fix: Keep speech synthesis alive
+        const keepAlive = setInterval(() => {
+          if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.pause();
+            window.speechSynthesis.resume();
+          } else {
+            clearInterval(keepAlive);
+          }
+        }, 5000);
+        
+        // Additional fix for browsers that pause immediately
         setTimeout(() => {
           window.speechSynthesis.resume();
         }, 100);
-      }, 200);
+      }, 300);
     });
   };
 
   const startCall = async () => {
     try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Request microphone permission with mobile-friendly constraints
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
+      
+      // Stop the stream immediately - we just needed permission
+      stream.getTracks().forEach(track => track.stop());
+      
       setIsCallActive(true);
       isCallActiveRef.current = true;
       
@@ -257,28 +290,48 @@ const AIVoiceCall = ({ isOpen, onClose }) => {
   const startPushToTalkRecording = () => {
     if (!isCallActive || isSpeaking) return;
     
+    console.log('Push-to-talk started');
     pushToTalkRef.current = true;
+    
     if (recognitionRef.current) {
       const langMap = { english: 'en-IN', hindi: 'hi-IN', gujarati: 'gu-IN' };
       recognitionRef.current.lang = langMap[language] || 'en-IN';
-      try {
-        recognitionRef.current.start();
-        setIsRecording(true);
-        console.log('Push-to-talk recording started');
-      } catch (e) {
-        console.log('Push-to-talk start failed:', e.message);
-      }
+      
+      // Mobile: Small delay before starting
+      setTimeout(() => {
+        try {
+          recognitionRef.current.start();
+          setIsRecording(true);
+          console.log('✅ Push-to-talk recording started');
+        } catch (e) {
+          console.log('❌ Push-to-talk start failed:', e.message);
+          // Retry once for mobile
+          if (e.name !== 'InvalidStateError') {
+            setTimeout(() => {
+              try {
+                recognitionRef.current.start();
+                setIsRecording(true);
+                console.log('✅ Push-to-talk started on retry');
+              } catch (retryError) {
+                console.error('❌ Push-to-talk retry failed:', retryError.message);
+              }
+            }, 300);
+          }
+        }
+      }, 100);
     }
   };
 
   const stopPushToTalkRecording = () => {
+    console.log('Push-to-talk stopped');
     pushToTalkRef.current = false;
+    
     if (recognitionRef.current && isRecording) {
       try {
         recognitionRef.current.stop();
-        console.log('Push-to-talk recording stopped');
+        console.log('✅ Push-to-talk recording stopped');
       } catch (e) {
-        console.log('Push-to-talk stop failed:', e.message);
+        console.log('❌ Push-to-talk stop failed:', e.message);
       }
     }
   };
