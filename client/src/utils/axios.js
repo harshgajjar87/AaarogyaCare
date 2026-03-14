@@ -2,10 +2,9 @@ import axios from 'axios';
 
 // Ensure we have a valid base URL (avoid "undefined/api" issues)
 const isDev = process.env.NODE_ENV === 'development';
-const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
-const baseURL = process.env.REACT_APP_API_BASE_URL
-  ? `${process.env.REACT_APP_API_BASE_URL}/api`
-  : isDev ? `${protocol}//localhost:5000/api` : '/api';
+const baseURL = isDev
+  ? 'http://localhost:5000/api'
+  : 'https://aaarogyacare.onrender.com/api';
 
 const instance = axios.create({
   baseURL,
