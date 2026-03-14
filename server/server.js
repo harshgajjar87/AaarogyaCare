@@ -90,6 +90,20 @@ app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/health', require('./routes/healthPredictionRoutes'));
 app.use('/api/test', require('./routes/testRoutes'));
 
+// Keep-alive ping to prevent Render free tier from sleeping
+if (process.env.NODE_ENV === 'production' && process.env.SERVER_URL) {
+  setInterval(() => {
+    const url = process.env.SERVER_URL.startsWith('http') 
+      ? process.env.SERVER_URL 
+      : `https://${process.env.SERVER_URL}`;
+    require('https').get(url, (res) => {
+      console.log(`Keep-alive ping: ${res.statusCode}`);
+    }).on('error', (err) => {
+      console.error('Keep-alive ping failed:', err.message);
+    });
+  }, 14 * 60 * 1000); // every 14 minutes
+}
+
 // DB & Start
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
