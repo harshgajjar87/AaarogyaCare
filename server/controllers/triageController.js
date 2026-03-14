@@ -1,18 +1,30 @@
 const axios = require('axios');
 const User = require('../models/User');
 
-const SYSTEM_PROMPT = `You are a medical triage nurse. Your job is to ask ONE question at a time to understand the patient's condition.
+// Server-side symptom to specialist mapping — overrides AI guesses
+const symptomSpecialistMap = [
+  { keywords: ['chest pain', 'heart', 'palpitation', 'breathless', 'shortness of breath', 'blood pressure', 'cardiac'], specialist: 'Cardiologist' },
+  { keywords: ['skin', 'rash', 'acne', 'itch', 'itching', 'eczema', 'psoriasis', 'hair loss', 'nail'], specialist: 'Dermatologist' },
+  { keywords: ['headache', 'migraine', 'seizure', 'numbness', 'dizziness', 'memory', 'nerve', 'paralysis', 'stroke'], specialist: 'Neurologist' },
+  { keywords: ['bone', 'joint', 'knee', 'back pain', 'spine', 'fracture', 'muscle pain', 'shoulder', 'hip', 'ankle', 'wrist'], specialist: 'Orthopedic' },
+  { keywords: ['child', 'baby', 'infant', 'toddler', 'kid', 'pediatric'], specialist: 'Pediatrician' },
+  { keywords: ['anxiety', 'depression', 'stress', 'mental', 'sleep disorder', 'panic', 'mood', 'psychiatric'], specialist: 'Psychiatrist' },
+  { keywords: ['ear', 'nose', 'throat', 'sinus', 'tonsil', 'hearing', 'snoring', 'nasal'], specialist: 'ENT Specialist' },
+  { keywords: ['eye', 'vision', 'blur', 'cataract', 'glaucoma', 'retina', 'sight'], specialist: 'Ophthalmologist' },
+  { keywords: ['period', 'menstrual', 'pregnancy', 'ovary', 'uterus', 'vaginal', 'gynec', 'female reproductive'], specialist: 'Gynecologist' },
+  { keywords: ['stomach', 'abdomen', 'vomit', 'nausea', 'diarrhea', 'constipation', 'gastric', 'acidity', 'digestion', 'liver', 'bowel', 'bloating'], specialist: 'General Physician' },
+  { keywords: ['fever', 'cold', 'cough', 'flu', 'fatigue', 'weakness', 'infection', 'diabetes', 'thyroid', 'weight'], specialist: 'General Physician' },
+];
 
-Rules:
-1. Ask ONLY ONE question per response
-2. Focus on: symptom location, duration, severity (1-10), and related symptoms
-3. Keep questions short and clear
-4. After gathering enough info (minimum 3-4 key details), respond with ONLY this JSON:
-{"specialization": "Cardiologist"}
-
-Valid specializations: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatrician, Psychiatrist, General Physician, ENT Specialist, Gynecologist, Ophthalmologist
-
-Do NOT add any text before or after the JSON when you determine specialization.`;
+const detectSpecialistFromSymptoms = (conversationText) => {
+  const lower = conversationText.toLowerCase();
+  for (const entry of symptomSpecialistMap) {
+    if (entry.keywords.some(kw => lower.includes(kw))) {
+      return entry.specialist;
+    }
+  }
+  return null;
+};
 
 exports.triageChat = async (req, res) => {
   try {
@@ -24,136 +36,97 @@ exports.triageChat = async (req, res) => {
 
     const languageInstructions = {
       english: 'Respond in English.',
-      hindi: 'Respond in Hindi (Devanagari script). Use simple, conversational Hindi. Keep responses short.',
-      gujarati: 'Respond in Gujarati (Gujarati script). Use simple, conversational Gujarati. Keep responses short.'
+      hindi: 'Respond in Hindi (Devanagari script). Use simple, conversational Hindi.',
+      gujarati: 'Respond in Gujarati (Gujarati script). Use simple, conversational Gujarati.'
     };
 
-    const greetings = {
-      english: "Hello! I'm here to help you. Could you tell me what's bothering you today?",
-      hindi: "नमस्ते! मैं आपकी मदद के लिए यहां हूं। आज आपको क्या परेशानी है?",
-      gujarati: "નમસ્તે! હું તમને મદદ કરવા માટે અહીં છું. આજે તમને શું તકલીફ છે?"
-    };
-
-    const systemPrompt = `You are Dr. Aarogya, a caring and professional medical triage assistant. ${languageInstructions[language] || languageInstructions.english}
+    const systemPrompt = `You are Dr. Aarogya, a caring medical triage assistant. ${languageInstructions[language] || languageInstructions.english}
 
 CRITICAL RULES:
-1. Ask ONLY ONE question per response (maximum 15 words)
-2. NEVER repeat the same question twice
-3. Progress through the conversation naturally
-4. Keep responses SHORT and conversational for voice/text chat
+1. Ask ONLY ONE question per response
+2. NEVER repeat a question already asked in the conversation
+3. NEVER ask "where is the nausea/vomiting located" — nausea/vomiting has no location
+4. Keep responses SHORT (under 40 words)
+5. Be warm and empathetic and answer about all the question warmly like hello, how are you or greeting related questions and behave how a doctor wants to know about patient history for diagnose the issue.
 
-Communication Style:
-- Be warm, empathetic, and conversational like a real doctor and real human being
-- Speak naturally as if having a real conversation
-- Show genuine concern: "I understand", "I see", "That must be concerning","Ohh","Ahhh","Got it"
-- Acknowledge or reply what the patient says before asking the next question
-- Use varied questions - don't repeat yourself
+SMART QUESTION FLOW — adapt based on the symptom:
+- For PAIN symptoms: ask location → duration → severity (1-10) → other symptoms
+- For NAUSEA/VOMITING: ask duration → severity → triggers (food/motion/stress) → other symptoms  
+- For FEVER/COLD/COUGH: ask duration → severity → other symptoms
+- For SKIN issues: ask location on body → duration → other symptoms
+- For MENTAL symptoms: ask duration → impact on daily life → other symptoms
 
-Question Flow (ask in this order, ONE at a time):
-1. First response: "${greetings[language]}"
-2. After symptom mentioned: "I see. Where exactly are you feeling this?" OR "Can you tell me where the pain is located?"
-3. After location: "How long have you been experiencing this?" OR "When did this start?"
-4. After duration: "On a scale of 1 to 10, how severe is it?" OR "How would you rate the intensity?"
-5. After severity: "Have you noticed any other symptoms?" OR "Are there any other issues you're experiencing?"
-6. After gathering info: Recommend specialist
-
-Examples of Natural Conversation:
-Patient: "I have a headache"
-You: "I understand. Where exactly is the headache located?"
-
-Patient: "On the left side of my head"
-You: "I see. How long have you been having this headache?"
-
-Patient: "For about 3 days"
-You: "That must be uncomfortable. On a scale of 1 to 10, how severe is the pain?"
-
-Patient: "About 7"
-You: "I understand. Have you noticed any other symptoms like nausea or vision problems?"
-
-Patient: "Yes, some nausea"
-You: "Based on what you've told me, I'd recommend consulting a Neurologist for your headache and nausea. Would you like to see available doctors? [SPECIALIST:Neurologist]"
-
-IMPORTANT - Handling Off-Topic Questions:
-- If user asks non-medical questions,still answer briefly (2 - 3 sentences)
-- Then redirect: "Now, let's focus on your health. What's bothering you today?"
-- Example:
-  User: "who are you"
-  You: "I'm Dr. Aarogya, your medical assistant. I help connect you with the right specialist. What symptoms are you experiencing?"
-
-After gathering key info (symptom, location, duration, severity), recommend specialist:
-"Based on what you've told me, I'd recommend consulting a [Specialist]. Would you like to see available doctors?"
-
-Then add: [SPECIALIST:SpecialistName]
+After collecting: symptom + duration + severity → recommend specialist with tag [SPECIALIST:Name]
 
 Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatrician, Psychiatrist, General Physician, ENT Specialist, Gynecologist, Ophthalmologist
 
-REMEMBER: 
-- ONE question at a time
-- NEVER repeat questions
-- Keep responses under 15 words
-- Be conversational and natural
-- Progress through the flow systematically`;
+Example for nausea:
+Patient: "I feel like vomiting"
+You: "I'm sorry to hear that. How long have you been feeling nauseous?"
+Patient: "2 days"
+You: "On a scale of 1 to 10, how severe is it?"
+Patient: "7"
+You: "Got it. Have you noticed any triggers like certain foods or motion sickness?"
+Patient: "no"
+You: "Based on your symptoms, I'd recommend a General Physician. [SPECIALIST:General Physician]"
+
+REMEMBER: ONE question, no repeats, adapt to the symptom type.`;
 
     let aiResponse;
 
-    // Build conversation history
-    const conversationText = history.map(h => `${h.role === 'user' ? 'Patient' : 'Assistant'}: ${h.content}`).join('\n');
-    const fullPrompt = `${systemPrompt}\n\nConversation so far:\n${conversationText}\n\nPatient: ${message}\n\nAssistant:`;
+    // Build conversation history for Groq (most reliable for context)
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...history.map(h => ({ role: h.role === 'user' ? 'user' : 'assistant', content: h.content })),
+      { role: 'user', content: message }
+    ];
 
-    // Try Gemini 2.0 Flash first
-    if (process.env.GOOGLE_API_KEY) {
+    // Try Groq first (better at following instructions with history)
+    if (process.env.GROQ_API_KEY) {
       try {
-        console.log('Attempting Gemini API for triage...');
-        
-        const geminiResponse = await axios.post(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GOOGLE_API_KEY}`,
+        const response = await axios.post(
+          'https://api.groq.com/openai/v1/chat/completions',
           {
-            contents: [{
-              parts: [{ text: fullPrompt }]
-            }],
-            generationConfig: {
-              temperature: 0.3,
-              maxOutputTokens: 100
-            }
+            model: 'llama-3.3-70b-versatile',
+            messages,
+            temperature: 0.4,
+            max_tokens: 150
           },
           {
-            headers: { 'Content-Type': 'application/json' }
+            headers: {
+              'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+              'Content-Type': 'application/json'
+            }
           }
         );
-
-        aiResponse = geminiResponse.data.candidates[0].content.parts[0].text;
-        console.log('Gemini API succeeded for triage');
-        
-      } catch (geminiError) {
-        console.log('Gemini failed for triage, falling back to Groq:', geminiError.message);
+        aiResponse = response.data.choices[0].message.content;
+        console.log('Groq API succeeded for triage');
+      } catch (groqError) {
+        console.log('Groq failed for triage, falling back to Gemini:', groqError.message);
       }
     }
 
-    // Fallback to Groq if Gemini not available or failed
-    if (!aiResponse && process.env.GROQ_API_KEY) {
-      const messages = [
-        { role: 'system', content: systemPrompt },
-        ...history.map(h => ({ role: h.role, content: h.content })),
-        { role: 'user', content: message }
-      ];
-
-      const response = await axios.post(
-        'https://api.groq.com/openai/v1/chat/completions',
-        {
-          model: 'llama-3.3-70b-versatile',
-          messages,
-          temperature: 0.3,
-          max_tokens: 100
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      aiResponse = response.data.choices[0].message.content;
-      console.log('Groq API succeeded for triage');
+    // Fallback to Gemini if Groq failed
+    if (!aiResponse && process.env.GOOGLE_API_KEY) {
+      try {
+        console.log('Attempting Gemini API for triage...');
+        const geminiResponse = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GOOGLE_API_KEY}`,
+          {
+            contents: messages.filter(m => m.role !== 'system').map(m => ({
+              role: m.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: m.content }]
+            })),
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: { temperature: 0.4, maxOutputTokens: 150 }
+          },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+        aiResponse = geminiResponse.data.candidates[0].content.parts[0].text;
+        console.log('Gemini API succeeded for triage');
+      } catch (geminiError) {
+        console.log('Gemini failed for triage:', geminiError.message);
+      }
     }
 
     if (!aiResponse) {
@@ -215,6 +188,18 @@ REMEMBER:
       }
     }
     
+    // Server-side specialist override — don't trust AI's specialist choice alone
+    if (specialization) {
+      const fullConversation = [
+        ...history.map(h => h.content),
+        message
+      ].join(' ');
+      const detectedSpecialist = detectSpecialistFromSymptoms(fullConversation);
+      if (detectedSpecialist) {
+        specialization = detectedSpecialist; // Use our mapping, not AI's guess
+      }
+    }
+
     console.log('AI Response:', cleanResponse);
     console.log('Specialization detected:', specialization || 'none');
 
