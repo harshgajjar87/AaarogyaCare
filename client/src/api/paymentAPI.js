@@ -1,5 +1,11 @@
 import axios from '../utils/axios';
 
+// Get payment fee breakdown preview
+export const getPaymentPreview = async (fees) => {
+  const response = await axios.get(`/payment/preview?fees=${fees}`);
+  return response.data;
+};
+
 // Create a Razorpay order
 export const createPaymentOrder = async (amount) => {
   try {

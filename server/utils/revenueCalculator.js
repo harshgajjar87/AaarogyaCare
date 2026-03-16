@@ -31,18 +31,19 @@ const calculateRevenueBreakdown = (doctorFees, settings) => {
   }
   // If gstAppliedOn === 'none', gstAmount remains 0
 
-  // Step 3: Calculate total amount patient needs to pay
+  // Step 3: Total amount patient pays = doctor fees + platform commission + GST
+  // Patient pays everything: doctor fee + platform fee + GST on platform fee
   const totalAmount = doctorFees + platformCommission + gstAmount;
 
   // Step 4: Calculate payment gateway charges (on total amount)
   const paymentGatewayCharges = 
     (totalAmount * paymentGatewayPercentage) / 100 + paymentGatewayFixedCharge;
 
-  // Step 5: Calculate doctor payout (doctor fees - no deductions)
+  // Step 5: Doctor payout = doctor fees - payment gateway charges proportional share
+  // Doctor gets their full fee; platform keeps commission + GST - gateway charges
   const doctorPayout = doctorFees;
 
-  // Step 6: Calculate net platform revenue
-  // Platform gets: commission + GST - gateway charges
+  // Step 6: Net platform revenue = commission + GST - gateway charges
   const platformRevenue = platformCommission + gstAmount - paymentGatewayCharges;
 
   return {

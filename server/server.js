@@ -63,7 +63,6 @@ app.get('/api/config/check', (req, res) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
-app.use('/api/dev', require('./routes/devRoutes'));
 app.use('/api/patients', require('./routes/patientRoutes'));
 app.use('/api/otp', require('./routes/otpRoutes'));
 app.use('/api/profile', require('./routes/profileRoutes'));
@@ -83,12 +82,10 @@ app.use('/upload', require('./routes/imageRoutes'));
 app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/revenue', require('./routes/revenueRoutes'));
 app.use('/api/prescriptions', require('./routes/prescriptionRoutes'));
-app.use('/api/analysis', require('./routes/analysisRoutes'));
 app.use('/api/triage', require('./routes/triageRoutes'));
 app.use('/api/tts', require('./routes/ttsRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/health', require('./routes/healthPredictionRoutes'));
-app.use('/api/test', require('./routes/testRoutes'));
 
 // Keep-alive ping to prevent Render free tier from sleeping
 if (process.env.NODE_ENV === 'production' && process.env.SERVER_URL) {

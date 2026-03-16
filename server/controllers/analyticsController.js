@@ -28,10 +28,24 @@ exports.getDoctorAnalytics = async (req, res) => {
       if (monthlyData.hasOwnProperty(key)) monthlyData[key]++;
     });
 
-    // Revenue calculation
-    const totalRevenue = appointments
-      .filter(a => a.paymentInfo?.status === 'completed')
-      .reduce((sum, a) => sum + (a.paymentInfo.amount || 0), 0);
+    // Revenue calculation — based on doctorPayout (what doctor actually receives)
+    const paidAppointments = appointments.filter(a => a.paymentInfo?.status === 'completed');
+
+    const totalRevenue = paidAppointments
+      .reduce((sum, a) => sum + (a.revenueBreakdown?.doctorPayout || a.fees || 0), 0);
+
+    const totalGrossRevenue = paidAppointments
+      .reduce((sum, a) => sum + (a.revenueBreakdown?.doctorFees || a.fees || 0), 0);
+
+    const totalDeductions = paidAppointments
+      .reduce((sum, a) => sum + (a.revenueBreakdown?.platformCommission || 0), 0);
+
+    const totalGstCollected = paidAppointments
+      .reduce((sum, a) => sum + (a.revenueBreakdown?.gstAmount || 0), 0);
+
+    const commissionRate = paidAppointments.length > 0
+      ? (paidAppointments[0].revenueBreakdown?.platformCommissionPercentage || 10)
+      : 10;
 
     const monthlyRevenue = {};
     Object.keys(monthlyData).forEach(key => monthlyRevenue[key] = 0);
@@ -41,10 +55,9 @@ exports.getDoctorAnalytics = async (req, res) => {
         const date = new Date(app.date);
         const key = date.toLocaleString('default', { month: 'short', year: 'numeric' });
         if (monthlyRevenue.hasOwnProperty(key)) {
-          monthlyRevenue[key] += app.paymentInfo.amount || 0;
+          monthlyRevenue[key] += app.revenueBreakdown?.doctorPayout || app.fees || 0;
         }
       });
-
     // Average consultation time (mock data - can be enhanced)
     const avgConsultationTime = 30; // minutes
 
@@ -69,6 +82,10 @@ exports.getDoctorAnalytics = async (req, res) => {
       statusCounts,
       monthlyAppointments: monthlyData,
       totalRevenue,
+      totalGrossRevenue: parseFloat(totalGrossRevenue.toFixed(2)),
+      totalDeductions: parseFloat(totalDeductions.toFixed(2)),
+      totalGstCollected: parseFloat(totalGstCollected.toFixed(2)),
+      commissionRate,
       monthlyRevenue,
       avgConsultationTime,
       totalPatients: uniquePatients.length,
@@ -103,20 +120,23 @@ exports.getAdminAnalytics = async (req, res) => {
       if (monthlyData.hasOwnProperty(key)) monthlyData[key]++;
     });
 
-    // Revenue
-    const totalRevenue = appointments
-      .filter(a => a.paymentInfo?.status === 'completed')
-      .reduce((sum, a) => sum + (a.paymentInfo.amount || 0), 0);
+    // Revenue — full breakdown
+    const paidApps = appointments.filter(a => a.paymentInfo?.status === 'completed');
+
+    const totalRevenue = paidApps.reduce((sum, a) => sum + (a.paymentInfo?.amount || 0), 0);
+    const totalDoctorPayouts = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.doctorPayout || a.fees || 0), 0);
+    const totalPlatformCommission = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.platformCommission || 0), 0);
+    const totalGstCollected = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.gstAmount || 0), 0);
+    const totalGatewayCharges = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.paymentGatewayCharges || 0), 0);
+    const totalPlatformRevenue = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.platformRevenue || 0), 0);
 
     const monthlyRevenue = {};
     Object.keys(monthlyData).forEach(key => monthlyRevenue[key] = 0);
-    appointments
-      .filter(a => a.paymentInfo?.status === 'completed')
-      .forEach(app => {
+    paidApps.forEach(app => {
         const date = new Date(app.date);
         const key = date.toLocaleString('default', { month: 'short', year: 'numeric' });
         if (monthlyRevenue.hasOwnProperty(key)) {
-          monthlyRevenue[key] += app.paymentInfo.amount || 0;
+          monthlyRevenue[key] += app.paymentInfo?.amount || 0;
         }
       });
 
@@ -159,7 +179,12 @@ exports.getAdminAnalytics = async (req, res) => {
       totalAppointments: appointments.length,
       totalDoctors: doctors.length,
       totalPatients: patients.length,
-      totalRevenue,
+      totalRevenue: parseFloat(totalRevenue.toFixed(2)),
+      totalDoctorPayouts: parseFloat(totalDoctorPayouts.toFixed(2)),
+      totalPlatformCommission: parseFloat(totalPlatformCommission.toFixed(2)),
+      totalGstCollected: parseFloat(totalGstCollected.toFixed(2)),
+      totalGatewayCharges: parseFloat(totalGatewayCharges.toFixed(2)),
+      totalPlatformRevenue: parseFloat(totalPlatformRevenue.toFixed(2)),
       monthlyAppointments: monthlyData,
       monthlyRevenue,
       specializationCounts,

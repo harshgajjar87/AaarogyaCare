@@ -1,34 +1,134 @@
 const axios = require('axios');
 const User = require('../models/User');
 
-// Server-side symptom to specialist mapping — overrides AI guesses
+// Red flag keywords that indicate potential emergencies
+const redFlags = ['chest pain', 'cannot breathe', 'can\'t breathe', 'shortness of breath', 'difficulty breathing', 'fainting', 'fainted', 'heavy bleeding', 'stroke', 'sudden weakness', 'unconscious', 'severe bleeding'];
+
+// Multi-factor specialist mapping — higher entries take priority
+// Entries with a `context` array require BOTH keywords AND context words to match
 const symptomSpecialistMap = [
-  { keywords: ['chest pain', 'heart', 'palpitation', 'breathless', 'shortness of breath', 'blood pressure', 'cardiac'], specialist: 'Cardiologist' },
-  { keywords: ['skin', 'rash', 'acne', 'itch', 'itching', 'eczema', 'psoriasis', 'hair loss', 'nail'], specialist: 'Dermatologist' },
-  { keywords: ['headache', 'migraine', 'seizure', 'numbness', 'dizziness', 'memory', 'nerve', 'paralysis', 'stroke'], specialist: 'Neurologist' },
-  { keywords: ['bone', 'joint', 'knee', 'back pain', 'spine', 'fracture', 'muscle pain', 'shoulder', 'hip', 'ankle', 'wrist'], specialist: 'Orthopedic' },
-  { keywords: ['child', 'baby', 'infant', 'toddler', 'kid', 'pediatric'], specialist: 'Pediatrician' },
-  { keywords: ['anxiety', 'depression', 'stress', 'mental', 'sleep disorder', 'panic', 'mood', 'psychiatric'], specialist: 'Psychiatrist' },
-  { keywords: ['ear', 'nose', 'throat', 'sinus', 'tonsil', 'hearing', 'snoring', 'nasal'], specialist: 'ENT Specialist' },
-  { keywords: ['eye', 'vision', 'blur', 'cataract', 'glaucoma', 'retina', 'sight'], specialist: 'Ophthalmologist' },
-  { keywords: ['period', 'menstrual', 'pregnancy', 'ovary', 'uterus', 'vaginal', 'gynec', 'female reproductive'], specialist: 'Gynecologist' },
+  // Gynecologist — high priority, context-aware override
+  { keywords: ['period', 'menstrual', 'pregnancy', 'ovary', 'uterus', 'vaginal', 'gynec', 'female reproductive', 'pregnant'], specialist: 'Gynecologist' },
+  // Stomach/abdomen in pregnancy context → Gynecologist
+  { keywords: ['stomach', 'abdomen', 'cramp', 'pelvic'], context: ['pregnant', 'pregnancy', 'period', 'menstrual'], specialist: 'Gynecologist' },
+  // Cardiology
+  { keywords: ['chest pain', 'heart', 'palpitation', 'breathless', 'shortness of breath', 'blood pressure', 'cardiac', 'angina'], specialist: 'Cardiologist' },
+  // Neurology
+  { keywords: ['headache', 'migraine', 'seizure', 'numbness', 'dizziness', 'memory', 'nerve', 'paralysis', 'stroke', 'neck stiffness', 'vision change'], specialist: 'Neurologist' },
+  // Dermatology
+  { keywords: ['skin', 'rash', 'acne', 'itch', 'itching', 'eczema', 'psoriasis', 'hair loss', 'nail', 'hives', 'lesion'], specialist: 'Dermatologist' },
+  // Orthopedics
+  { keywords: ['bone', 'joint', 'knee', 'back pain', 'spine', 'fracture', 'muscle pain', 'shoulder', 'hip', 'ankle', 'wrist', 'arthritis', 'swollen joint'], specialist: 'Orthopedic' },
+  // Pediatrics
+  { keywords: ['child', 'baby', 'infant', 'toddler', 'kid', 'pediatric', 'my son', 'my daughter'], specialist: 'Pediatrician' },
+  // Psychiatry
+  { keywords: ['anxiety', 'depression', 'stress', 'mental', 'sleep disorder', 'panic', 'mood', 'psychiatric', 'suicidal', 'hallucination'], specialist: 'Psychiatrist' },
+  // ENT
+  { keywords: ['ear', 'nose', 'throat', 'sinus', 'tonsil', 'hearing', 'snoring', 'nasal', 'earache', 'runny nose'], specialist: 'ENT Specialist' },
+  // Ophthalmology
+  { keywords: ['eye', 'vision', 'blur', 'cataract', 'glaucoma', 'retina', 'sight', 'eye pain', 'red eye'], specialist: 'Ophthalmologist' },
+  // Gastroenterology / General
   { keywords: ['stomach', 'abdomen', 'vomit', 'nausea', 'diarrhea', 'constipation', 'gastric', 'acidity', 'digestion', 'liver', 'bowel', 'bloating'], specialist: 'General Physician' },
-  { keywords: ['fever', 'cold', 'cough', 'flu', 'fatigue', 'weakness', 'infection', 'diabetes', 'thyroid', 'weight'], specialist: 'General Physician' },
+  // General
+  { keywords: ['fever', 'cold', 'cough', 'flu', 'fatigue', 'weakness', 'infection', 'diabetes', 'thyroid', 'weight', 'phlegm', 'sputum'], specialist: 'General Physician' },
 ];
 
 const detectSpecialistFromSymptoms = (conversationText) => {
   const lower = conversationText.toLowerCase();
   for (const entry of symptomSpecialistMap) {
-    if (entry.keywords.some(kw => lower.includes(kw))) {
-      return entry.specialist;
+    const keywordMatch = entry.keywords.some(kw => lower.includes(kw));
+    if (!keywordMatch) continue;
+    // If entry has context requirement, both must match
+    if (entry.context) {
+      const contextMatch = entry.context.some(ctx => lower.includes(ctx));
+      if (!contextMatch) continue;
     }
+    return entry.specialist;
   }
   return null;
 };
 
+// Extract what has already been collected from conversation history
+// Also merges any facts persisted by the client in sessionStorage
+const extractCollectedInfo = (history, currentMessage, clientCollected = {}) => {
+  const allText = [...history.map(h => h.content), currentMessage].join(' ').toLowerCase();
+  const facts = { ...clientCollected }; // start with client-persisted facts
+
+  // Symptom
+  if (!facts.symptom) {
+    const symptomPatterns = [
+      { pattern: /stomach|abdomen|belly/, label: 'stomach/abdominal pain' },
+      { pattern: /chest pain|chest/, label: 'chest pain' },
+      { pattern: /headache|migraine/, label: 'headache' },
+      { pattern: /cough/, label: 'cough' },
+      { pattern: /fever/, label: 'fever' },
+      { pattern: /nausea|vomit/, label: 'nausea/vomiting' },
+      { pattern: /rash|skin|itch/, label: 'skin issue' },
+      { pattern: /back pain|knee|joint|bone/, label: 'musculoskeletal pain' },
+      { pattern: /anxiety|depression|stress|mental/, label: 'mental health concern' },
+      { pattern: /ear|nose|throat|sinus/, label: 'ENT issue' },
+      { pattern: /eye|vision|blur/, label: 'eye issue' },
+      { pattern: /pain/, label: 'pain' },
+    ];
+    for (const { pattern, label } of symptomPatterns) {
+      if (pattern.test(allText)) { facts.symptom = label; break; }
+    }
+  }
+
+  // Location
+  if (!facts.location) {
+    const locMatch = allText.match(/in (my |the )?(stomach|abdomen|chest|back|knee|shoulder|head|neck|arm|leg|hip|ankle|wrist|eye|ear|throat)/);
+    if (locMatch) facts.location = locMatch[2];
+  }
+
+  // Character — interpret typos charitably (shark → sharp)
+  if (!facts.character) {
+    if (/sharp|shark|stabbing/.test(allText)) facts.character = 'sharp/stabbing';
+    else if (/dull|aching/.test(allText)) facts.character = 'dull/aching';
+    else if (/squeezing|crushing|pressure/.test(allText)) facts.character = 'squeezing/pressure';
+    else if (/cramping|cramp/.test(allText)) facts.character = 'cramping';
+    else if (/burning|burn/.test(allText)) facts.character = 'burning';
+    else if (/dry cough/.test(allText)) facts.character = 'dry cough';
+    else if (/wet cough|phlegm|sputum/.test(allText)) facts.character = 'wet cough with phlegm';
+  }
+
+  // Duration
+  if (!facts.duration) {
+    const durationMatch = allText.match(/(\d+)\s*(day|days|week|weeks|hour|hours|month|months)/);
+    if (durationMatch) facts.duration = durationMatch[0];
+  }
+
+  // Severity
+  if (!facts.severity) {
+    const severityMatch = allText.match(/\b([1-9]|10)\s*(out of|\/)\s*10/);
+    if (severityMatch) facts.severity = severityMatch[0];
+  }
+
+  // Triggers
+  if (!facts.trigger) {
+    if (/related to eating|after eating|before eating/.test(allText)) facts.trigger = 'related to eating';
+    else if (/motion sickness|motion/.test(allText)) facts.trigger = 'motion';
+    else if (/stress/.test(allText)) facts.trigger = 'stress';
+  }
+
+  // Build display string for system prompt
+  const lines = [];
+  if (facts.symptom) lines.push(`Symptom: ${facts.symptom}`);
+  if (facts.location) lines.push(`Location: ${facts.location}`);
+  if (facts.character) lines.push(`Character: ${facts.character}`);
+  if (facts.duration) lines.push(`Duration: ${facts.duration}`);
+  if (facts.severity) lines.push(`Severity: ${facts.severity}`);
+  if (facts.trigger) lines.push(`Trigger: ${facts.trigger}`);
+
+  return {
+    display: lines.length > 0 ? lines.join('\n') : 'Nothing collected yet — this is the start of the conversation.',
+    facts  // return updated facts so backend can send them back to client
+  };
+};
+
 exports.triageChat = async (req, res) => {
   try {
-    const { message, history = [], language = 'english' } = req.body;
+    const { message, history = [], language = 'english', collected: clientCollected = {} } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
@@ -40,37 +140,41 @@ exports.triageChat = async (req, res) => {
       gujarati: 'Respond in Gujarati (Gujarati script). Use simple, conversational Gujarati.'
     };
 
-    const systemPrompt = `You are Dr. Aarogya, a caring medical triage assistant. ${languageInstructions[language] || languageInstructions.english}
+    // Build a summary of what has already been collected from the conversation
+    // Merge server-parsed facts with client-persisted storage facts
+    const collectedInfo = extractCollectedInfo(history, message, clientCollected);
 
-CRITICAL RULES:
-1. Ask ONLY ONE question per response
-2. NEVER repeat a question already asked in the conversation
-3. NEVER ask "where is the nausea/vomiting located" — nausea/vomiting has no location
-4. Keep responses SHORT (under 40 words)
-5. Be warm and empathetic and answer about all the question warmly like hello, how are you or greeting related questions and behave how a doctor wants to know about patient history for diagnose the issue.
+    const systemPrompt = `You are Dr. Aarogya, a senior medical triage officer. ${languageInstructions[language] || languageInstructions.english}
 
-SMART QUESTION FLOW — adapt based on the symptom:
-- For PAIN symptoms: ask location → duration → severity (1-10) → other symptoms
-- For NAUSEA/VOMITING: ask duration → severity → triggers (food/motion/stress) → other symptoms  
-- For FEVER/COLD/COUGH: ask duration → severity → other symptoms
-- For SKIN issues: ask location on body → duration → other symptoms
-- For MENTAL symptoms: ask duration → impact on daily life → other symptoms
+WHAT YOU ALREADY KNOW ABOUT THIS PATIENT:
+${collectedInfo.display}
 
-After collecting: symptom + duration + severity → recommend specialist with tag [SPECIALIST:Name]
+CLINICAL PROTOCOLS:
+1. RED FLAGS FIRST: If the user mentions "chest pain," "difficulty breathing," "sudden weakness," "fainting," or "severe bleeding," immediately ask about associated emergency symptoms (e.g., cold sweats, loss of consciousness) before anything else.
+2. CHARACTER OVER QUANTITY: Ask about the quality of symptoms, not just severity.
+   - For PAIN: "Is it sharp, dull, or squeezing?" instead of just "rate 1-10"
+   - For COUGH: "Is it dry or producing phlegm?"
+   - For HEADACHE: Ask about vision changes or neck stiffness.
+   - For STOMACH PAIN: Ask if it's related to eating or if there's a fever.
+3. SMART QUESTION FLOW — collect in this order, SKIP anything already known:
+   - PAIN: location → character (sharp/dull/squeezing) → duration → severity (1-10) → red flags
+   - NAUSEA/VOMITING: duration → triggers (food/motion/stress) → severity
+   - FEVER/COUGH: duration → character (dry/wet cough) → other symptoms
+   - SKIN: location on body → duration → character (itchy/painful/spreading)
+   - MENTAL: duration → impact on daily life → sleep quality
+4. EMPATHY: Use warm transitions like "I understand. To help me guide you better..." or "That sounds quite uncomfortable."
+5. STRICT RULES:
+   - Ask ONLY ONE question per response — never combine two questions.
+   - NEVER ask about something already listed in WHAT YOU ALREADY KNOW.
+   - NEVER ask location for nausea/vomiting.
+   - If the user's reply is unclear or a typo (e.g. "shark" instead of "sharp"), interpret it charitably and move forward.
+   - Keep responses under 45 words.
+   - NO medical advice or diagnosis. Only triage to a specialist.
+   - Respond warmly to greetings, then ask about symptoms.
 
-Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatrician, Psychiatrist, General Physician, ENT Specialist, Gynecologist, Ophthalmologist
+Once you have: symptom + character + duration → provide recommendation using [SPECIALIST:Name].
 
-Example for nausea:
-Patient: "I feel like vomiting"
-You: "I'm sorry to hear that. How long have you been feeling nauseous?"
-Patient: "2 days"
-You: "On a scale of 1 to 10, how severe is it?"
-Patient: "7"
-You: "Got it. Have you noticed any triggers like certain foods or motion sickness?"
-Patient: "no"
-You: "Based on your symptoms, I'd recommend a General Physician. [SPECIALIST:General Physician]"
-
-REMEMBER: ONE question, no repeats, adapt to the symptom type.`;
+Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatrician, Psychiatrist, General Physician, ENT Specialist, Gynecologist, Ophthalmologist`;
 
     let aiResponse;
 
@@ -80,6 +184,15 @@ REMEMBER: ONE question, no repeats, adapt to the symptom type.`;
       ...history.map(h => ({ role: h.role === 'user' ? 'user' : 'assistant', content: h.content })),
       { role: 'user', content: message }
     ];
+
+    // Red flag emergency override — inject critical instruction before API call
+    const isEmergency = redFlags.some(flag => message.toLowerCase().includes(flag));
+    if (isEmergency) {
+      messages.push({
+        role: 'system',
+        content: 'CRITICAL: The user has mentioned a potential emergency symptom. Focus exclusively on ruling out immediate life-threats (fainting, cold sweats, loss of consciousness) before suggesting a specialist.'
+      });
+    }
 
     // Try Groq first (better at following instructions with history)
     if (process.env.GROQ_API_KEY) {
@@ -207,11 +320,12 @@ REMEMBER: ONE question, no repeats, adapt to the symptom type.`;
       return res.json({
         message: cleanResponse,
         specialization: specialization,
-        completed: true
+        completed: true,
+        collected: collectedInfo.facts
       });
     }
 
-    res.json({ message: cleanResponse, completed: false });
+    res.json({ message: cleanResponse, completed: false, collected: collectedInfo.facts });
   } catch (error) {
     console.error('Triage error:', error.message);
     res.status(500).json({ 

@@ -18,8 +18,8 @@ const useRazorpay = () => {
                     return reject(new Error('Failed to load payment gateway'));
                 }
 
-                // 1. Create a Razorpay order
-                const orderResponse = await createPaymentOrder(bookingDetails.fees);
+                // 1. Create a Razorpay order — use totalAmount (fees + GST) as what patient pays
+                const orderResponse = await createPaymentOrder(bookingDetails.totalAmount || bookingDetails.fees);
                 
                 // Check if order was created successfully
                 if (!orderResponse || !orderResponse.order) {

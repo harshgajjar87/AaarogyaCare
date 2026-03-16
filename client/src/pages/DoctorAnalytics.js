@@ -4,7 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import axios from '../utils/axios';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
-import { LayoutDashboard, Calendar, Users, MessageSquare, Star, User, LogOut, TrendingUp, DollarSign, Clock, Menu, X, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Calendar, Users, MessageSquare, Star, User, LogOut, TrendingUp, DollarSign, Clock, Menu, X, BarChart3, Info } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, ArcElement, Title, Tooltip, Legend, Filler);
@@ -149,8 +149,9 @@ const DoctorAnalytics = () => {
           <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm text-health-text-p">Total Revenue</p>
+                <p className="text-xs sm:text-sm text-health-text-p">Your Earnings</p>
                 <p className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">₹{analytics.totalRevenue.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">after platform fee</p>
               </div>
               <div className="rounded-full p-2 sm:p-3 bg-blue-100 text-blue-600 flex-shrink-0">
                 <DollarSign size={20} className="sm:w-6 sm:h-6" />
@@ -183,6 +184,36 @@ const DoctorAnalytics = () => {
             </div>
           </div>
         </div>
+
+        {/* Earnings Breakdown Panel */}
+        {analytics.totalGrossRevenue > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 mb-4 sm:mb-6">
+            <h2 className="text-sm sm:text-base font-semibold text-blue-800 flex items-center gap-2 mb-3">
+              <Info size={16} /> Earnings Breakdown (All Paid Appointments)
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-white rounded-lg p-3 border border-blue-100">
+                <p className="text-[10px] sm:text-xs text-slate-500">Your Listed Fee</p>
+                <p className="text-base sm:text-lg font-bold text-slate-800">₹{analytics.totalGrossRevenue.toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-red-100">
+                <p className="text-[10px] sm:text-xs text-slate-500">Platform Fee ({analytics.commissionRate}%) — paid by patient</p>
+                <p className="text-base sm:text-lg font-bold text-slate-600">₹{analytics.totalDeductions.toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-green-100">
+                <p className="text-[10px] sm:text-xs text-slate-500">Your Actual Earnings</p>
+                <p className="text-base sm:text-lg font-bold text-green-600">₹{analytics.totalRevenue.toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-lg p-3 border border-slate-100">
+                <p className="text-[10px] sm:text-xs text-slate-500">GST Collected from Patients</p>
+                <p className="text-base sm:text-lg font-bold text-slate-600">₹{analytics.totalGstCollected.toLocaleString()}</p>
+              </div>
+            </div>
+            <p className="text-[10px] sm:text-xs text-blue-600 mt-3">
+              Patients pay your listed fee + platform fee ({analytics.commissionRate}%) + GST. You receive your full listed fee. The platform fee and GST are charged on top to the patient.
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">

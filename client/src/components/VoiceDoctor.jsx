@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axios';
 
 const VoiceDoctor = () => {
   // State management
@@ -95,6 +95,7 @@ const VoiceDoctor = () => {
     };
     const initialMessage = { role: 'assistant', content: greetings[language] };
     setHistory([initialMessage]);
+    sessionStorage.removeItem('triage_collected'); // fresh session on language change
 
     // Speak the greeting only after voices are loaded and the message is set
     if (voices.length > 0) {
@@ -113,14 +114,21 @@ const VoiceDoctor = () => {
       const makeApiCall = async () => {
         setIsProcessing(true);
         try {
-          // `prevHistory` is the correct, up-to-date history before the user's new message
-          const response = await axios.post(`${process.env.REACT_APP_FLASK_API_URL || 'http://127.0.0.1:5001'}/chat`, {
+          const collected = JSON.parse(sessionStorage.getItem('triage_collected') || '{}');
+
+          const response = await axiosInstance.post('/triage/chat', {
             message: transcript,
             history: prevHistory,
-            language: language,
+            language: language.toLowerCase(),
+            collected
           });
 
-          const assistantMessage = { role: 'assistant', content: response.data.reply };
+          if (response.data.collected) {
+            const updated = { ...collected, ...response.data.collected };
+            sessionStorage.setItem('triage_collected', JSON.stringify(updated));
+          }
+
+          const assistantMessage = { role: 'assistant', content: response.data.message };
           // Update history again with the assistant's response
           setHistory(currentHistory => [...currentHistory, assistantMessage]);
           speak(assistantMessage.content, langConfig[language].code);

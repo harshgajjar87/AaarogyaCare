@@ -1,0 +1,68 @@
+To make Dr. Aarogya feel like a real clinician, we need to move away from a "form-filling" approach and toward clinical triage logic. A real doctor uses "Red Flags" to rule out emergencies first, then looks for "Defining Characteristics" to narrow down the specialty.
+
+Here is the enhanced systemPrompt and the logic for Red Flag detection.
+
+1. Updated System Prompt
+Replace your current systemPrompt with this version. It gives the AI a "Medical Mindset" rather than a script.
+
+JavaScript
+const systemPrompt = `You are Dr. Aarogya, a senior medical triage officer. Your goal is to conduct a professional "History of Present Illness" (HPI).
+
+CLINICAL PROTOCOLS:
+1. RED FLAGS FIRST: If the user mentions "chest pain," "difficulty breathing," "sudden weakness," or "severe bleeding," immediately prioritize asking about associated emergency symptoms (e.g., fainting, cold sweats).
+2. CHARACTER OVER QUANTITY: Instead of just asking "how severe (1-10)", ask about the quality. 
+   - (e.g., "Is the pain sharp, dull, or squeezing?" or "Is the cough dry or producing phlegm?")
+3. NESTED LOGIC: 
+   - If it's a HEADACHE: Ask about vision changes or neck stiffness.
+   - If it's STOMACH PAIN: Ask if it's related to eating or if there's a fever.
+4. CONVERSATIONAL EMPATHY: Use professional but warm transitions like:
+   - "I understand. To help me guide you better..."
+   - "That sounds quite uncomfortable. Let's look into that."
+5. RULES: 
+   - ONLY ONE question at a time.
+   - Keep responses under 45 words.
+   - NO medical advice/diagnosis. Only triage to a specialist.
+
+When you have enough context (Symptom + Character + Duration + Red Flags ruled out), provide the recommendation using [SPECIALIST:Name].`;
+2. High-Priority "Red Flag" Override
+In a real medical app, you shouldn't wait for the AI to realize it's an emergency. You can add a small "Urgency Check" to your code before calling the API to change the AI's behavior if things look serious.
+
+Add this to your triageChat logic:
+
+JavaScript
+const redFlags = ['chest pain', 'cannot breathe', 'shortness of breath', 'fainting', 'heavy bleeding', 'stroke'];
+const isEmergency = redFlags.some(flag => message.toLowerCase().includes(flag));
+
+if (isEmergency) {
+    // Inject a secret instruction to the AI to prioritize safety
+    messages.push({ 
+        role: 'system', 
+        content: "CRITICAL: The user has mentioned a potential emergency symptom. Focus exclusively on ruling out immediate life-threats before suggesting a specialist." 
+    });
+}
+3. Improving Specialist Accuracy (The "Multi-Factor" Map)
+Your current symptomSpecialistMap is a flat list. To make it more "meaningful," we can add Secondary Keywords to handle overlap (e.g., stomach pain in a pregnant woman).
+
+Updated Mapping Logic:
+
+JavaScript
+const symptomSpecialistMap = [
+  // Gynecologist override (High priority)
+  { 
+    keywords: ['period', 'menstrual', 'pregnancy', 'ovary'], 
+    specialist: 'Gynecologist' 
+  },
+  // If stomach pain is mentioned WITH pregnancy, Gynecologist wins
+  { 
+    keywords: ['stomach', 'abdomen', 'cramp'], 
+    context: ['pregnant', 'pregnancy', 'period'], 
+    specialist: 'Gynecologist' 
+  },
+  // ... rest of your mapping
+];
+4. Why this is more "Meaningful"
+Risk Management: By asking about "Red Flags," you behave like a responsible medical tool.
+
+Differential Diagnosis: Instead of asking every patient "What is the severity?", you ask a cough patient if it's "dry or wet." This mimics how a doctor actually thinks to distinguish between a cold (General Physician) and a lung issue (Pulmonologist).
+
+Human Flow: By using "Character" questions (sharp vs. dull), the user feels the system is actually trying to understand their specific pain, not just filling out a database entry.

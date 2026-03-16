@@ -285,18 +285,72 @@ const Profile = () => {
               <>
                 <FormSection title="Professional Details" icon={<Briefcase size={18} className="sm:w-5 sm:h-5" />}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                        <input type="text" name="doctorDetails.specialization" value={formData.doctorDetails.specialization} onChange={handleChange} placeholder="Specialization" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
-                        <input type="number" name="doctorDetails.experience" value={formData.doctorDetails.experience} onChange={handleChange} placeholder="Experience (years)" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
-                        <input type="number" name="doctorDetails.consultationFee" value={formData.doctorDetails.consultationFee} onChange={handleChange} placeholder="Consultation Fee" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
-                        <input type="text" name="doctorDetails.qualifications" value={formData.doctorDetails.qualifications} onChange={handleChange} placeholder="Qualifications (comma-separated)" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
-                        <input type="text" name="doctorDetails.clinicName" value={formData.doctorDetails.clinicName} onChange={handleChange} placeholder="Clinic Name" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Specialization</label>
+                          <input type="text" name="doctorDetails.specialization" value={formData.doctorDetails.specialization} onChange={handleChange} placeholder="e.g. Cardiologist" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        </div>
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Experience (years)</label>
+                          <input type="number" name="doctorDetails.experience" value={formData.doctorDetails.experience} onChange={handleChange} placeholder="e.g. 10" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        </div>
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Consultation Fee (₹)</label>
+                          <input type="number" name="doctorDetails.consultationFee" value={formData.doctorDetails.consultationFee} onChange={handleChange} placeholder="e.g. 500" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                          {formData.doctorDetails.consultationFee > 0 && (() => {
+                            const fee = parseFloat(formData.doctorDetails.consultationFee);
+                            const commission = parseFloat((fee * 0.10).toFixed(2));
+                            const gst = parseFloat((commission * 0.18).toFixed(2));
+                            const payout = parseFloat(fee.toFixed(2));
+                            const patientPays = parseFloat((fee + commission + gst).toFixed(2));
+                            return (
+                              <div className="mt-2 p-2 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs space-y-1">
+                                <p className="font-semibold text-amber-800 mb-1.5">Fee Breakdown Preview</p>
+                                <div className="flex justify-between text-slate-600">
+                                  <span>Your listed fee</span><span>₹{fee}</span>
+                                </div>
+                                <div className="flex justify-between text-slate-500">
+                                  <span>+ Platform fee (10%)</span><span>₹{commission}</span>
+                                </div>
+                                <div className="flex justify-between text-slate-500">
+                                  <span>+ GST (18% on platform fee)</span><span>₹{gst}</span>
+                                </div>
+                                <div className="flex justify-between text-slate-500 border-t border-amber-200 pt-1">
+                                  <span>Patient pays total</span><span>₹{patientPays}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-green-700 border-t border-amber-200 pt-1">
+                                  <span>You receive (full fee)</span><span>₹{payout}</span>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Qualifications <span className="text-slate-400 font-normal">(comma-separated)</span></label>
+                          <input type="text" name="doctorDetails.qualifications" value={formData.doctorDetails.qualifications} onChange={handleChange} placeholder="e.g. MBBS, MD, DNB" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        </div>
+                        <div>
+                          <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Clinic Name</label>
+                          <input type="text" name="doctorDetails.clinicName" value={formData.doctorDetails.clinicName} onChange={handleChange} placeholder="e.g. City Health Clinic" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2" />
+                        </div>
                     </div>
-                    <textarea name="doctorDetails.clinicAddress" value={formData.doctorDetails.clinicAddress} onChange={handleChange} placeholder="Clinic Address" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
-                    <textarea name="doctorDetails.about" value={formData.doctorDetails.about} onChange={handleChange} placeholder="About section..." rows="4" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Clinic Address</label>
+                      <textarea name="doctorDetails.clinicAddress" value={formData.doctorDetails.clinicAddress} onChange={handleChange} placeholder="Full clinic address" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">About</label>
+                      <textarea name="doctorDetails.about" value={formData.doctorDetails.about} onChange={handleChange} placeholder="Brief description about yourself, your practice and approach..." rows="4" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                    </div>
                 </FormSection>
                 <FormSection title="Expertise" icon={<Brain size={18} className="sm:w-5 sm:h-5" />}>
-                    <textarea name="doctorDetails.expertise.conditions" value={formData.doctorDetails.expertise.conditions} onChange={handleChange} placeholder="Conditions treated (comma-separated)" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
-                    <textarea name="doctorDetails.expertise.treatments" value={formData.doctorDetails.expertise.treatments} onChange={handleChange} placeholder="Treatments & procedures (comma-separated)" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Conditions Treated <span className="text-slate-400 font-normal">(comma-separated)</span></label>
+                      <textarea name="doctorDetails.expertise.conditions" value={formData.doctorDetails.expertise.conditions} onChange={handleChange} placeholder="e.g. Diabetes, Hypertension, Asthma" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Treatments & Procedures <span className="text-slate-400 font-normal">(comma-separated)</span></label>
+                      <textarea name="doctorDetails.expertise.treatments" value={formData.doctorDetails.expertise.treatments} onChange={handleChange} placeholder="e.g. ECG, Echocardiography, Angioplasty" rows="3" className="w-full rounded-lg border-slate-300 text-xs sm:text-sm py-1.5 sm:py-2"></textarea>
+                    </div>
                 </FormSection>
                 <FormSection title="Weekly Availability" icon={<Calendar size={18} className="sm:w-5 sm:h-5" />}>
                     {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (

@@ -42,6 +42,24 @@ const getRazorpayInstance = () => {
   return razorpay;
 };
 
+// Get payment preview (fee breakdown before booking)
+router.get('/preview', protect, async (req, res) => {
+  try {
+    const fees = parseFloat(req.query.fees);
+    if (!fees || fees <= 0) return res.status(400).json({ success: false, message: 'Invalid fees' });
+
+    let revenueSettings = await RevenueSettings.findOne({ isActive: true });
+    if (!revenueSettings) {
+      revenueSettings = { platformCommissionPercentage: 10, gstPercentage: 18, gstAppliedOn: 'commission', paymentGatewayPercentage: 2, paymentGatewayFixedCharge: 0 };
+    }
+
+    const breakdown = calculateRevenueBreakdown(fees, revenueSettings);
+    res.json({ success: true, breakdown });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to calculate preview' });
+  }
+});
+
 // Create Razorpay Order
 router.post('/order', protect, async (req, res) => {
   try {
@@ -338,8 +356,14 @@ router.post('/verify-and-book', protect, async (req, res) => {
                   
                   <div class="payment-box">
                     <h3 style="margin-top: 0; color: #14b8a6; text-align: center;">✓ Payment Successful</h3>
-                    <div class="amount">₹ ${appointment.fees.toFixed(2)}</div>
+                    <div class="amount">₹ ${revenueBreakdown.totalAmount.toFixed(2)}</div>
                     <p style="text-align: center; margin: 5px 0; color: #6b7280;">Payment ID: ${escapeHtml(razorpay_payment_id)}</p>
+                    <div style="margin-top:12px; font-size:12px; color:#4b5563; border-top:1px solid #d1fae5; padding-top:10px;">
+                      <div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Doctor fee</span><span>₹${revenueBreakdown.doctorFees.toFixed(2)}</span></div>
+                      <div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Platform fee (${revenueBreakdown.platformCommissionPercentage}%)</span><span>₹${revenueBreakdown.platformCommission.toFixed(2)}</span></div>
+                      <div style="display:flex; justify-content:space-between; margin:4px 0;"><span>GST (${revenueBreakdown.gstPercentage}%)</span><span>₹${revenueBreakdown.gstAmount.toFixed(2)}</span></div>
+                      <div style="display:flex; justify-content:space-between; margin:6px 0 0; font-weight:bold; border-top:1px solid #d1fae5; padding-top:6px;"><span>Total paid</span><span>₹${revenueBreakdown.totalAmount.toFixed(2)}</span></div>
+                    </div>
                   </div>
                   
                   ${receiptDownloadUrl ? `
@@ -493,7 +517,7 @@ router.post('/verify-and-book', protect, async (req, res) => {
                     </div>
                     <div class="info-row">
                       <span class="info-label">Amount Paid:</span>
-                      <span class="info-value">₹ ${appointment.fees.toFixed(2)}</span>
+                      <span class="info-value">₹ ${revenueBreakdown.totalAmount.toFixed(2)}</span>
                     </div>
                   </div>
                   

@@ -33,11 +33,20 @@ const ChatList = () => {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
+  const currentUserId = JSON.parse(localStorage.getItem('user'))?._id;
+
   const ChatItem = ({ chat }) => {
     const remainingDays = getRemainingDays(chat.expiresAt);
-    const otherUser = chat.patientId.name; // Simplified for this example
-    const otherUserRole = 'Patient'; // Simplified
-    const lastMessage = chat.messages[chat.messages.length - 1];
+
+    // Show the OTHER person's name — not the logged-in user
+    const isPatient = chat.patientId?._id?.toString() === currentUserId ||
+                      chat.patientId?.toString() === currentUserId;
+    const otherUser = isPatient
+      ? (chat.doctorId?.name || 'Doctor')
+      : (chat.patientId?.name || 'Patient');
+    const otherUserRole = isPatient ? 'Doctor' : 'Patient';
+
+    const lastMessage = chat.messages?.[chat.messages.length - 1];
 
     return (
       <Link to={`/chats/${chat._id}`} className="block p-4 rounded-xl border bg-white hover:bg-slate-50 transition-colors">

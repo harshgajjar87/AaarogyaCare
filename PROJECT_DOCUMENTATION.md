@@ -1,877 +1,427 @@
-# AarogyaCare - Complete Healthcare Management System
+# AarogyaCare — Project Documentation
 
-## 📋 Table of Contents
-- [Project Overview](#project-overview)
-- [Key Features](#key-features)
-- [Technology Stack](#technology-stack)
-- [System Architecture](#system-architecture)
-- [User Roles & Functionalities](#user-roles--functionalities)
-- [AI/ML Features](#aiml-features)
-- [Real-World Implementation](#real-world-implementation)
-- [Installation & Setup](#installation--setup)
-- [API Documentation](#api-documentation)
-- [Security Features](#security-features)
-- [Future Enhancements](#future-enhancements)
+## Overview
+
+AarogyaCare is a full-stack telemedicine platform connecting patients with doctors. It supports appointment booking with online payment, real-time chat, AI-powered triage and voice consultation, health predictions, prescription management, medical report analysis, and detailed analytics for doctors and admins.
 
 ---
 
-## 🏥 Project Overview
+## Tech Stack
 
-**AarogyaCare** is a comprehensive, full-stack healthcare management platform that bridges the gap between patients, doctors, and healthcare administrators. The platform leverages modern web technologies and AI/ML capabilities to provide intelligent healthcare services, appointment management, telemedicine, and health analytics.
-
-### Vision
-To democratize healthcare access by providing an intelligent, user-friendly platform that connects patients with healthcare providers while offering AI-powered health insights and predictions.
-
-### Mission
-- Simplify appointment booking and management
-- Provide AI-powered health predictions and triage
-- Enable seamless communication between patients and doctors
-- Offer comprehensive health analytics and reporting
-- Ensure secure and efficient healthcare data management
-
----
-
-## ✨ Key Features
-
-### 1. **Multi-Role User Management**
-- **Patients**: Book appointments, view medical history, access prescriptions
-- **Doctors**: Manage appointments, upload reports, write prescriptions
-- **Admins**: Oversee platform operations, verify doctors, manage users
-
-### 2. **AI-Powered Health Services**
-- **AI Triage System**: Intelligent symptom analysis and doctor recommendations
-- **Voice-Enabled AI Doctor**: Real-time voice consultation with AI (supports English, Hindi, Gujarati)
-- **Health Prediction Engine**: Personalized health risk assessment
-- **Medical Report Analysis**: AI-powered interpretation of lab reports (Blood, CBC, Lipid, Thyroid, etc.)
-- **Symptom Checker**: Interactive symptom analysis tool
-
-### 3. **Appointment Management**
-- Real-time appointment booking with available time slots
-- Integrated payment gateway (Razorpay)
-- Appointment status tracking (Pending, Confirmed, Completed, Cancelled)
-- Email notifications for appointments
-- Doctor availability management
-
-### 4. **Communication Features**
-- Real-time chat between patients and doctors
-- AI Chatbot for general queries
-- Voice call functionality with AI doctor
-- Push-to-talk mode for voice interactions
-
-### 5. **Medical Records Management**
-- Digital prescription generation with PDF download
-- Medical report upload and storage
-- Payment receipt generation
-- Prescription history tracking
-
-### 6. **Analytics & Insights**
-- Patient analytics dashboard
-- Doctor performance metrics
-- Appointment trends and statistics
-- Revenue tracking
-
-### 7. **Review & Rating System**
-- Patient reviews for doctors
-- Star rating system
-- Review moderation
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Tailwind CSS, Bootstrap 5, Chart.js, Framer Motion, Lucide React |
+| Backend | Node.js, Express 5, MongoDB (Mongoose) |
+| Auth | JWT, Google OAuth2 |
+| Payments | Razorpay |
+| Email | Mailjet (SMTP + REST API) |
+| AI / LLM | OpenAI GPT, Groq (llama-3.1), Google Gemini |
+| Speech | Web Speech API (STT), Google Cloud TTS / browser TTS |
+| File Storage | Local (`server/uploads/`) |
+| Deployment | Render (server), Vercel (client) |
 
 ---
 
-## 🛠 Technology Stack
+## Project Structure
 
-### Frontend
-- **Framework**: React.js 18.x
-- **Routing**: React Router DOM v6
-- **Styling**: 
-  - Tailwind CSS 3.x
-  - Custom CSS modules
-- **State Management**: 
-  - React Context API (Auth, Notifications, Theme)
-  - React Hooks (useState, useEffect, useContext, useRef)
-- **UI Components**: 
-  - Lucide React (Icons)
-  - React Toastify (Notifications)
-- **PDF Generation**: jsPDF
-- **Payment Integration**: Razorpay SDK
-- **Voice Recognition**: Web Speech API
-- **HTTP Client**: Axios
-
-### Backend
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: 
-  - JWT (JSON Web Tokens)
-  - bcrypt for password hashing
-- **File Upload**: Multer
-- **Email Service**: Nodemailer
-- **Payment Gateway**: Razorpay API
-- **Real-time Communication**: Socket.io (for chat)
-
-### AI/ML Integration
-- **Google Gemini AI**: 
-  - Health predictions
-  - Medical report analysis
-  - Triage system
-  - Chatbot responses
-- **Speech Synthesis API**: Text-to-speech for AI doctor
-- **Speech Recognition API**: Voice input processing
-
-### Cloud Services & APIs
-- **Payment**: Razorpay
-- **Email**: SMTP (Gmail/Custom)
-- **File Storage**: Local storage with cloud-ready architecture
-- **AI Services**: Google Generative AI (Gemini)
-
-### Development Tools
-- **Version Control**: Git
-- **Package Manager**: npm
-- **Environment Management**: dotenv
-- **API Testing**: Postman
-- **Code Quality**: ESLint
-
----
-
-## 🏗 System Architecture
-
-### High-Level Architecture
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Client Layer (React)                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │ Patient  │  │  Doctor  │  │  Admin   │  │  Public  │   │
-│  │Dashboard │  │Dashboard │  │Dashboard │  │  Pages   │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            ↕ HTTP/HTTPS
-┌─────────────────────────────────────────────────────────────┐
-│                   API Layer (Express.js)                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │   Auth   │  │Appointment│ │  Payment │  │   Chat   │   │
-│  │  Routes  │  │  Routes  │  │  Routes  │  │  Routes  │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│                  Business Logic Layer                        │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │Controllers│ │Middleware│  │  Services │  │   AI     │   │
-│  │          │  │          │  │          │  │ Services │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│                    Data Layer (MongoDB)                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  Users   │  │Appointments│ │ Reports  │  │ Reviews  │   │
-│  │Collection│  │Collection │  │Collection│  │Collection│   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│                  External Services                           │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │ Razorpay │  │  Gemini  │  │   SMTP   │  │  Storage │   │
-│  │   API    │  │    AI    │  │  Email   │  │  Service │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Database Schema
-
-#### User Model
-```javascript
-{
-  name: String,
-  email: String (unique),
-  password: String (hashed),
-  role: Enum ['patient', 'doctor', 'admin'],
-  profileImage: String,
-  profile: {
-    age: Number,
-    gender: String,
-    phone: String,
-    address: String,
-    bloodGroup: String,
-    emergencyContact: String
-  },
-  doctorDetails: {
-    specialization: String,
-    experience: Number,
-    qualifications: [String],
-    clinicName: String,
-    clinicAddress: String,
-    consultationFee: Number,
-    rating: Number,
-    totalReviews: Number,
-    availability: [{
-      day: String,
-      startTime: String,
-      endTime: String
-    }]
-  },
-  verified: Boolean,
-  createdAt: Date
-}
-```
-
-#### Appointment Model
-```javascript
-{
-  patientId: ObjectId (ref: User),
-  doctorId: ObjectId (ref: User),
-  name: String,
-  age: Number,
-  gender: String,
-  date: Date,
-  time: String,
-  reason: String,
-  status: Enum ['pending', 'confirmed', 'completed', 'cancelled'],
-  paymentInfo: {
-    orderId: String,
-    paymentId: String,
-    amount: Number,
-    status: String
-  },
-  createdAt: Date
-}
+AarogyaCare/
+├── client/                        # React frontend (CRA)
+│   ├── public/
+│   │   └── images/                # Doctor/hero images, notification sound
+│   └── src/
+│       ├── api/                   # Axios API call modules per domain
+│       ├── components/            # Reusable UI components
+│       ├── context/               # AuthContext, NotificationContext, ThemeContext
+│       ├── data/                  # Local medicine database (JSON/JS)
+│       ├── hooks/                 # Custom React hooks
+│       ├── pages/                 # Route-level page components
+│       └── App.js                 # Route definitions + layout
+│
+├── server/                        # Express backend
+│   ├── config/                    # Mail transporter configs (Mailjet)
+│   ├── controllers/               # Route handler logic
+│   ├── middleware/                # Auth, file upload middleware
+│   ├── models/                    # Mongoose schemas
+│   ├── routes/                    # Express routers
+│   ├── uploads/                   # Uploaded files (chat, reports, profiles, verifications)
+│   ├── utils/                     # PDF generator, revenue calculator
+│   └── server.js                  # App entry point
+│
+├── .env.production                # Production environment variables (do not commit secrets)
+├── knowledge.txt                  # Clinical knowledge base for AI triage system prompt
+└── vercel.json                    # Vercel deployment config
 ```
 
 ---
 
-## 👥 User Roles & Functionalities
+## Environment Variables
 
-### 1. Patient Portal
+### Server (`server/.env`)
 
-#### Dashboard Features
-- View upcoming appointments
-- Browse and search doctors by specialization, location, rating
-- Quick access to health prediction tools
-- AI-powered chatbot assistance
-- Voice call with AI doctor
+| Variable | Description |
+|---|---|
+| `PORT` | Server port (default `5000`) |
+| `NODE_ENV` | `development` or `production` |
+| `MONGO_URI` | MongoDB Atlas connection string |
+| `JWT_SECRET` | JWT signing secret |
+| `MAIL_USER` | Sender email address |
+| `ADMIN_EMAIL` | Admin notification email |
+| `MAILJET_API_KEY` | Mailjet API key |
+| `MAILJET_SECRET_KEY` | Mailjet secret key |
+| `OPENAI_API_KEY` | OpenAI API key |
+| `GROQ_API_KEY` | Groq API key |
+| `GOOGLE_API_KEY` | Google Gemini API key |
+| `GOOGLE_CLOUD_TTS_KEY` | Google Cloud Text-to-Speech API key |
+| `GOOGLE_CLIENT_ID` | Google OAuth2 client ID |
+| `RAZORPAY_KEY_ID` | Razorpay key ID |
+| `RAZORPAY_KEY_SECRET` | Razorpay key secret |
+| `SERVER_URL` | Public server URL (used for keep-alive ping on Render) |
+| `CLIENT_URL` | Frontend URL |
 
-#### Appointment Management
-- Book appointments with real-time slot availability
-- Integrated payment processing
-- View appointment history
-- Cancel/reschedule appointments
-- Download appointment receipts
+### Client (`client/.env`)
 
-#### Health Services
-- **General Health Prediction**: Input body metrics, lifestyle data for personalized health insights
-- **Medical Report Analysis**: Upload lab reports (Blood, CBC, Lipid, Thyroid, Liver, Kidney, etc.) for AI interpretation
-- **Symptom Checker**: Interactive symptom analysis
-- **Health Risk Calculator**: Assess health risks based on various factors
+| Variable | Description |
+|---|---|
+| `REACT_APP_API_BASE_URL` | Backend base URL |
+| `REACT_APP_FLASK_API_URL` | Flask AI service URL (optional) |
+| `RAZORPAY_KEY_ID` | Razorpay public key |
+| `GENERATE_SOURCEMAP` | Set to `false` for production builds |
 
-#### Communication
-- Real-time chat with doctors
-- AI triage chat for preliminary assessment
-- Voice consultation with AI doctor (multilingual support)
-- General query chatbot
+> Never commit `.env` files. Add them to `.gitignore`.
 
-#### Medical Records
-- View and download prescriptions
-- Access medical reports uploaded by doctors
-- Download payment receipts
-- Track prescription history
+---
 
-#### Profile Management
-- Update personal information
-- Upload profile picture
-- Manage emergency contacts
-- View payment history
+## User Roles
 
-### 2. Doctor Portal
+| Role | Description |
+|---|---|
+| `patient` | Books appointments, chats with doctors, uses AI tools, views prescriptions and reports |
+| `doctor` | Manages appointments, uploads reports, writes prescriptions, views analytics and patient history |
+| `admin` | Full platform management — doctors, patients, appointments, revenue, verifications, queries |
 
-#### Dashboard Features
-- View today's appointments
-- Patient management
-- Quick statistics (total patients, appointments, revenue)
-- Analytics dashboard
+---
 
-#### Appointment Management
+## Features
+
+### Public / Landing Page
+- Hero section with rotating doctor carousel
+- AI tools showcase (Health Risk Calculator, AI Chat Doctor, Voice AI Doctor, Report Analyzer)
+- Platform features overview
+- How It Works walkthrough
+- Live doctor listing (fetched from DB)
+- Patient reviews carousel
+- Register as Patient / Register as Doctor CTAs
+
+---
+
+### Authentication
+- Patient registration with email + OTP verification
+- Doctor registration (separate flow with professional details)
+- Login with email/password
+- Google OAuth2 login
+- Forgot password / Reset password via email link
+- JWT-based session management
+- Protected routes per role
+
+---
+
+### Patient Features
+
+#### Dashboard
+- Upcoming appointments summary
+- Quick links to book, chat, AI tools
+
+#### Appointment Booking (`/patient/appointments`)
+- Browse and filter doctors by specialization, name, location
+- View doctor profile, ratings, availability
+- Select date and time slot
+- Visual slot grid — booked slots shown with strikethrough, past slots filtered client-side
+- Full fee breakdown before payment:
+  - Doctor consultation fee
+  - Platform fee (10%)
+  - GST (18% on platform fee)
+  - Total charged via Razorpay
+- Razorpay payment integration
+- Appointment confirmation
+
+#### My Appointments (`/patient/my-appointments`)
+- List of all past and upcoming appointments
+- Status tracking (pending, confirmed, completed, cancelled)
+- View prescriptions linked to appointments
+
+#### Payment History (`/patient/payments`)
+- Full transaction history with fee breakdown per appointment
+
+#### Prescriptions (`/patient/prescriptions`)
+- View all prescriptions issued by doctors
+- Medicines, dosage, instructions, doctor notes
+
+#### Medical Reports (`/patient/reports`)
+- View reports uploaded by doctors
+- AI-powered report analysis (extract key findings)
+- Download reports as PDF
+
+#### Chat with Doctor
+- Start a chat session with any doctor
+- Real-time messaging with file/image sharing
+- Chat list shows correct names (patient sees doctor name, doctor sees patient name)
+- Archived chats visible after doctor ends session
+
+#### AI Triage Chat (`AITriageChat`)
+- Multi-turn symptom collection using clinical HPI methodology
+- Multilingual: English, Hindi, Gujarati
+- Session memory — collected facts persist across turns via sessionStorage
+- Red-flag emergency override (e.g. chest pain → immediate ER recommendation)
+- Specialist recommendation based on symptoms
+- Speech-to-text mic input on every message
+- Text-to-speech "Listen" button on every AI response
+- Language selector (not disabled)
+
+#### AI Voice Call (`AIVoiceCall`)
+- Press-and-hold mic button for voice input
+- AI responds with synthesized speech
+- Same triage logic as chat
+
+#### Voice Doctor Page (`/doctor/:doctorId/voice`)
+- Voice-based consultation interface with a specific doctor's AI persona
+
+#### Health Risk Calculator (`/health-risk`)
+- Input lifestyle factors (age, BMI, smoking, activity, etc.)
+- Returns risk score and personalized recommendations
+
+#### Health Prediction (`/health-prediction`)
+- AI-based disease prediction from symptoms and health data
+- General prediction and condition-specific analysis
+
+#### Symptom Checker (`/symptom-checker`)
+- Select symptoms from a list
+- Get suggested specialist type and possible conditions
+
+#### Notifications (`/notifications`)
+- In-app notification center
+- Bell icon with unread count in navbar
+- Notification sound on new alerts
+
+#### Profile
+- Edit personal details, profile photo
+- Change email (with OTP verification)
+- Change password
+
+---
+
+### Doctor Features
+
+#### Dashboard (`/doctor/dashboard`)
+- Today's appointment schedule
+- Patient count, earnings summary
+- Quick action links
+
+#### Appointments (`/doctor/appointments`)
 - View all appointments (upcoming, past, cancelled)
-- Update appointment status
-- Manage availability schedule
-- Set consultation fees
+- Confirm or cancel appointments
+- Mark as completed
+- Link to write prescription
 
-#### Patient Management
-- View patient list
-- Access patient details and history
-- View patient prescriptions
-- Track patient appointments
+#### Patients (`/doctor/patients`)
+- List of all patients who have booked with this doctor
+- Click through to full patient detail view
 
-#### Medical Services
-- Write digital prescriptions with medicine database
-- Upload medical reports for patients
-- Download prescription PDFs
-- Email reports to patients
+#### Patient Details (`/patient/:patientId`)
+- Full patient profile
+- Appointment history with this doctor
+- Reports and prescriptions
 
-#### Communication
-- Chat with patients
-- Respond to patient queries
-- Voice consultation capabilities
+#### Upload Report (`/doctor/upload-report`)
+- Upload PDF medical reports for a patient
+- Report linked to patient account
 
-#### Analytics
-- View appointment trends
-- Track revenue
-- Patient demographics
-- Performance metrics
+#### Reports (`/doctor/reports`)
+- View all reports uploaded by this doctor
 
-#### Profile Management
-- Update professional details
-- Upload clinic images
-- Manage qualifications and expertise
-- Set availability hours
+#### Prescriptions (`/doctor/prescriptions/:appointmentId`)
+- Write prescription for a completed appointment
+- Add medicines with dosage, frequency, duration
+- Medicine autocomplete from local database
+- Instructions and notes
+- PDF generation
 
-### 3. Admin Portal
+#### Reviews (`/doctor/reviews`)
+- View all patient reviews and ratings
+- Average rating display
 
-#### Dashboard Features
-- System-wide statistics
-- User management overview
-- Appointment monitoring
-- Revenue tracking
+#### Analytics (`/doctor/analytics`)
+- Total appointments, completed, cancelled
+- Earnings breakdown:
+  - Total listed fee collected
+  - Platform fee charged to patients (10%)
+  - GST collected (18% on platform fee)
+  - Actual earnings (full listed fee — no deductions from doctor)
+- Note explaining that patients pay listed fee + platform fee + GST on top
 
-#### User Management
-- View all patients and doctors
-- Verify doctor registrations
-- Manage user accounts
-- Handle user queries
+#### Profile (`/profile`)
+- Edit professional details: specialization, experience, qualifications, clinic info
+- Set consultation fee with live fee breakdown preview:
+  - Shows what patient will pay (fee + platform fee + GST)
+  - Shows what doctor receives (full listed fee)
+- Availability schedule management
+- Expertise: conditions treated, treatments offered
+- Profile photo upload
 
-#### Doctor Verification
-- Review doctor credentials
-- Approve/reject verification requests
-- Manage doctor profiles
-
-#### Appointment Management
-- View all appointments
-- Monitor appointment status
-- Handle disputes
-- Generate reports
-
-#### Analytics
-- Platform-wide analytics
-- Revenue reports
-- User growth metrics
-- Appointment trends
-
-#### Query Management
-- Handle contact form submissions
-- Respond to user queries
-- Manage support tickets
+#### Doctor Verification (`/doctor-verification`)
+- Upload verification documents (degree, registration certificate)
+- Track verification status (pending / approved / rejected)
 
 ---
 
-## 🤖 AI/ML Features
+### Admin Features
 
-### 1. AI Triage System
-**Technology**: Google Gemini AI
+#### Dashboard (`/admin/dashboard`)
+- Platform-wide stats: total doctors, patients, appointments, revenue
 
-**Functionality**:
-- Analyzes patient symptoms through conversational interface
-- Asks relevant follow-up questions
-- Provides preliminary diagnosis
-- Recommends appropriate medical specialization
-- Suggests urgency level
-- Multilingual support (English, Hindi, Gujarati)
+#### Doctors (`/admin/doctors`)
+- List all registered doctors with full details
+- Toggle doctor active/inactive status
 
-**Implementation**:
-```javascript
-POST /api/triage/chat
-{
-  message: "I have fever and headache",
-  history: [...previousMessages],
-  language: "english"
-}
-```
+#### Doctor Verifications (`/admin/verifications`)
+- Review submitted verification documents
+- Approve or reject doctor verification requests
 
-### 2. Voice-Enabled AI Doctor
-**Technology**: Web Speech API + Google Gemini AI
+#### Patients (`/admin/patients`)
+- List all registered patients
 
-**Features**:
-- Real-time voice recognition
-- Natural language processing
-- Text-to-speech responses
-- Push-to-talk mode
-- Continuous listening mode
-- Multi-language support
+#### Appointments (`/admin/appointments`)
+- View all appointments across the platform
+- Filter by status, date, doctor, patient
 
-**Use Cases**:
-- Preliminary health consultation
-- Symptom assessment
-- Health advice
-- Medication information
+#### Revenue (`/admin/revenue`)
+- 3 summary cards: Total Collected, Doctor Payouts, Net Platform Profit
+- Detailed breakdown panel:
+  - Total collected from patients (via Razorpay)
+  - Minus doctor payouts (full listed fees)
+  - Minus payment gateway charges (2%)
+  - = Net platform profit
+- All figures with GST breakdown
 
-### 3. Health Prediction Engine
-**Technology**: Google Gemini AI + Custom Algorithms
+#### Analytics (`/admin/analytics`)
+- Appointment trends over time (chart)
+- Revenue trends
+- Top doctors by appointments and earnings
+- Platform commission and GST totals
 
-**Capabilities**:
-- Analyzes body metrics (BMI, blood pressure, blood sugar, cholesterol)
-- Considers lifestyle factors (smoking, alcohol, exercise, sleep)
-- Evaluates family history and chronic conditions
-- Generates health score (0-100)
-- Identifies risk factors
-- Predicts potential health conditions
-- Provides personalized recommendations
-
-**Input Parameters**:
-- Age, gender, height, weight
-- Blood pressure (systolic/diastolic)
-- Blood sugar levels
-- Cholesterol levels
-- Lifestyle habits
-- Medical history
-
-### 4. Medical Report Analysis
-**Technology**: Google Gemini AI
-
-**Supported Report Types**:
-- Blood Test (Complete Blood Count)
-- CBC (Hemoglobin, WBC, RBC, Platelets)
-- Lipid Profile (Cholesterol, LDL, HDL, Triglycerides)
-- Thyroid Function (TSH, T3, T4)
-- Liver Function (ALT, AST, Bilirubin)
-- Kidney Function (Creatinine, BUN, eGFR)
-- Diabetes Panel (Glucose, HbA1c)
-- Vitamin Levels (D, B12, Iron)
-- Urine Analysis
-
-**Analysis Output**:
-- Parameter-wise breakdown
-- Normal/Abnormal indicators
-- Health implications
-- Recommendations
-- Downloadable PDF report
-
-### 5. AI Chatbot
-**Technology**: Google Gemini AI
-
-**Capabilities**:
-- Answer general health queries
-- Provide platform navigation help
-- Explain medical terms
-- Offer health tips
-- Handle FAQs
-- Create support tickets
+#### Queries (`/admin/queries`)
+- View contact form submissions from users
+- Mark as resolved
 
 ---
 
-## 🌍 Real-World Implementation
+## Revenue / Payment Model
 
-### Use Cases
+Doctor sets a consultation fee (e.g. ₹799).
 
-#### 1. Rural Healthcare Access
-**Problem**: Limited access to healthcare in rural areas
-**Solution**: 
-- AI triage reduces need for physical consultation
-- Voice-enabled AI doctor overcomes literacy barriers
-- Multilingual support (Hindi, Gujarati) for regional users
-- Telemedicine capabilities connect rural patients with urban doctors
+| Item | Calculation | Amount |
+|---|---|---|
+| Doctor consultation fee | Set by doctor | ₹799.00 |
+| Platform commission (10%) | 10% of doctor fee | ₹79.90 |
+| GST (18% on commission) | 18% of ₹79.90 | ₹14.38 |
+| **Patient pays (Razorpay)** | Fee + commission + GST | **₹893.28** |
+| Doctor receives | Full listed fee | ₹799.00 |
+| Gateway charges (2%) | 2% of total | ₹17.87 |
+| **Platform net profit** | Commission + GST − gateway | **₹76.41** |
 
-#### 2. Preventive Healthcare
-**Problem**: Lack of awareness about health risks
-**Solution**:
-- Health prediction engine identifies risks early
-- Regular health monitoring through report analysis
-- Personalized health recommendations
-- Symptom checker for early detection
-
-#### 3. Healthcare Cost Reduction
-**Problem**: High consultation costs for minor issues
-**Solution**:
-- AI triage filters cases requiring doctor consultation
-- Reduces unnecessary hospital visits
-- Transparent pricing with online payments
-- Digital prescriptions reduce pharmacy errors
-
-#### 4. Doctor Efficiency
-**Problem**: Administrative burden on doctors
-**Solution**:
-- Automated appointment scheduling
-- Digital prescription generation
-- Patient history readily available
-- Reduced paperwork
-
-#### 5. Patient Empowerment
-**Problem**: Patients don't understand medical reports
-**Solution**:
-- AI-powered report interpretation
-- Easy-to-understand health insights
-- Access to medical history anytime
-- Educational health content
-
-### Target Audience
-
-1. **Primary Users**:
-   - Urban and semi-urban patients (18-65 years)
-   - Tech-savvy individuals seeking convenient healthcare
-   - Chronic disease patients needing regular monitoring
-
-2. **Healthcare Providers**:
-   - General practitioners
-   - Specialists (Cardiologists, Diabetologists, etc.)
-   - Clinics and small hospitals
-
-3. **Geographic Focus**:
-   - India (with multilingual support)
-   - Expandable to other developing nations
-
-### Market Potential
-
-- **Indian Healthcare Market**: $372 billion (2022)
-- **Digital Health Market**: Expected to reach $50 billion by 2025
-- **Telemedicine Growth**: 31% CAGR (2021-2028)
-- **Target Users**: 500+ million internet users in India
-
-### Competitive Advantages
-
-1. **AI Integration**: Advanced AI features not available in most competitors
-2. **Multilingual Support**: Caters to diverse Indian population
-3. **Comprehensive Platform**: All-in-one solution (appointments, prescriptions, reports, payments)
-4. **Voice Capabilities**: Accessibility for users with low digital literacy
-5. **Affordable**: Lower consultation costs through AI triage
+- Doctor is never charged — they receive their full listed fee
+- Platform earns from commission + GST minus gateway charges
+- All breakdowns visible to patient (booking), doctor (analytics/profile), and admin (revenue page)
 
 ---
 
-## 🚀 Installation & Setup
+## API Routes Reference
 
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (v5 or higher)
-- npm or yarn
-- Razorpay account (for payments)
-- Google AI API key (for Gemini)
+| Prefix | Description |
+|---|---|
+| `/api/auth` | Register, login, Google OAuth, forgot/reset password |
+| `/api/appointments` | Book, list, update status, get slots |
+| `/api/payment` | Create Razorpay order, verify, fee preview, payment history |
+| `/api/analytics` | Doctor earnings breakdown, admin platform revenue |
+| `/api/revenue` | Revenue settings (commission rate, GST rate) |
+| `/api/chat` | Start chat, send/get messages, end/archive chat |
+| `/api/chatbot` | General health chatbot |
+| `/api/triage` | AI symptom triage (multi-turn, multilingual, session memory) |
+| `/api/tts` | Text-to-speech synthesis |
+| `/api/ai` | AI report extraction, health prediction |
+| `/api/health` | Health risk prediction |
+| `/api/prescriptions` | Create, view prescriptions |
+| `/api/reports` | Upload, view, download medical reports |
+| `/api/reviews` | Doctor reviews and ratings |
+| `/api/notifications` | In-app notifications |
+| `/api/verification` | Doctor document verification workflow |
+| `/api/doctors` | Doctor listing, search, filter |
+| `/api/patients` | Patient data |
+| `/api/profile` | Profile update |
+| `/api/otp` | OTP generation and verification |
+| `/api/contact` | Contact form submissions |
+| `/api/admin` | Admin: doctors, patients, platform management |
+| `/api/admin/appointments` | Admin appointment management |
+| `/api/admin/doctors/new` | Full doctor data with toggle-active |
+| `/upload` | Image/file upload |
 
-### Environment Variables
+---
 
-#### Server (.env)
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/aarogyacare
-JWT_SECRET=your_jwt_secret_key
-JWT_EXPIRE=7d
+## Data Models
 
-# Email Configuration
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password
+| Model | Key Fields |
+|---|---|
+| `User` | name, email, password (hashed), role (patient/doctor/admin), doctorDetails, profile, profileImage, isActive |
+| `Appointment` | patient, doctor, date, slot, status, paymentStatus, transactionId, notes |
+| `Transaction` | patient, doctor, amount, doctorPayout, platformRevenue, platformCommission, gstAmount, gatewayCharges |
+| `Chat` | patient, doctor, messages[], isArchived, endedByDoctor |
+| `Prescription` | doctor, patient, appointment, medicines[], instructions, createdAt |
+| `Report` | patient, doctor, fileUrl, fileName, analysisResult, createdAt |
+| `Review` | doctor, patient, rating (1–5), comment, createdAt |
+| `Notification` | user, type, message, isRead, createdAt |
+| `DoctorVerification` | doctor, documents[], status (pending/approved/rejected), adminNote |
+| `RevenueSettings` | commissionRate, gstRate, gatewayChargeRate |
+| `Otp` | email, otp, expiresAt |
+| `Query` | name, email, message, status (open/resolved) |
 
-# Razorpay
-RAZORPAY_KEY_ID=your_razorpay_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+---
 
-# Google AI
-GEMINI_API_KEY=your_gemini_api_key
+## Running Locally
 
-# Frontend URL
-CLIENT_URL=http://localhost:3000
-```
-
-#### Client (.env)
-```env
-REACT_APP_API_BASE_URL=http://localhost:5000
-REACT_APP_RAZORPAY_KEY_ID=your_razorpay_key
-```
-
-### Installation Steps
-
-1. **Clone Repository**
 ```bash
-git clone https://github.com/yourusername/aarogyacare.git
-cd aarogyacare
-```
+# 1. Clone the repo
+git clone <repo-url>
+cd AarogyaCare
 
-2. **Install Server Dependencies**
-```bash
+# 2. Set up server
 cd server
+cp .env.example .env   # fill in your values
 npm install
-```
+npm run dev            # runs on http://localhost:5000
 
-3. **Install Client Dependencies**
-```bash
-cd ../client
-npm install
-```
-
-4. **Setup Environment Variables**
-- Create `.env` files in both server and client directories
-- Add required environment variables
-
-5. **Start MongoDB**
-```bash
-mongod
-```
-
-6. **Start Server**
-```bash
-cd server
-npm start
-# Server runs on http://localhost:5000
-```
-
-7. **Start Client**
-```bash
+# 3. Set up client (new terminal)
 cd client
-npm start
-# Client runs on http://localhost:3000
-```
-
-### Database Seeding (Optional)
-```bash
-cd server
-node seedAppointments.js
+cp .env.example .env   # fill in your values
+npm install
+npm start              # runs on http://localhost:3000
 ```
 
 ---
 
-## 📡 API Documentation
+## Deployment
 
-### Authentication Endpoints
-
-#### Register User
-```http
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
-  "role": "patient"
-}
-```
-
-#### Login
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
-
-### Appointment Endpoints
-
-#### Create Appointment
-```http
-POST /api/appointments
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "doctorId": "doctor_id",
-  "name": "John Doe",
-  "age": 30,
-  "gender": "male",
-  "date": "2024-03-15",
-  "time": "10:00 AM",
-  "reason": "Regular checkup"
-}
-```
-
-#### Get Available Slots
-```http
-GET /api/appointments/slots/:doctorId/:date
-Authorization: Bearer <token>
-```
-
-### Payment Endpoints
-
-#### Create Order
-```http
-POST /api/payment/create-order
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "amount": 500,
-  "appointmentData": {...}
-}
-```
-
-#### Verify Payment
-```http
-POST /api/payment/verify
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "razorpay_order_id": "order_id",
-  "razorpay_payment_id": "payment_id",
-  "razorpay_signature": "signature",
-  "appointmentData": {...}
-}
-```
-
-### AI Endpoints
-
-#### Health Prediction
-```http
-POST /api/health/general-prediction
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "age": 30,
-  "gender": "male",
-  "height": 175,
-  "weight": 70,
-  "bloodPressureSystolic": 120,
-  "bloodPressureDiastolic": 80,
-  ...
-}
-```
-
-#### Report Analysis
-```http
-POST /api/health/analyze-report
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "reportType": "Blood Test",
-  "reportData": "Hemoglobin: 13.5 g/dL\nWBC: 7500..."
-}
-```
-
-#### AI Triage
-```http
-POST /api/triage/chat
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "message": "I have fever",
-  "history": [],
-  "language": "english"
-}
-```
+- Server: Render — `server/Procfile` defines `web: node server.js`
+- Client: Vercel — `vercel.json` at root handles SPA routing
+- Keep-alive ping runs every 14 minutes in production to prevent Render free tier sleep (`SERVER_URL` env var required)
 
 ---
 
-## 🔒 Security Features
+## Important Notes
 
-### 1. Authentication & Authorization
-- JWT-based authentication
-- Role-based access control (RBAC)
-- Password hashing with bcrypt
-- Secure session management
-
-### 2. Data Protection
-- HTTPS encryption (production)
-- Input validation and sanitization
-- SQL injection prevention (MongoDB)
-- XSS protection
-
-### 3. Payment Security
-- Razorpay PCI-DSS compliant gateway
-- Payment signature verification
-- Secure webhook handling
-
-### 4. File Upload Security
-- File type validation
-- File size limits
-- Secure file storage
-- Malware scanning ready
-
-### 5. API Security
-- Rate limiting
-- CORS configuration
-- Request validation
-- Error handling without data leakage
-
----
-
-## 🔮 Future Enhancements
-
-### Phase 1 (Short-term)
-1. **Mobile Application**: React Native app for iOS and Android
-2. **Video Consultation**: WebRTC-based video calls
-3. **Medicine Delivery**: Integration with pharmacy partners
-4. **Lab Test Booking**: Home sample collection
-5. **Health Insurance**: Integration with insurance providers
-
-### Phase 2 (Medium-term)
-1. **Wearable Integration**: Sync with fitness trackers
-2. **AI Diagnosis**: Advanced disease prediction models
-3. **Blockchain**: Secure medical records on blockchain
-4. **Telemedicine Kiosks**: Physical kiosks in rural areas
-5. **Multi-language Expansion**: Support for more Indian languages
-
-### Phase 3 (Long-term)
-1. **Hospital Management**: Full HMS integration
-2. **Research Platform**: Anonymized data for medical research
-3. **Global Expansion**: International markets
-4. **AI Drug Discovery**: Collaboration with pharma companies
-5. **Preventive Care Programs**: Corporate wellness programs
-
----
-
-## 📊 Performance Metrics
-
-### Current Capabilities
-- **Concurrent Users**: 1000+
-- **Response Time**: <200ms (API)
-- **Uptime**: 99.9%
-- **Database**: Handles 100K+ records
-- **AI Response Time**: 2-5 seconds
-
-### Scalability
-- Horizontal scaling ready
-- Microservices architecture compatible
-- CDN integration ready
-- Load balancer compatible
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
----
-
-## 📄 License
-
-This project is proprietary software. All rights reserved.
-
----
-
-## 👨‍💻 Development Team
-
-- **Project Lead**: [Your Name]
-- **Backend Developer**: [Name]
-- **Frontend Developer**: [Name]
-- **AI/ML Engineer**: [Name]
-- **UI/UX Designer**: [Name]
-
----
-
-## 📞 Contact & Support
-
-- **Email**: support@aarogyacare.com
-- **Website**: https://aarogyacare.com
-- **GitHub**: https://github.com/yourusername/aarogyacare
-- **Documentation**: https://docs.aarogyacare.com
-
----
-
-## 🙏 Acknowledgments
-
-- Google Gemini AI for AI capabilities
-- Razorpay for payment processing
-- MongoDB for database solutions
-- React community for excellent libraries
-- All open-source contributors
-
----
-
-**Last Updated**: March 2024
-**Version**: 1.0.0
-**Status**: Production Ready
+- All time-based filtering (past slots, etc.) is done client-side — server runs UTC, app targets IST (+5:30)
+- Doctor names in the DB already include the "Dr." prefix — do not add it in code
+- `knowledge.txt` contains clinical triage knowledge injected into the AI triage system prompt
+- Mail is split across two Mailjet configs:
+  - `mailjet.js` (SMTP/nodemailer) — used by auth emails and report notifications
+  - `mailjetAPI.js` (REST API) — used by OTP and contact form
+- `server/uploads/` subfolders: `chat/`, `profiles/`, `reports/`, `verifications/`, `clinic-images/`

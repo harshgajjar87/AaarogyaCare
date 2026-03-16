@@ -195,32 +195,14 @@ const AdminRevenue = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-4 sm:p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <DollarSign size={24} />
-            <span className="text-xs sm:text-sm opacity-90">Platform Revenue</span>
-          </div>
-          <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(analytics?.platformRevenue)}</p>
-          <p className="text-xs sm:text-sm opacity-90 mt-1">Net earnings</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 sm:p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-2">
-            <TrendingUp size={24} />
-            <span className="text-xs sm:text-sm opacity-90">Total Revenue</span>
+            <span className="text-xs sm:text-sm opacity-90">Total Collected</span>
           </div>
           <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(analytics?.totalRevenue)}</p>
-          <p className="text-xs sm:text-sm opacity-90 mt-1">{analytics?.totalTransactions} transactions</p>
-        </div>
-
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 sm:p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-2">
-            <CreditCard size={24} />
-            <span className="text-xs sm:text-sm opacity-90">Commission</span>
-          </div>
-          <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(analytics?.platformCommission)}</p>
-          <p className="text-xs sm:text-sm opacity-90 mt-1">+ GST: {formatCurrency(analytics?.gstCollected)}</p>
+          <p className="text-xs sm:text-sm opacity-90 mt-1">From patients ({analytics?.totalTransactions} transactions)</p>
         </div>
 
         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 sm:p-6 text-white shadow-lg">
@@ -230,6 +212,48 @@ const AdminRevenue = () => {
           </div>
           <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(analytics?.doctorPayouts)}</p>
           <p className="text-xs sm:text-sm opacity-90 mt-1">{analytics?.pendingPayouts} pending</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 sm:p-6 text-white shadow-lg sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between mb-2">
+            <TrendingUp size={24} />
+            <span className="text-xs sm:text-sm opacity-90">Net Platform Profit</span>
+          </div>
+          <p className="text-2xl sm:text-3xl font-bold">{formatCurrency(analytics?.platformRevenue)}</p>
+          <p className="text-xs sm:text-sm opacity-90 mt-1">After gateway charges</p>
+        </div>
+      </div>
+
+      {/* Detailed Breakdown Panel */}
+      <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-6">
+        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <CreditCard size={20} className="text-teal-600" /> Revenue Breakdown
+        </h2>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between items-center py-2 border-b border-slate-100">
+            <span className="text-slate-600">Total collected from patients</span>
+            <span className="font-semibold text-slate-800">{formatCurrency(analytics?.totalRevenue)}</span>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-slate-100">
+            <span className="text-slate-500">− Doctor payouts</span>
+            <span className="text-orange-600 font-medium">− {formatCurrency(analytics?.doctorPayouts)}</span>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-slate-100 pl-4">
+            <span className="text-slate-400 text-xs">Platform commission ({settings?.platformCommissionPercentage || 10}%)</span>
+            <span className="text-slate-600 text-xs">{formatCurrency(analytics?.platformCommission)}</span>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-slate-100 pl-4">
+            <span className="text-slate-400 text-xs">GST collected ({settings?.gstPercentage || 18}%)</span>
+            <span className="text-slate-600 text-xs">{formatCurrency(analytics?.gstCollected)}</span>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-slate-100">
+            <span className="text-slate-500">− Payment gateway charges ({settings?.paymentGatewayPercentage || 2}%)</span>
+            <span className="text-red-500 font-medium">− {formatCurrency(analytics?.gatewayCharges)}</span>
+          </div>
+          <div className="flex justify-between items-center py-3 bg-green-50 rounded-lg px-3 mt-2">
+            <span className="font-bold text-green-800">Net Platform Profit</span>
+            <span className="font-bold text-green-700 text-lg">{formatCurrency(analytics?.platformRevenue)}</span>
+          </div>
         </div>
       </div>
 

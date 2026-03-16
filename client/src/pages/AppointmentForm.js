@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { getAllDoctors } from '../api/doctorAPI';
 import { createAppointment, getAvailableSlots } from '../api/appointmentAPI';
-import { createPaymentOrder, verifyPaymentAndBook } from '../api/paymentAPI';
+import { createPaymentOrder, verifyPaymentAndBook, getPaymentPreview } from '../api/paymentAPI';
 import useRazorpay from '../hooks/useRazorpay';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { User, Calendar, Clock, MessageSquare, Stethoscope, Book, Loader2, ArrowLeft, CreditCard } from 'lucide-react';
@@ -26,11 +26,13 @@ const AppointmentForm = () => {
     name: '', age: '', gender: '', date: '', time: '', reason: '', doctorId: ''
   });
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [bookedSlots, setBookedSlots] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [minDate, setMinDate] = useState('');
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [feePreview, setFeePreview] = useState(null);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -61,7 +63,26 @@ const AppointmentForm = () => {
         setSlotsLoading(true);
         try {
           const response = await getAvailableSlots(form.doctorId, form.date);
-          setAvailableSlots(response.availableSlots || []);
+
+          // Filter out past slots client-side (avoids UTC/IST server timezone issues)
+          const today = new Date().toISOString().split('T')[0];
+          const isToday = form.date === today;
+          const now = new Date();
+
+          const isPastSlot = (slot) => {
+            if (!isToday) return false;
+            const [h, m] = slot.split(':').map(Number);
+            const slotTime = new Date();
+            slotTime.setHours(h, m, 0, 0);
+            return slotTime <= now;
+          };
+
+          const available = (response.availableSlots || []).filter(s => !isPastSlot(s));
+          const pastSlots = (response.availableSlots || []).filter(s => isPastSlot(s));
+          const booked = [...(response.bookedSlots || []), ...pastSlots];
+
+          setAvailableSlots(available);
+          setBookedSlots(booked);
           
           // Show message if no slots available
           if (!response.availableSlots || response.availableSlots.length === 0) {
@@ -83,6 +104,7 @@ const AppointmentForm = () => {
     } else {
       // Reset slots when doctor or date is cleared
       setAvailableSlots([]);
+      setBookedSlots([]);
     }
   }, [form.doctorId, form.date]);
 
@@ -93,15 +115,29 @@ const AppointmentForm = () => {
     if (name === 'doctorId') {
       const doctor = doctors.find(doc => doc._id === value);
       setSelectedDoctor(doctor);
+      setFeePreview(null);
       // Reset date and time when doctor changes
       setForm(prev => ({ ...prev, date: '', time: '' }));
       setAvailableSlots([]);
+      // Fetch fee preview for selected doctor
+      if (doctor?.doctorDetails?.consultationFee) {
+        getPaymentPreview(doctor.doctorDetails.consultationFee)
+          .then(data => { if (data.success) setFeePreview(data.breakdown); })
+          .catch(() => {});
+      }
     }
     
     if (name === 'date') {
       // Reset time when date changes
       setForm(prev => ({ ...prev, time: '' }));
     }
+  };
+
+  const formatSlot = (slot) => {
+    const [h, m] = slot.split(':').map(Number);
+    const period = h < 12 ? 'AM' : 'PM';
+    const hour = h % 12 || 12;
+    return `${hour}:${m.toString().padStart(2, '0')} ${period}`;
   };
 
   const handleVoiceTranscript = (transcript) => {
@@ -127,7 +163,8 @@ const AppointmentForm = () => {
       const bookingDetails = {
         ...form,
         doctorName: selectedDoctor.name,
-        fees: selectedDoctor.doctorDetails?.consultationFee || 500, // Default fee if not set
+        fees: selectedDoctor.doctorDetails?.consultationFee || 500,
+        totalAmount: feePreview?.totalAmount || selectedDoctor.doctorDetails?.consultationFee || 500,
         email: user.email || '',
         patientId: user._id
       };
@@ -209,7 +246,28 @@ const AppointmentForm = () => {
                   <span className="text-xs sm:text-sm font-medium text-blue-800">Consultation Fee:</span>
                   <span className="text-base sm:text-lg font-bold text-blue-900">₹{selectedDoctor.doctorDetails?.consultationFee || 500}</span>
                 </div>
-                <p className="text-xs text-blue-600 mt-1">Payment will be processed via Razorpay</p>
+                {feePreview ? (
+                  <div className="mt-2 space-y-1 text-xs text-blue-700 border-t border-blue-200 pt-2">
+                    <div className="flex justify-between">
+                      <span>Doctor consultation fee</span>
+                      <span>₹{feePreview.doctorFees}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Platform fee ({feePreview.platformCommissionPercentage}%)</span>
+                      <span>₹{feePreview.platformCommission}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>GST ({feePreview.gstPercentage}% on platform fee)</span>
+                      <span>₹{feePreview.gstAmount}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-blue-900 border-t border-blue-300 pt-1 mt-1 text-sm">
+                      <span>Total payable to Razorpay</span>
+                      <span>₹{feePreview.totalAmount}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-blue-600 mt-1">Payment will be processed via Razorpay</p>
+                )}
               </div>
             )}
           </FormSection>
@@ -222,20 +280,49 @@ const AppointmentForm = () => {
               </div>
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-slate-700 mb-1">Time Slot</label>
-                <div className="relative">
-                  <select name="time" value={form.time} onChange={handleChange} className="w-full rounded-lg border border-slate-300 py-1.5 sm:py-2 px-3 sm:px-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" required disabled={!form.date || slotsLoading || availableSlots.length === 0}>
-                    <option value="">
-                      {slotsLoading ? 'Loading slots...' : 
-                       !form.date ? 'Select a date first' :
-                       availableSlots.length === 0 ? 'No slots available' : 
-                       'Select Time'}
-                    </option>
-                    {availableSlots.map(slot => <option key={slot} value={slot}>{slot}</option>)}
-                  </select>
-                  {slotsLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400 pointer-events-none" size={18}/>}
-                </div>
-                {!slotsLoading && form.date && availableSlots.length === 0 && (
-                  <p className="text-xs text-amber-600 mt-1">No available slots for this date. Please try another date.</p>
+                {slotsLoading ? (
+                  <div className="flex items-center gap-2 text-slate-500 text-sm py-2">
+                    <Loader2 className="animate-spin" size={16} /> Loading slots...
+                  </div>
+                ) : !form.date ? (
+                  <p className="text-xs text-slate-400 py-2">Select a date first</p>
+                ) : availableSlots.length === 0 && bookedSlots.length === 0 ? (
+                  <p className="text-xs text-amber-600 py-2">No slots available for this date.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {/* Available slots */}
+                    {availableSlots.map(slot => (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => setForm(prev => ({ ...prev, time: slot }))}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+                          form.time === slot
+                            ? 'bg-teal-600 text-white border-teal-600'
+                            : 'bg-white text-slate-700 border-slate-300 hover:border-teal-500 hover:text-teal-600'
+                        }`}
+                      >
+                        {formatSlot(slot)}
+                      </button>
+                    ))}
+                    {/* Booked / past slots — shown but unclickable */}
+                    {bookedSlots.map(slot => (
+                      <button
+                        key={slot}
+                        type="button"
+                        disabled
+                        title="This slot is unavailable"
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium border border-slate-200 bg-slate-50 text-slate-300 cursor-not-allowed line-through"
+                      >
+                        {formatSlot(slot)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {/* Hidden input to keep form validation working */}
+                <input type="hidden" name="time" value={form.time} required />
+                {!slotsLoading && form.date && form.time === '' && availableSlots.length > 0 && (
+                  <p className="text-xs text-slate-400 mt-1">Please select a time slot</p>
                 )}
               </div>
             </div>
@@ -264,7 +351,7 @@ const AppointmentForm = () => {
             <button type="submit" className="w-full sm:w-auto bg-teal-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full hover:bg-teal-700 transition-all font-medium flex items-center justify-center gap-2 mx-auto disabled:opacity-50 text-sm sm:text-base" disabled={loading || !form.doctorId || !form.time || isProcessing}>
               {isProcessing ? (
                 <>
-                  <Loader2 className="animate-spin" size={18} className="sm:w-5 sm:h-5" />
+                  <Loader2 className="animate-spin sm:w-5 sm:h-5" size={18} />
                   <span>Processing Payment...</span>
                 </>
               ) : (

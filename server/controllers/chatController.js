@@ -254,11 +254,16 @@ exports.getUserChats = async (req, res) => {
         chat.isActive = false;
         chat.isArchived = true;
         await chat.save();
-        console.log(`Marked chat ${chat._id} as archived due to expiration`);
+      }
+
+      // Also fix any endedByDoctor chats that weren't marked as archived (data migration)
+      if (chat.endedByDoctor && !chat.isArchived) {
+        chat.isArchived = true;
+        await chat.save();
       }
 
       // Categorize chats
-      if (chat.isArchived) {
+      if (chat.isArchived || chat.endedByDoctor) {
         archivedChats.push(chat);
       } else if (chat.isActive && chat.expiresAt > now) {
         activeChats.push(chat);
@@ -511,9 +516,10 @@ exports.endChat = async (req, res) => {
       return res.status(403).json({ msg: 'Not authorized to end this chat' });
     }
 
-    // End the chat
+    // End the chat — mark as inactive and archived so it shows in archived section
     chat.isActive = false;
     chat.endedByDoctor = true;
+    chat.isArchived = true;
     await chat.save();
 
     res.status(200).json({ msg: 'Chat ended successfully', chat });

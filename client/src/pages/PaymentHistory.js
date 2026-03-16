@@ -278,7 +278,9 @@ const PaymentHistory = () => {
                       </div>
                     </td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-semibold text-green-600 text-xs sm:text-sm">
-                      ₹{payment.paymentInfo.amount}
+                      ₹{user.role === 'doctor'
+                        ? (payment.revenueBreakdown?.doctorPayout ?? payment.fees)
+                        : payment.paymentInfo.amount}
                     </td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
                       <div className="flex items-center gap-1 sm:gap-2">

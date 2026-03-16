@@ -634,8 +634,12 @@ exports.getAvailableSlots = async (req, res) => {
 
     // Generate available slots
     const availableSlots = [];
+    const bookedSlotsResult = []; // to show as disabled in UI
     const [startHour, startMinute] = availability.startTime.split(':').map(Number);
     const [endHour, endMinute] = availability.endTime.split(':').map(Number);
+
+    // For today, get current time to filter out past slots
+    // NOTE: past-slot filtering is done client-side to avoid UTC/IST timezone issues
 
     // Generate 30-minute intervals
     for (let hour = startHour; hour < endHour; hour++) {
@@ -646,15 +650,17 @@ exports.getAvailableSlots = async (req, res) => {
         const slotMinute = minute < 10 ? `0${minute}` : `${minute}`;
         const slotTime = `${slotHour}:${slotMinute}`;
 
-        // Only add if not already booked
-        if (!bookedSlots.includes(slotTime)) {
+        if (bookedSlots.includes(slotTime)) {
+          bookedSlotsResult.push(slotTime);
+        } else {
           availableSlots.push(slotTime);
         }
       }
     }
 
     res.json({ 
-      availableSlots, 
+      availableSlots,
+      bookedSlots: bookedSlotsResult,
       dayOfWeek, 
       availability: {
         startTime: availability.startTime,
