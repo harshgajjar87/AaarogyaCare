@@ -299,26 +299,25 @@ const Profile = () => {
                           {formData.doctorDetails.consultationFee > 0 && (() => {
                             const fee = parseFloat(formData.doctorDetails.consultationFee);
                             const commission = parseFloat((fee * 0.10).toFixed(2));
-                            const gst = parseFloat((commission * 0.18).toFixed(2));
-                            const payout = parseFloat(fee.toFixed(2));
-                            const patientPays = parseFloat((fee + commission + gst).toFixed(2));
+                            const payout = parseFloat((fee - commission).toFixed(2));
+                            const serviceFee = 20;
+                            const patientPays = parseFloat((fee + serviceFee).toFixed(2));
                             return (
                               <div className="mt-2 p-2 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs space-y-1">
                                 <p className="font-semibold text-amber-800 mb-1.5">Fee Breakdown Preview</p>
                                 <div className="flex justify-between text-slate-600">
                                   <span>Your listed fee</span><span>₹{fee}</span>
                                 </div>
-                                <div className="flex justify-between text-slate-500">
-                                  <span>+ Platform fee (10%)</span><span>₹{commission}</span>
-                                </div>
-                                <div className="flex justify-between text-slate-500">
-                                  <span>+ GST (18% on platform fee)</span><span>₹{gst}</span>
-                                </div>
-                                <div className="flex justify-between text-slate-500 border-t border-amber-200 pt-1">
-                                  <span>Patient pays total</span><span>₹{patientPays}</span>
+                                <div className="flex justify-between text-red-500">
+                                  <span>− Platform commission (10%)</span><span>−₹{commission}</span>
                                 </div>
                                 <div className="flex justify-between font-semibold text-green-700 border-t border-amber-200 pt-1">
-                                  <span>You receive (full fee)</span><span>₹{payout}</span>
+                                  <span>You receive</span><span>₹{payout}</span>
+                                </div>
+                                <div className="border-t border-amber-200 pt-1 mt-1">
+                                  <div className="flex justify-between text-slate-600">
+                                    <span>Patient pays (your fee + ₹{serviceFee} service fee)</span><span>₹{patientPays}</span>
+                                  </div>
                                 </div>
                               </div>
                             );

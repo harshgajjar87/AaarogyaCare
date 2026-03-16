@@ -13,7 +13,7 @@ const medicineSchema = new mongoose.Schema({
 });
 
 const prescriptionSchema = new mongoose.Schema({
-  appointmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Appointment', required: true },
+  appointmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Appointment', required: false },
   patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   doctorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   diagnosis: { type: String, required: true },

@@ -60,7 +60,7 @@ exports.createPrescription = async (req, res) => {
     await appointment.save();
 
     // Send prescription email to patient
-    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+    if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
         const medicineList = medicines.map(med => {
           const frequency = [];
@@ -76,7 +76,7 @@ exports.createPrescription = async (req, res) => {
           to: appointment.patientId.email,
           subject: 'Your Prescription - AarogyaCare',
           html: `
-            <h2>Prescription from Dr. ${req.user.name}</h2>
+            <h2>Prescription from ${req.user.name}</h2>
             <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
             <p><strong>Patient:</strong> ${appointment.patientId.name}</p>
             
@@ -132,7 +132,7 @@ exports.createDirectPrescription = async (req, res) => {
     await prescription.save();
 
     // Send prescription email to patient
-    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+    if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
         const medicineList = medicines.map(med => {
           const frequency = [];

@@ -47,34 +47,39 @@ const transactionSchema = new mongoose.Schema({
     required: true // Original doctor consultation fees
   },
   
+  platformServiceFee: {
+    type: Number,
+    default: 20 // Flat fee added to patient bill
+  },
+
   platformCommission: {
     type: Number,
-    required: true // Platform commission amount
+    required: true // Commission deducted from doctor payout
   },
   
   platformCommissionPercentage: {
     type: Number,
-    required: true // Percentage used for calculation
+    required: true
   },
   
   gstAmount: {
     type: Number,
-    required: true // GST amount
+    default: 0 // Kept for legacy records
   },
   
   gstPercentage: {
     type: Number,
-    required: true // GST percentage used
+    default: 0
   },
   
   paymentGatewayCharges: {
     type: Number,
-    required: true // Razorpay/payment gateway charges
+    required: true
   },
   
   doctorPayout: {
     type: Number,
-    required: true // Final amount to be paid to doctor
+    required: true // doctorFees - platformCommission
   },
   
   platformRevenue: {

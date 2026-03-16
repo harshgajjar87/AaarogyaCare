@@ -17,8 +17,9 @@ router.get('/settings', protect, admin, async (req, res) => {
       // Create default settings
       settings = await RevenueSettings.create({
         platformCommissionPercentage: 10,
-        gstPercentage: 18,
-        gstAppliedOn: 'commission',
+        platformServiceFee: 20,
+        gstPercentage: 0,
+        gstAppliedOn: 'none',
         paymentGatewayPercentage: 2,
         paymentGatewayFixedCharge: 0,
         isActive: true
@@ -39,8 +40,7 @@ router.put('/settings', protect, admin, async (req, res) => {
   try {
     const {
       platformCommissionPercentage,
-      gstPercentage,
-      gstAppliedOn,
+      platformServiceFee,
       paymentGatewayPercentage,
       paymentGatewayFixedCharge,
       minimumTransactionAmount,
@@ -53,8 +53,9 @@ router.put('/settings', protect, admin, async (req, res) => {
     // Create new settings
     const newSettings = await RevenueSettings.create({
       platformCommissionPercentage,
-      gstPercentage,
-      gstAppliedOn,
+      platformServiceFee: platformServiceFee ?? 20,
+      gstPercentage: 0,
+      gstAppliedOn: 'none',
       paymentGatewayPercentage,
       paymentGatewayFixedCharge,
       minimumTransactionAmount,
@@ -135,8 +136,8 @@ router.get('/analytics', protect, admin, async (req, res) => {
       totalRevenue: transactions.reduce((sum, t) => sum + t.totalAmount, 0),
       platformRevenue: transactions.reduce((sum, t) => sum + t.platformRevenue, 0),
       platformCommission: transactions.reduce((sum, t) => sum + t.platformCommission, 0),
-      gstCollected: transactions.reduce((sum, t) => sum + t.gstAmount, 0),
-      paymentGatewayCharges: transactions.reduce((sum, t) => sum + t.paymentGatewayCharges, 0),
+      totalServiceFees: transactions.reduce((sum, t) => sum + (t.platformServiceFee || 0), 0),
+      gatewayCharges: transactions.reduce((sum, t) => sum + t.paymentGatewayCharges, 0),
       doctorPayouts: transactions.reduce((sum, t) => sum + t.doctorPayout, 0),
       pendingPayouts: transactions.filter(t => t.doctorPayoutStatus === 'pending').length,
       completedPayouts: transactions.filter(t => t.doctorPayoutStatus === 'completed').length

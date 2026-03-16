@@ -10,22 +10,27 @@ const revenueSettingsSchema = new mongoose.Schema({
     max: 100
   },
   
-  // GST Configuration
+  // Flat platform service fee charged to patient (on top of doctor fee)
+  platformServiceFee: {
+    type: Number,
+    default: 20,
+    min: 0
+  },
+
+  // GST Configuration (kept for legacy data; not applied in new model)
   gstPercentage: {
     type: Number,
-    required: true,
-    default: 18, // 18% GST in India
+    default: 0,
     min: 0,
     max: 100
   },
-  
-  // GST is applied on platform commission or total amount
+
   gstAppliedOn: {
     type: String,
     enum: ['commission', 'total', 'none'],
-    default: 'commission' // GST on platform commission only
+    default: 'none'
   },
-  
+
   // Payment Gateway Charges
   paymentGatewayPercentage: {
     type: Number,

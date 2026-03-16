@@ -161,7 +161,7 @@ exports.createAppointment = async (req, res) => {
                 
                 <div style="background: #f0fdfa; border-left: 4px solid #14b8a6; padding: 20px; margin: 20px 0; border-radius: 5px;">
                   <h3 style="color: #14b8a6; margin-top: 0;">Appointment Details</h3>
-                  <p style="margin: 8px 0; color: #374151;"><strong>Doctor:</strong> Dr. ${doctor.name}</p>
+                  <p style="margin: 8px 0; color: #374151;"><strong>Doctor:</strong> ${doctor.name}</p>
                   <p style="margin: 8px 0; color: #374151;"><strong>Specialization:</strong> ${doctor.doctorDetails?.specialization || 'General Physician'}</p>
                   <p style="margin: 8px 0; color: #374151;"><strong>Date:</strong> ${new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                   <p style="margin: 8px 0; color: #374151;"><strong>Time:</strong> ${time}</p>
@@ -297,7 +297,7 @@ exports.approveAppointment = async (req, res) => {
         // Create notifications for both patient and doctor
         await Notification.create({
           userId: appointment.patientId._id,
-          message: `You can now chat with Dr. ${appointment.doctorId.name} about your appointment`
+          message: `You can now chat with  ${appointment.doctorId.name} about your appointment`
         });
 
         await Notification.create({

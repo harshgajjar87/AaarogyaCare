@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from '../utils/axios';
 import { ArrowLeft, User, Calendar, FileText, Pill, Phone, Mail, MapPin, Download, Plus, Send, Trash2 } from 'lucide-react';
-import { getFullImageUrl } from '../utils/imageUtils';
+import { getProfileImageUrl } from '../utils/imageUtils';
 import MedicineDropdown from '../components/MedicineDropdown';
 import VoiceInput from '../components/VoiceInput';
 
@@ -145,7 +145,7 @@ const PatientDetails = () => {
       {/* Patient Info */}
       <div className="bg-white rounded-xl shadow-sm border p-6">
         <div className="flex items-start gap-6">
-          <img src={getFullImageUrl(patient.profileImage)} alt={patient.name} className="w-24 h-24 rounded-full object-cover" />
+          <img src={getProfileImageUrl(patient.profileImage)} alt={patient.name} className="w-24 h-24 rounded-full object-cover" onError={(e) => { e.target.src = '/images/default-avtar.jpg'; }} />
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-slate-800 mb-2">{patient.name}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -358,7 +358,7 @@ const PatientDetails = () => {
                         <input
                           type="number"
                           value={med.days}
-                          onChange={(e) => updateMedicine(index, 'days', parseInt(e.target.value))}
+                          onChange={(e) => updateMedicine(index, 'days', parseInt(e.target.value) || 1)}
                           min="1"
                           className="w-full rounded-lg border-slate-300 text-sm"
                           required

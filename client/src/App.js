@@ -65,20 +65,13 @@ function Layout() {
   const location = useLocation();
   const { user } = useContext(AuthContext);
 
-  // Simple navbar selection logic
+  // Show navbar based on user role — if logged in, always show role navbar
   let NavbarComponent = PublicNavbar;
-  
-  if (user?.role === 'patient' && location.pathname.startsWith('/patient')) {
+  if (user?.role === 'patient') {
     NavbarComponent = PatientNavbar;
-  } else if (user?.role === 'doctor' && location.pathname.startsWith('/doctor')) {
+  } else if (user?.role === 'doctor') {
     NavbarComponent = DoctorNavbar;
-  } else if (user?.role === 'admin' && location.pathname.startsWith('/admin')) {
-    NavbarComponent = AdminNavbar;
-  } else if (user?.role === 'patient' && (location.pathname === '/profile' || location.pathname === '/notifications' || location.pathname.startsWith('/chats'))) {
-    NavbarComponent = PatientNavbar;
-  } else if (user?.role === 'doctor' && (location.pathname === '/profile' || location.pathname === '/notifications' || location.pathname.startsWith('/chats'))) {
-    NavbarComponent = DoctorNavbar;
-  } else if (user?.role === 'admin' && (location.pathname === '/profile' || location.pathname === '/notifications' || location.pathname.startsWith('/chats'))) {
+  } else if (user?.role === 'admin') {
     NavbarComponent = AdminNavbar;
   }
 

@@ -15,8 +15,7 @@ const AdminRevenue = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
     platformCommissionPercentage: 10,
-    gstPercentage: 18,
-    gstAppliedOn: 'commission',
+    platformServiceFee: 20,
     paymentGatewayPercentage: 2,
     paymentGatewayFixedCharge: 0
   });
@@ -39,8 +38,7 @@ const AdminRevenue = () => {
       setTransactions(transactionsRes.data.transactions);
       setSettingsForm({
         platformCommissionPercentage: settingsRes.data.platformCommissionPercentage,
-        gstPercentage: settingsRes.data.gstPercentage,
-        gstAppliedOn: settingsRes.data.gstAppliedOn,
+        platformServiceFee: settingsRes.data.platformServiceFee ?? 20,
         paymentGatewayPercentage: settingsRes.data.paymentGatewayPercentage,
         paymentGatewayFixedCharge: settingsRes.data.paymentGatewayFixedCharge
       });
@@ -102,7 +100,7 @@ const AdminRevenue = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Platform Commission (%)
+                  Platform Commission (%) — deducted from doctor
                 </label>
                 <input
                   type="number"
@@ -116,31 +114,16 @@ const AdminRevenue = () => {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
-                  GST (%)
+                  Platform Service Fee (₹) — added to patient bill
                 </label>
                 <input
                   type="number"
-                  step="0.01"
-                  value={settingsForm.gstPercentage}
-                  onChange={(e) => setSettingsForm({...settingsForm, gstPercentage: parseFloat(e.target.value)})}
+                  step="1"
+                  value={settingsForm.platformServiceFee}
+                  onChange={(e) => setSettingsForm({...settingsForm, platformServiceFee: parseFloat(e.target.value)})}
                   className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500"
                   required
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  GST Applied On
-                </label>
-                <select
-                  value={settingsForm.gstAppliedOn}
-                  onChange={(e) => setSettingsForm({...settingsForm, gstAppliedOn: e.target.value})}
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="commission">Commission Only</option>
-                  <option value="total">Total Amount</option>
-                  <option value="none">No GST</option>
-                </select>
               </div>
 
               <div>
@@ -234,17 +217,21 @@ const AdminRevenue = () => {
             <span className="text-slate-600">Total collected from patients</span>
             <span className="font-semibold text-slate-800">{formatCurrency(analytics?.totalRevenue)}</span>
           </div>
+          <div className="flex justify-between items-center py-2 border-b border-slate-100 pl-4">
+            <span className="text-slate-400 text-xs">Doctor fees (listed)</span>
+            <span className="text-slate-600 text-xs">{formatCurrency(analytics?.doctorPayouts != null ? analytics.doctorPayouts + (analytics.platformCommission || 0) : 0)}</span>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-slate-100 pl-4">
+            <span className="text-slate-400 text-xs">Platform service fees (₹{settings?.platformServiceFee ?? 20} × transactions)</span>
+            <span className="text-slate-600 text-xs">{formatCurrency(analytics?.totalServiceFees)}</span>
+          </div>
           <div className="flex justify-between items-center py-2 border-b border-slate-100">
-            <span className="text-slate-500">− Doctor payouts</span>
+            <span className="text-slate-500">− Doctor payouts (after {settings?.platformCommissionPercentage || 10}% commission)</span>
             <span className="text-orange-600 font-medium">− {formatCurrency(analytics?.doctorPayouts)}</span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-slate-100 pl-4">
-            <span className="text-slate-400 text-xs">Platform commission ({settings?.platformCommissionPercentage || 10}%)</span>
+            <span className="text-slate-400 text-xs">Commission from doctors ({settings?.platformCommissionPercentage || 10}%)</span>
             <span className="text-slate-600 text-xs">{formatCurrency(analytics?.platformCommission)}</span>
-          </div>
-          <div className="flex justify-between items-center py-2 border-b border-slate-100 pl-4">
-            <span className="text-slate-400 text-xs">GST collected ({settings?.gstPercentage || 18}%)</span>
-            <span className="text-slate-600 text-xs">{formatCurrency(analytics?.gstCollected)}</span>
           </div>
           <div className="flex justify-between items-center py-2 border-b border-slate-100">
             <span className="text-slate-500">− Payment gateway charges ({settings?.paymentGatewayPercentage || 2}%)</span>

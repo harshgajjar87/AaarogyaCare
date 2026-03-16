@@ -151,8 +151,9 @@ router.post('/verify-and-book', protect, async (req, res) => {
       // Create default settings if none exist
       revenueSettings = await RevenueSettings.create({
         platformCommissionPercentage: 10,
-        gstPercentage: 18,
-        gstAppliedOn: 'commission',
+        platformServiceFee: 20,
+        gstPercentage: 0,
+        gstAppliedOn: 'none',
         paymentGatewayPercentage: 2,
         paymentGatewayFixedCharge: 0,
         isActive: true
@@ -243,10 +244,11 @@ router.post('/verify-and-book', protect, async (req, res) => {
       razorpaySignature: razorpay_signature,
       totalAmount: revenueBreakdown.totalAmount,
       doctorFees: revenueBreakdown.doctorFees,
+      platformServiceFee: revenueBreakdown.platformServiceFee,
       platformCommission: revenueBreakdown.platformCommission,
       platformCommissionPercentage: revenueBreakdown.platformCommissionPercentage,
-      gstAmount: revenueBreakdown.gstAmount,
-      gstPercentage: revenueBreakdown.gstPercentage,
+      gstAmount: 0,
+      gstPercentage: 0,
       paymentGatewayCharges: revenueBreakdown.paymentGatewayCharges,
       doctorPayout: revenueBreakdown.doctorPayout,
       platformRevenue: revenueBreakdown.platformRevenue,
@@ -277,7 +279,7 @@ router.post('/verify-and-book', protect, async (req, res) => {
         // Create notifications for both patient and doctor
         await Notification.create({
           userId: bookingDetails.patientId,
-          message: `You can now chat with Dr. ${doctor.name} about your appointment`
+          message: `You can now chat wit ${doctor.name} about your appointment`
         });
 
         await Notification.create({
@@ -360,8 +362,7 @@ router.post('/verify-and-book', protect, async (req, res) => {
                     <p style="text-align: center; margin: 5px 0; color: #6b7280;">Payment ID: ${escapeHtml(razorpay_payment_id)}</p>
                     <div style="margin-top:12px; font-size:12px; color:#4b5563; border-top:1px solid #d1fae5; padding-top:10px;">
                       <div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Doctor fee</span><span>₹${revenueBreakdown.doctorFees.toFixed(2)}</span></div>
-                      <div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Platform fee (${revenueBreakdown.platformCommissionPercentage}%)</span><span>₹${revenueBreakdown.platformCommission.toFixed(2)}</span></div>
-                      <div style="display:flex; justify-content:space-between; margin:4px 0;"><span>GST (${revenueBreakdown.gstPercentage}%)</span><span>₹${revenueBreakdown.gstAmount.toFixed(2)}</span></div>
+                      <div style="display:flex; justify-content:space-between; margin:4px 0;"><span>Platform service fee</span><span>₹${revenueBreakdown.platformServiceFee.toFixed(2)}</span></div>
                       <div style="display:flex; justify-content:space-between; margin:6px 0 0; font-weight:bold; border-top:1px solid #d1fae5; padding-top:6px;"><span>Total paid</span><span>₹${revenueBreakdown.totalAmount.toFixed(2)}</span></div>
                     </div>
                   </div>

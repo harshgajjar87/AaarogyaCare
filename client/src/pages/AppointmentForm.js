@@ -253,15 +253,11 @@ const AppointmentForm = () => {
                       <span>₹{feePreview.doctorFees}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Platform fee ({feePreview.platformCommissionPercentage}%)</span>
-                      <span>₹{feePreview.platformCommission}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>GST ({feePreview.gstPercentage}% on platform fee)</span>
-                      <span>₹{feePreview.gstAmount}</span>
+                      <span>Platform service fee</span>
+                      <span>₹{feePreview.platformServiceFee}</span>
                     </div>
                     <div className="flex justify-between font-semibold text-blue-900 border-t border-blue-300 pt-1 mt-1 text-sm">
-                      <span>Total payable to Razorpay</span>
+                      <span>Total payable</span>
                       <span>₹{feePreview.totalAmount}</span>
                     </div>
                   </div>

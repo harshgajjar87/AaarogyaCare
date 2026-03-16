@@ -28,20 +28,24 @@ exports.getDoctorAnalytics = async (req, res) => {
       if (monthlyData.hasOwnProperty(key)) monthlyData[key]++;
     });
 
-    // Revenue calculation — based on doctorPayout (what doctor actually receives)
+    // Revenue calculation — based on doctorPayout (listed fee minus commission)
     const paidAppointments = appointments.filter(a => a.paymentInfo?.status === 'completed');
 
+    // totalRevenue = what doctor actually receives (after commission deduction)
     const totalRevenue = paidAppointments
       .reduce((sum, a) => sum + (a.revenueBreakdown?.doctorPayout || a.fees || 0), 0);
 
+    // totalGrossRevenue = sum of listed fees (before commission deduction)
     const totalGrossRevenue = paidAppointments
       .reduce((sum, a) => sum + (a.revenueBreakdown?.doctorFees || a.fees || 0), 0);
 
-    const totalDeductions = paidAppointments
+    // totalCommissionDeducted = commission taken from doctor payout
+    const totalCommissionDeducted = paidAppointments
       .reduce((sum, a) => sum + (a.revenueBreakdown?.platformCommission || 0), 0);
 
-    const totalGstCollected = paidAppointments
-      .reduce((sum, a) => sum + (a.revenueBreakdown?.gstAmount || 0), 0);
+    // platformServiceFeeCollected = flat service fees paid by patients
+    const platformServiceFeeCollected = paidAppointments
+      .reduce((sum, a) => sum + (a.revenueBreakdown?.platformServiceFee || 0), 0);
 
     const commissionRate = paidAppointments.length > 0
       ? (paidAppointments[0].revenueBreakdown?.platformCommissionPercentage || 10)
@@ -81,10 +85,10 @@ exports.getDoctorAnalytics = async (req, res) => {
       totalAppointments: appointments.length,
       statusCounts,
       monthlyAppointments: monthlyData,
-      totalRevenue,
+      totalRevenue: parseFloat(totalRevenue.toFixed(2)),
       totalGrossRevenue: parseFloat(totalGrossRevenue.toFixed(2)),
-      totalDeductions: parseFloat(totalDeductions.toFixed(2)),
-      totalGstCollected: parseFloat(totalGstCollected.toFixed(2)),
+      totalCommissionDeducted: parseFloat(totalCommissionDeducted.toFixed(2)),
+      platformServiceFeeCollected: parseFloat(platformServiceFeeCollected.toFixed(2)),
       commissionRate,
       monthlyRevenue,
       avgConsultationTime,
@@ -120,13 +124,13 @@ exports.getAdminAnalytics = async (req, res) => {
       if (monthlyData.hasOwnProperty(key)) monthlyData[key]++;
     });
 
-    // Revenue — full breakdown
+    // Revenue — full breakdown (new model)
     const paidApps = appointments.filter(a => a.paymentInfo?.status === 'completed');
 
     const totalRevenue = paidApps.reduce((sum, a) => sum + (a.paymentInfo?.amount || 0), 0);
     const totalDoctorPayouts = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.doctorPayout || a.fees || 0), 0);
     const totalPlatformCommission = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.platformCommission || 0), 0);
-    const totalGstCollected = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.gstAmount || 0), 0);
+    const totalServiceFees = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.platformServiceFee || 0), 0);
     const totalGatewayCharges = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.paymentGatewayCharges || 0), 0);
     const totalPlatformRevenue = paidApps.reduce((sum, a) => sum + (a.revenueBreakdown?.platformRevenue || 0), 0);
 
@@ -182,7 +186,7 @@ exports.getAdminAnalytics = async (req, res) => {
       totalRevenue: parseFloat(totalRevenue.toFixed(2)),
       totalDoctorPayouts: parseFloat(totalDoctorPayouts.toFixed(2)),
       totalPlatformCommission: parseFloat(totalPlatformCommission.toFixed(2)),
-      totalGstCollected: parseFloat(totalGstCollected.toFixed(2)),
+      totalServiceFees: parseFloat(totalServiceFees.toFixed(2)),
       totalGatewayCharges: parseFloat(totalGatewayCharges.toFixed(2)),
       totalPlatformRevenue: parseFloat(totalPlatformRevenue.toFixed(2)),
       monthlyAppointments: monthlyData,

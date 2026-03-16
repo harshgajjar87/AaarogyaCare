@@ -150,7 +150,7 @@ const DoctorAnalytics = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm text-health-text-p">Your Earnings</p>
-                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">₹{analytics.totalRevenue.toLocaleString()}</p>
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">₹{(analytics.totalRevenue || 0).toLocaleString()}</p>
                 <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">after platform fee</p>
               </div>
               <div className="rounded-full p-2 sm:p-3 bg-blue-100 text-blue-600 flex-shrink-0">
@@ -193,24 +193,24 @@ const DoctorAnalytics = () => {
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-white rounded-lg p-3 border border-blue-100">
-                <p className="text-[10px] sm:text-xs text-slate-500">Your Listed Fee</p>
-                <p className="text-base sm:text-lg font-bold text-slate-800">₹{analytics.totalGrossRevenue.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs text-slate-500">Listed Fee Total</p>
+                <p className="text-base sm:text-lg font-bold text-slate-800">₹{(analytics.totalGrossRevenue || 0).toLocaleString()}</p>
               </div>
               <div className="bg-white rounded-lg p-3 border border-red-100">
-                <p className="text-[10px] sm:text-xs text-slate-500">Platform Fee ({analytics.commissionRate}%) — paid by patient</p>
-                <p className="text-base sm:text-lg font-bold text-slate-600">₹{analytics.totalDeductions.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs text-slate-500">Commission Deducted ({analytics.commissionRate}%)</p>
+                <p className="text-base sm:text-lg font-bold text-red-500">−₹{(analytics.totalCommissionDeducted || 0).toLocaleString()}</p>
               </div>
               <div className="bg-white rounded-lg p-3 border border-green-100">
-                <p className="text-[10px] sm:text-xs text-slate-500">Your Actual Earnings</p>
-                <p className="text-base sm:text-lg font-bold text-green-600">₹{analytics.totalRevenue.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs text-slate-500">Your Actual Payout</p>
+                <p className="text-base sm:text-lg font-bold text-green-600">₹{(analytics.totalRevenue || 0).toLocaleString()}</p>
               </div>
               <div className="bg-white rounded-lg p-3 border border-slate-100">
-                <p className="text-[10px] sm:text-xs text-slate-500">GST Collected from Patients</p>
-                <p className="text-base sm:text-lg font-bold text-slate-600">₹{analytics.totalGstCollected.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs text-slate-500">Service Fees (from patients)</p>
+                <p className="text-base sm:text-lg font-bold text-slate-600">₹{(analytics.platformServiceFeeCollected || 0).toLocaleString()}</p>
               </div>
             </div>
             <p className="text-[10px] sm:text-xs text-blue-600 mt-3">
-              Patients pay your listed fee + platform fee ({analytics.commissionRate}%) + GST. You receive your full listed fee. The platform fee and GST are charged on top to the patient.
+              Platform deducts {analytics.commissionRate}% commission from your fee. Patients pay your fee + ₹20 platform service fee separately.
             </p>
           </div>
         )}

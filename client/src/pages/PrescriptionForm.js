@@ -235,7 +235,7 @@ const PrescriptionForm = () => {
                   <input
                     type="number"
                     value={med.days}
-                    onChange={(e) => updateMedicine(index, 'days', parseInt(e.target.value))}
+                    onChange={(e) => updateMedicine(index, 'days', parseInt(e.target.value) || 1)}
                     min="1"
                     className="w-full rounded-lg border-slate-300"
                     required

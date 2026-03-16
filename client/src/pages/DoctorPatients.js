@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from '../utils/axios';
 import { Users, ArrowLeft, Calendar, CheckCircle, Clock, XCircle, IndianRupee, Phone, Mail, User } from 'lucide-react';
-import { getFullImageUrl } from '../utils/imageUtils';
+import { getProfileImageUrl } from '../utils/imageUtils';
 
 const DoctorPatients = () => {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ const DoctorPatients = () => {
           {patients.map((patient) => (
             <div key={patient._id} className="bg-white rounded-lg sm:rounded-xl shadow-sm border p-4 sm:p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <img src={getFullImageUrl(patient.profileImage)} alt={patient.name} className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0" />
+                <img src={getProfileImageUrl(patient.profileImage)} alt={patient.name} className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0" onError={(e) => { e.target.src = '/images/default-avtar.jpg'; }} />
                 <div className="flex-1 min-w-0">
                   <button 
                     onClick={() => navigate(`/doctor/patient/${patient._id}`)}
@@ -169,7 +169,7 @@ const DoctorPatients = () => {
             </div>
 
             <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b">
-              <img src={getFullImageUrl(selectedPatient.profileImage)} alt={selectedPatient.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover" />
+              <img src={getProfileImageUrl(selectedPatient.profileImage)} alt={selectedPatient.name} className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover" onError={(e) => { e.target.src = '/images/default-avtar.jpg'; }} />
               <div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-800">{selectedPatient.name}</h3>
                 <p className="text-slate-600 text-sm sm:text-base">{selectedPatient.email}</p>

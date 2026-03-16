@@ -65,7 +65,7 @@ exports.createOrAccessChat = async (req, res) => {
       // Create notifications for both patient and doctor
       await Notification.create({
         userId: patientId,
-        message: `You can now chat with Dr. ${appointment.doctorId.name} about your appointment`
+        message: `You can now chat with  ${appointment.doctorId.name} about your appointment`
       });
 
       await Notification.create({
