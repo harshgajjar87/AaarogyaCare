@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from '../utils/axios';
-import GoogleAuthButton from '../components/GoogleAuthButton';
-import { Stethoscope, UploadCloud, FileText, Send, User, Mail, Key, Briefcase, GraduationCap, Building, IndianRupee } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
+import { Stethoscope, UploadCloud, FileText, Send, User, Mail, Key, Briefcase, GraduationCap, Building, IndianRupee, Eye, EyeOff } from 'lucide-react';
 
 const DoctorRegister = () => {
   const navigate = useNavigate();
+  const { logout } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [form, setForm] = useState({
     // User fields
     name: '',
@@ -65,12 +68,12 @@ const DoctorRegister = () => {
 
     try {
       await axios.post('/auth/register-doctor', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success('Registration request sent! Your profile will be reviewed by an admin.');
-      navigate('/login', { state: { message: 'Please wait for admin approval before logging in.' } });
+      // Clear any existing session — doctor must wait for admin approval
+      logout();
+      toast.success('Registration submitted! Please wait for admin approval before logging in.');
+      navigate('/login', { state: { message: 'Your doctor registration is under review. You will be notified once approved.' } });
     } catch (err) {
       toast.error(err.response?.data?.msg || 'Registration failed. Please try again.');
     } finally {
@@ -93,8 +96,20 @@ const DoctorRegister = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <InputField icon={<User size={14} className="sm:w-4 sm:h-4"/>} name="name" value={form.name} onChange={handleChange} placeholder="Full Name" required />
                 <InputField icon={<Mail size={14} className="sm:w-4 sm:h-4"/>} name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email Address" required />
-                <InputField icon={<Key size={14} className="sm:w-4 sm:h-4"/>} name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" required />
-                <InputField icon={<Key size={14} className="sm:w-4 sm:h-4"/>} name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} placeholder="Confirm Password" required />
+                <div className="relative">
+                  <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400"><Key size={14} className="sm:w-4 sm:h-4"/></span>
+                  <input name="password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={handleChange} placeholder="Password" required className="w-full rounded-lg border-slate-300 text-sm sm:text-base py-1.5 sm:py-2 pl-8 sm:pl-10 pr-10" />
+                  <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400"><Key size={14} className="sm:w-4 sm:h-4"/></span>
+                  <input name="confirmPassword" type={showConfirm ? 'text' : 'password'} value={form.confirmPassword} onChange={handleChange} placeholder="Confirm Password" required className="w-full rounded-lg border-slate-300 text-sm sm:text-base py-1.5 sm:py-2 pl-8 sm:pl-10 pr-10" />
+                  <button type="button" onClick={() => setShowConfirm(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
                 <InputField name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="Phone Number" />
                 <InputField name="age" type="number" value={form.age} onChange={handleChange} placeholder="Age" />
                 <select name="gender" value={form.gender} onChange={handleChange} className="w-full rounded-lg border-slate-300 text-sm sm:text-base py-1.5 sm:py-2 px-3 sm:px-4"><option value="">Select Gender</option><option>Male</option><option>Female</option><option>Other</option></select>
@@ -103,7 +118,35 @@ const DoctorRegister = () => {
 
             <FormSection title="Professional Details">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                <InputField icon={<Briefcase size={14} className="sm:w-4 sm:h-4"/>} name="specialization" value={form.specialization} onChange={handleChange} placeholder="Specialization (e.g., Cardiology)" required />
+                <div className="relative">
+                  <span className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><Briefcase size={14} className="sm:w-4 sm:h-4"/></span>
+                  <select name="specialization" value={form.specialization} onChange={handleChange} required className="w-full rounded-lg border-slate-300 text-sm sm:text-base py-1.5 sm:py-2 pl-8 sm:pl-10 pr-4 appearance-none">
+                    <option value="">Select Specialization</option>
+                    <option>General Physician</option>
+                    <option>Cardiologist</option>
+                    <option>Dermatologist</option>
+                    <option>Neurologist</option>
+                    <option>Orthopedic Surgeon</option>
+                    <option>Pediatrician</option>
+                    <option>Gynecologist</option>
+                    <option>Psychiatrist</option>
+                    <option>Ophthalmologist</option>
+                    <option>ENT Specialist</option>
+                    <option>Gastroenterologist</option>
+                    <option>Pulmonologist</option>
+                    <option>Endocrinologist</option>
+                    <option>Nephrologist</option>
+                    <option>Oncologist</option>
+                    <option>Urologist</option>
+                    <option>Rheumatologist</option>
+                    <option>Dentist</option>
+                    <option>Radiologist</option>
+                    <option>Anesthesiologist</option>
+                    <option>Homeopathy</option>
+                    <option>Ayurveda</option>
+                    <option>Other</option>
+                  </select>
+                </div>
                 <InputField icon={<GraduationCap size={14} className="sm:w-4 sm:h-4"/>} name="qualifications" value={form.qualifications} onChange={handleChange} placeholder="Qualifications (e.g., MBBS, MD)" required />
                 <InputField name="experience" type="number" value={form.experience} onChange={handleChange} placeholder="Experience (in years)" required />
                 <InputField icon={<IndianRupee size={14} className="sm:w-4 sm:h-4"/>} name="consultationFee" type="number" value={form.consultationFee} onChange={handleChange} placeholder="Consultation Fee" required />
@@ -124,8 +167,6 @@ const DoctorRegister = () => {
                 {loading ? 'Submitting...' : <><Send size={14} className="sm:w-4 sm:h-4" /><span>Submit for Verification</span></>}
               </button>
             </div>
-
-            <GoogleAuthButton mode="signup" role="doctor" />
 
             <p className="text-center text-health-text-p text-xs sm:text-sm">Already have an account? <Link to='/login' className="text-health-primary hover:text-teal-700 font-medium">Login</Link></p>
           </form>

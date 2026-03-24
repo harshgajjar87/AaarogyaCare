@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getPendingVerifications, approveVerification, rejectVerification } from '../api/doctorVerificationAPI';
 import { ArrowLeft, CheckCircle, XCircle, Eye, X } from 'lucide-react';
-import { getFullImageUrl } from '../utils/imageUtils';
+
+const getVerificationFileUrl = (filePath) => {
+  if (!filePath) return '#';
+  const filename = filePath.replace(/\\/g, '/').split('/').pop();
+  const base = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  return `${base}/uploads/verifications/${filename}`;
+};
 
 const AdminDoctorVerifications = () => {
   const navigate = useNavigate();
@@ -111,7 +117,7 @@ const AdminDoctorVerifications = () => {
                 <p><strong>Submitted:</strong> {new Date(verification.submittedAt).toLocaleDateString()}</p>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                   <a 
-                    href={getFullImageUrl(`/${verification.idProof}`)} 
+                    href={getVerificationFileUrl(verification.idProof)} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-health-primary hover:underline flex items-center gap-1"
@@ -120,7 +126,7 @@ const AdminDoctorVerifications = () => {
                     <span>View ID Proof</span>
                   </a>
                   <a 
-                    href={getFullImageUrl(`/${verification.license}`)} 
+                    href={getVerificationFileUrl(verification.license)} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-health-primary hover:underline flex items-center gap-1"

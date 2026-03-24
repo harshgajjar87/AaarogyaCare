@@ -4,11 +4,14 @@ import { toast } from 'react-toastify';
 import axios from '../utils/axios';
 import { AuthContext } from '../context/AuthContext';
 
+const instanceCounter = { count: 0 };
+
 const GoogleAuthButton = ({ mode = 'signin', role = 'patient' }) => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
   const buttonContainerRef = useRef(null);
   const [buttonWidth, setButtonWidth] = useState(350);
+  const buttonId = useRef(`googleSignInButton_${++instanceCounter.count}`).current;
 
   useEffect(() => {
     // Calculate responsive width
@@ -47,7 +50,7 @@ const GoogleAuthButton = ({ mode = 'signin', role = 'patient' }) => {
           callback: handleCredentialResponse,
         });
 
-        const buttonContainer = document.getElementById('googleSignInButton');
+        const buttonContainer = document.getElementById(buttonId);
         if (buttonContainer) {
           // Clear previous button
           buttonContainer.innerHTML = '';
@@ -115,7 +118,7 @@ const GoogleAuthButton = ({ mode = 'signin', role = 'patient' }) => {
         </div>
       </div>
       <div 
-        id="googleSignInButton" 
+        id={buttonId}
         className="w-full flex justify-center items-center"
         style={{ minHeight: '44px' }}
       ></div>

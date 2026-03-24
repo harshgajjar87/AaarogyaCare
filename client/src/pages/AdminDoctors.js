@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from '../utils/axios';
 import { toast } from 'react-toastify';
 import DoctorCard from '../components/DoctorCard';
-import { Search, Plus, ToggleRight, ToggleLeft, ArrowLeft } from 'lucide-react';
+import { Search, Plus, ToggleRight, ToggleLeft, ArrowLeft, Eye } from 'lucide-react';
 
 const AdminDoctors = () => {
   const navigate = useNavigate();
@@ -130,7 +130,11 @@ const AdminDoctors = () => {
               <tbody>
                 {filteredDoctors.map((doctor) => (
                   <tr key={doctor._id} className="bg-white border-b hover:bg-slate-50">
-                    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-4 font-medium text-health-text-h">{doctor.name || 'N/A'}</td>
+                    <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-4 font-medium text-health-text-h">
+                      <Link to={`/doctor/${doctor._id}`} className="hover:text-teal-600 hover:underline transition-colors">
+                        {doctor.name || 'N/A'}
+                      </Link>
+                    </td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-4">{doctor.email}<br/><span className="text-[9px] sm:text-xs text-slate-500">{doctor.profile?.phone || 'N/A'}</span></td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-4">{doctor.doctorDetails?.specialization || 'N/A'}</td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-4">{formatDate(doctor.createdAt)}</td>
@@ -140,9 +144,14 @@ const AdminDoctors = () => {
                       </span>
                     </td>
                     <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-4 text-center">
-                      <button onClick={() => handleToggleStatus(doctor._id, !doctor.isActive)} className={`p-1 sm:p-2 rounded-full transition-colors ${doctor.isActive ? 'text-yellow-500 hover:bg-yellow-100' : 'text-green-500 hover:bg-green-100'}`}>
-                        {doctor.isActive ? <ToggleLeft size={16} className="sm:w-5 sm:h-5" /> : <ToggleRight size={16} className="sm:w-5 sm:h-5" />}
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <Link to={`/doctor/${doctor._id}`} className="p-1 sm:p-2 rounded-full text-teal-500 hover:bg-teal-50 transition-colors" title="View Profile">
+                          <Eye size={16} className="sm:w-5 sm:h-5" />
+                        </Link>
+                        <button onClick={() => handleToggleStatus(doctor._id, !doctor.isActive)} className={`p-1 sm:p-2 rounded-full transition-colors ${doctor.isActive ? 'text-yellow-500 hover:bg-yellow-100' : 'text-green-500 hover:bg-green-100'}`}>
+                          {doctor.isActive ? <ToggleLeft size={16} className="sm:w-5 sm:h-5" /> : <ToggleRight size={16} className="sm:w-5 sm:h-5" />}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

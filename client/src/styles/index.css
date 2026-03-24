@@ -21,6 +21,33 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Global form field borders */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="hidden"]),
+  select,
+  textarea {
+    border-width: 1px;
+    border-style: solid;
+    border-color: #cbd5e1; /* slate-300 */
+    border-radius: 0.5rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="hidden"]):focus,
+  select:focus,
+  textarea:focus {
+    border-color: #14b8a6; /* teal-500 */
+    box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+  }
+
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    background-color: #f8fafc;
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
   
   /* Custom Scrollbar Styles */
   ::-webkit-scrollbar {

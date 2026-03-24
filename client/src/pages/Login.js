@@ -5,11 +5,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 import GoogleAuthButton from '../components/GoogleAuthButton';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
-  const { user, login } = useContext(AuthContext);
+  const { user, login, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState({
     email: '',
@@ -34,10 +36,14 @@ const Login = () => {
         token: res.data.token,
       };
 
+      // Block pending_doctor before setting any session
+      if (fullUser.role === 'pending_doctor') {
+        toast.info('Your doctor account is pending admin approval. You will be notified once approved.');
+        return;
+      }
+
       login(fullUser);
-
       localStorage.setItem('userRole', fullUser.role);
-
       toast.success('Login Successful');
     } catch (err) {
       toast.error(err.response?.data?.msg || 'Login Failed');
@@ -103,15 +109,20 @@ const Login = () => {
 
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-health-text-p mb-1.5 sm:mb-2">Password</label>
-                <input
-                  type='password'
-                  name='password'
-                  value={form.password}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 border focus:outline-none focus:border-transparent transition-all text-sm sm:text-base"
-                  placeholder="Enter your password"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name='password'
+                    value={form.password}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 pr-10 border focus:outline-none focus:border-transparent transition-all text-sm sm:text-base"
+                    placeholder="Enter your password"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center justify-between">

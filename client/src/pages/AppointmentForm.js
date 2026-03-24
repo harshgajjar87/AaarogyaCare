@@ -160,11 +160,16 @@ const AppointmentForm = () => {
       const user = JSON.parse(localStorage.getItem('user'));
       
       // Prepare booking details with fee
+      const doctorFee = selectedDoctor.doctorDetails?.consultationFee || 500;
+      // Always compute totalAmount: use feePreview if available, else calculate inline (fee + ₹20 service fee)
+      const serviceFee = feePreview?.platformServiceFee ?? 20;
+      const totalAmount = feePreview?.totalAmount ?? (doctorFee + serviceFee);
+
       const bookingDetails = {
         ...form,
         doctorName: selectedDoctor.name,
-        fees: selectedDoctor.doctorDetails?.consultationFee || 500,
-        totalAmount: feePreview?.totalAmount || selectedDoctor.doctorDetails?.consultationFee || 500,
+        fees: doctorFee,
+        totalAmount,
         email: user.email || '',
         patientId: user._id
       };

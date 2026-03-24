@@ -144,7 +144,7 @@ const Profile = () => {
     fetchUserProfile();
   };
 
-  if (loading) return <div className="text-center p-8">Loading profile...</div>;
+  if (!user || loading) return <div className="text-center p-8">Loading profile...</div>;
 
   const FormSection = ({ title, icon, children }) => (
     <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-3 sm:p-4 md:p-6">

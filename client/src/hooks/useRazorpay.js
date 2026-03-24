@@ -36,7 +36,7 @@ const useRazorpay = () => {
                     amount: order.amount,
                     currency: "INR",
                     name: "AarogyaCare",
-                    description: `Appointment with Dr. ${bookingDetails.doctorName}`,
+                    description: `Dr. ${bookingDetails.doctorName} | Fee ₹${bookingDetails.fees} + Service fee ₹${bookingDetails.totalAmount - bookingDetails.fees} = ₹${bookingDetails.totalAmount}`,
                     order_id: order.id,
                     handler: async (response) => {
                         // 3. Verify payment and book appointment

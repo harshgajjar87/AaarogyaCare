@@ -280,14 +280,14 @@ const PatientDashboard = () => {
         {/* Right side - AI Buttons Stack */}
         <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex flex-col gap-2 sm:gap-3">
           {/* Voice Call Button */}
-          <button
+          {/*<button
             onClick={() => setShowVoiceCall(true)}
             className="bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg flex items-center justify-center gap-2 font-semibold transition-transform duration-200 hover:scale-105 w-12 h-12 sm:w-auto sm:h-auto sm:px-5 sm:py-3"
             title="Voice Call with AI Doctor"
           >
             <Phone size={20} className="flex-shrink-0" />
             <span className="hidden sm:inline whitespace-nowrap">Voice Call with AI Doctor</span>
-          </button>
+          </button>*/}
           
           {/* Chat with AI Doctor Button */}
           <button
@@ -301,7 +301,7 @@ const PatientDashboard = () => {
         </div>
         <ChatBot />
         <AITriageChat isOpen={showAIChat} onClose={() => setShowAIChat(false)} />
-        <AIVoiceCall isOpen={showVoiceCall} onClose={() => setShowVoiceCall(false)} />
+        {/* <AIVoiceCall isOpen={showVoiceCall} onClose={() => setShowVoiceCall(false)} /> */}
       </main>
     </div>
   );

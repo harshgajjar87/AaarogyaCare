@@ -5,16 +5,14 @@ import { toast } from 'react-toastify';
 import OTPVerification from '../components/OTPVerification';
 import GoogleAuthButton from '../components/GoogleAuthButton';
 import { AuthContext } from '../context/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirm: ''
-  });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
@@ -177,28 +175,38 @@ const Register = () => {
 
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-health-text-p mb-1.5 sm:mb-2">Password</label>
-                <input
-                  type='password'
-                  name='password'
-                  value={form.password}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 border focus:outline-none focus:border-transparent transition-all text-sm sm:text-base"
-                  placeholder="Create a password"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name='password'
+                    value={form.password}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 pr-10 border focus:outline-none focus:border-transparent transition-all text-sm sm:text-base"
+                    placeholder="Create a password"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-health-text-p mb-1.5 sm:mb-2">Confirm Password</label>
-                <input
-                  type='password'
-                  name='confirm'
-                  value={form.confirm}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 border focus:outline-none focus:border-transparent transition-all text-sm sm:text-base"
-                  placeholder="Confirm your password"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirm ? 'text' : 'password'}
+                    name='confirm'
+                    value={form.confirm}
+                    onChange={handleChange}
+                    className="w-full rounded-lg border-slate-300 focus:ring-2 focus:ring-teal-500 py-1.5 sm:py-2 px-3 sm:px-4 pr-10 border focus:outline-none focus:border-transparent transition-all text-sm sm:text-base"
+                    placeholder="Confirm your password"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowConfirm(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <button
