@@ -2,7 +2,7 @@
 
 ## Overview
 
-AarogyaCare is a full-stack telemedicine platform connecting patients with doctors. It supports appointment booking with online payment, real-time chat, AI-powered triage and voice consultation, health predictions, prescription management, medical report analysis, and detailed analytics for doctors and admins.
+AarogyaCare is a full-stack telemedicine platform connecting patients with doctors. It supports appointment booking with online payment, real-time chat, AI-powered triage with integrated voice consultation, health predictions, prescription management, medical report analysis, and detailed analytics for doctors and admins.
 
 ---
 
@@ -16,7 +16,7 @@ AarogyaCare is a full-stack telemedicine platform connecting patients with docto
 | Payments | Razorpay |
 | Email | Mailjet (SMTP + REST API) |
 | AI / LLM | OpenAI GPT, Groq (llama-3.1), Google Gemini |
-| Speech | Web Speech API (STT), Google Cloud TTS / browser TTS |
+| Speech | Web Speech API (STT + TTS via SpeechSynthesis) |
 | File Storage | Local (`server/uploads/`) |
 | Deployment | Render (server), Vercel (client) |
 
@@ -72,7 +72,6 @@ AarogyaCare/
 | `OPENAI_API_KEY` | OpenAI API key |
 | `GROQ_API_KEY` | Groq API key |
 | `GOOGLE_API_KEY` | Google Gemini API key |
-| `GOOGLE_CLOUD_TTS_KEY` | Google Cloud Text-to-Speech API key |
 | `GOOGLE_CLIENT_ID` | Google OAuth2 client ID |
 | `RAZORPAY_KEY_ID` | Razorpay key ID |
 | `RAZORPAY_KEY_SECRET` | Razorpay key secret |
@@ -106,7 +105,7 @@ AarogyaCare/
 
 ### Public / Landing Page
 - Hero section with rotating doctor carousel
-- AI tools showcase (Health Risk Calculator, AI Chat Doctor, Voice AI Doctor, Report Analyzer)
+- AI tools showcase (Health Risk Calculator, AI Chat Doctor with Voice, Report Analyzer)
 - Platform features overview
 - How It Works walkthrough
 - Live doctor listing (fetched from DB)
@@ -168,23 +167,25 @@ AarogyaCare/
 - Chat list shows correct names (patient sees doctor name, doctor sees patient name)
 - Archived chats visible after doctor ends session
 
-#### AI Triage Chat (`AITriageChat`)
+#### AI Triage Chat with Integrated Voice (`AITriageChat`)
+
+The AI Chat Doctor now combines text and voice in a single unified interface. The standalone AI Voice Call component has been removed — all voice capabilities are built directly into the chat.
+
+Features:
 - Multi-turn symptom collection using clinical HPI methodology
-- Multilingual: English, Hindi, Gujarati
-- Session memory — collected facts persist across turns via sessionStorage
+- Multilingual support: English, Hindi, Gujarati
+- Session memory — collected symptom facts persist across turns via `sessionStorage`
 - Red-flag emergency override (e.g. chest pain → immediate ER recommendation)
-- Specialist recommendation based on symptoms
-- Speech-to-text mic input on every message
-- Text-to-speech "Listen" button on every AI response
-- Language selector (not disabled)
-
-#### AI Voice Call (`AIVoiceCall`)
-- Press-and-hold mic button for voice input
-- AI responds with synthesized speech
-- Same triage logic as chat
-
-#### Voice Doctor Page (`/doctor/:doctorId/voice`)
-- Voice-based consultation interface with a specific doctor's AI persona
+- Specialist recommendation based on symptoms, with live doctor cards and direct booking
+- Speech-to-text (STT) mic button on the input bar — tap to start, tap again to stop
+  - Uses Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`)
+  - Mic language auto-syncs with selected chat language
+  - Mic pulses red while actively listening
+- Text-to-speech (TTS) "Listen" button on every AI response
+  - Uses `SpeechSynthesis` API with language-matched voice selection
+  - Toggle to stop mid-playback
+- Language selector in the chat header (English / हिंदी / ગુજરાતી)
+- Typing input and voice input work interchangeably — voice transcript appends to the text field
 
 #### Health Risk Calculator (`/health-risk`)
 - Input lifestyle factors (age, BMI, smoking, activity, etc.)
@@ -324,10 +325,10 @@ Doctor sets a consultation fee (e.g. ₹799).
 | Doctor consultation fee | Set by doctor | ₹799.00 |
 | Platform commission (10%) | 10% of doctor fee | ₹79.90 |
 | GST (18% on commission) | 18% of ₹79.90 | ₹14.38 |
-| **Patient pays (Razorpay)** | Fee + commission + GST | **₹893.28** |
+| Patient pays (Razorpay) | Fee + commission + GST | ₹893.28 |
 | Doctor receives | Full listed fee | ₹799.00 |
 | Gateway charges (2%) | 2% of total | ₹17.87 |
-| **Platform net profit** | Commission + GST − gateway | **₹76.41** |
+| Platform net profit | Commission + GST − gateway | ₹76.41 |
 
 - Doctor is never charged — they receive their full listed fee
 - Platform earns from commission + GST minus gateway charges
@@ -346,7 +347,7 @@ Doctor sets a consultation fee (e.g. ₹799).
 | `/api/revenue` | Revenue settings (commission rate, GST rate) |
 | `/api/chat` | Start chat, send/get messages, end/archive chat |
 | `/api/chatbot` | General health chatbot |
-| `/api/triage` | AI symptom triage (multi-turn, multilingual, session memory) |
+| `/api/triage` | AI symptom triage (multi-turn, multilingual, session memory, voice-integrated) |
 | `/api/tts` | Text-to-speech synthesis |
 | `/api/ai` | AI report extraction, health prediction |
 | `/api/health` | Health risk prediction |
@@ -425,3 +426,84 @@ npm start              # runs on http://localhost:3000
   - `mailjet.js` (SMTP/nodemailer) — used by auth emails and report notifications
   - `mailjetAPI.js` (REST API) — used by OTP and contact form
 - `server/uploads/` subfolders: `chat/`, `profiles/`, `reports/`, `verifications/`, `clinic-images/`
+- The standalone `AIVoiceCall` component has been removed. Voice input (STT) and voice output (TTS) are now fully integrated into `AITriageChat`, keeping the codebase leaner and the user experience unified.
+
+---
+
+## Changelog
+
+### Voice Integration Refactor
+- Removed: `AIVoiceCall` component (standalone press-and-hold voice interface)
+- Removed: `VoiceDoctor` page and `/doctor/:doctorId/voice` route
+- Updated: `AITriageChat` now includes both STT mic input and TTS listen buttons natively
+- Result: Single unified AI chat + voice interface instead of two separate entry points
+
+---
+
+## 12-Week Improvement Roadmap
+
+### Week 1 — Code Cleanup & Stability
+- Remove all dead code left from `AIVoiceCall` and `VoiceDoctor` (files, routes, imports, nav links)
+- Audit and fix any broken imports or unused dependencies
+- Add error boundaries around AI components to prevent full-page crashes
+- Standardize API error response shapes across all controllers
+
+### Week 2 — UX Polish: AI Triage Chat
+- Add a "New Conversation" reset button inside the chat without closing/reopening
+- Show a typing indicator animation while AI is processing (already has loader, improve visually)
+- Persist chat history in `localStorage` so refreshing doesn't lose the conversation
+- Add a subtle waveform animation on the mic button while listening
+
+### Week 3 — Doctor Availability & Slot Management
+- Allow doctors to set recurring weekly availability (not just one-off slots)
+- Block slots automatically when an appointment is cancelled and re-open them
+- Add a buffer time setting between appointments (e.g. 15-minute gap)
+
+### Week 4 — Notification System Upgrade
+- Add push notifications via Web Push API (service worker + VAPID keys)
+- Allow patients to opt in/out of notification types (appointment reminders, chat messages)
+- Send appointment reminder emails 24 hours and 1 hour before the scheduled time
+
+### Week 5 — Prescription & Report Enhancements
+- Allow doctors to attach a report directly to a prescription
+- Add prescription PDF download for patients from the prescriptions page
+- Support multiple file uploads per report (currently single file)
+- Add report sharing — patient can share a report link with another doctor
+
+### Week 6 — Payment & Revenue Improvements
+- Add refund workflow for cancelled appointments (admin-initiated via Razorpay API)
+- Show payment receipt page after successful booking with downloadable PDF
+- Admin revenue page: add date range filter and CSV export
+
+### Week 7 — Doctor Discovery & Search
+- Add map-based doctor search (Google Maps or Leaflet) filtered by location
+- Improve search ranking — factor in rating, experience, and availability
+- Add "Next Available Slot" badge on doctor cards
+
+### Week 8 — Patient Health Dashboard
+- Build a dedicated health timeline page showing all appointments, reports, and prescriptions in chronological order
+- Add basic vitals tracking (blood pressure, weight, glucose) — patient self-reported
+- Visualize vitals history with a simple line chart (Chart.js)
+
+### Week 9 — Admin Controls & Moderation
+- Add bulk actions on admin tables (bulk approve verifications, bulk deactivate accounts)
+- Add audit log — track admin actions (who approved/rejected what and when)
+- Add platform-wide announcement banner (admin can set a message shown to all users)
+
+### Week 10 — Performance & SEO
+- Implement React lazy loading and code splitting for all page-level components
+- Add meta tags and Open Graph tags for public-facing pages (Home, About, doctor profiles)
+- Compress and lazy-load images in the doctor carousel and hero section
+- Add a service worker for offline fallback on the patient dashboard
+
+### Week 11 — Security Hardening
+- Add rate limiting on auth routes (login, OTP, forgot password) using `express-rate-limit`
+- Implement CSRF protection on state-changing API endpoints
+- Sanitize all user inputs server-side using `express-validator`
+- Add account lockout after N failed login attempts
+
+### Week 12 — Testing & Documentation
+- Write unit tests for critical controllers (appointment booking, payment verification, triage)
+- Add integration tests for the full appointment booking flow (book → pay → confirm → prescribe)
+- Set up a CI pipeline (GitHub Actions) to run tests on every PR
+- Finalize and publish API documentation using Swagger / OpenAPI

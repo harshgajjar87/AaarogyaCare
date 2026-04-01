@@ -43,7 +43,7 @@ const DoctorPatients = () => {
   if (loading) return <div className="text-center p-8">Loading patients...</div>;
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-3 sm:px-4 md:px-6">
+    <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
       <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
         <button onClick={() => navigate('/doctor/dashboard')} className="p-1.5 sm:p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200">
           <ArrowLeft size={18} className="sm:w-5 sm:h-5" />

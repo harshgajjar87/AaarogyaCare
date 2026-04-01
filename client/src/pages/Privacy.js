@@ -9,6 +9,7 @@ const Privacy = () => {
   );
 
   return (
+    <div className="px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
     <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-sm border">
       <div className="text-center mb-10">
         <h1 className="text-4xl font-bold text-health-text-h">Privacy Policy</h1>
@@ -73,6 +74,7 @@ const Privacy = () => {
           <a href="mailto:aarogyacare55@gmail.com" className="text-health-primary hover:underline ml-1">aarogyacare55@gmail.com</a>
         </p>
       </Section>
+    </div>
     </div>
   );
 };

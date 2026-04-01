@@ -67,7 +67,7 @@ const DoctorVerification = () => {
   if (statusLoading) return <div className="text-center p-8">Loading verification status...</div>;
   
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
         <div className="text-center mb-8">
             <Stethoscope size={48} className="mx-auto text-health-primary" />
             <h1 className="text-3xl font-bold text-health-text-h mt-4">Doctor Verification Status</h1>

@@ -16,7 +16,7 @@ const Notifications = () => {
   }, [user, markSeen]);
 
   return (
-    <div className="max-w-3xl mx-auto px-3 sm:px-4 md:px-6">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8">
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
           <button

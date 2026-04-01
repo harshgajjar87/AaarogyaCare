@@ -77,7 +77,7 @@ const DoctorProfile = () => {
   );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 md:space-y-8">
+    <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 md:space-y-8 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
       <div className="flex items-center justify-between gap-2">
         <button onClick={handleBackToDashboard} className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-health-text-p hover:text-health-primary">
           <ArrowLeft size={16} className="sm:w-4 sm:h-4" /> <span className="hidden xs:inline">Back to Dashboard</span><span className="xs:hidden">Back</span>

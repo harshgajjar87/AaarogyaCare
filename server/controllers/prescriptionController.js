@@ -62,40 +62,68 @@ exports.createPrescription = async (req, res) => {
     // Send prescription email to patient
     if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
-        const medicineList = medicines.map(med => {
-          const frequency = [];
-          if (med.frequency.morning) frequency.push('Morning');
-          if (med.frequency.evening) frequency.push('Evening');
-          if (med.frequency.night) frequency.push('Night');
-          
-          return `• ${med.name} - ${med.dosage} (${frequency.join(', ')}) ${med.timing.replace('_', ' ')} for ${med.days} days`;
-        }).join('\n');
+        const doctor = await User.findById(req.user._id).select('name');
+        const medicineRows = medicines.map(med => {
+          const freq = [];
+          if (med.frequency.morning) freq.push('Morning');
+          if (med.frequency.evening) freq.push('Evening');
+          if (med.frequency.night) freq.push('Night');
+          return `
+            <tr style="border-bottom:1px solid #e5e7eb;">
+              <td style="padding:10px 12px;font-weight:600;color:#111827;">${med.name}</td>
+              <td style="padding:10px 12px;color:#374151;">${med.dosage}</td>
+              <td style="padding:10px 12px;color:#374151;">${freq.join(', ')}</td>
+              <td style="padding:10px 12px;color:#374151;">${med.timing.replace('_', ' ')}</td>
+              <td style="padding:10px 12px;color:#374151;">${med.days} day${med.days > 1 ? 's' : ''}</td>
+            </tr>`;
+        }).join('');
 
-        const mailOptions = {
+        await transporter.sendMail({
           from: process.env.MAIL_USER,
           to: appointment.patientId.email,
           subject: 'Your Prescription - AarogyaCare',
           html: `
-            <h2>Prescription from ${req.user.name}</h2>
-            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-            <p><strong>Patient:</strong> ${appointment.patientId.name}</p>
-            
-            <h3>Diagnosis:</h3>
-            <p>${diagnosis}</p>
-            
-            ${notes ? `<h3>Notes:</h3><p>${notes}</p>` : ''}
-            
-            <h3>Medicines:</h3>
-            <pre>${medicineList}</pre>
-            
-            ${instructions ? `<h3>Instructions:</h3><p>${instructions}</p>` : ''}
-            
-            ${followUpDate ? `<p><strong>Follow-up Date:</strong> ${new Date(followUpDate).toLocaleDateString()}</p>` : ''}
-            
-            <p>Thank you for choosing AarogyaCare!</p>
+            <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#14b8a6,#0d9488);padding:30px;text-align:center;border-radius:10px 10px 0 0;">
+                <h1 style="color:white;margin:0;">🏥 AarogyaCare</h1>
+                <p style="color:#e0f2fe;margin:8px 0 0;">Prescription from Dr. ${doctor.name}</p>
+              </div>
+              <div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
+                <p>Dear <strong>${appointment.patientId.name}</strong>,</p>
+                <p>Your doctor has issued a prescription for you. Please find the details below.</p>
+
+                <div style="background:white;border-left:4px solid #14b8a6;padding:16px 20px;border-radius:6px;margin:16px 0;">
+                  <p style="margin:0 0 6px;"><strong style="color:#14b8a6;">Diagnosis:</strong> ${diagnosis}</p>
+                  ${notes ? `<p style="margin:6px 0;"><strong style="color:#14b8a6;">Clinical Notes:</strong> ${notes}</p>` : ''}
+                  ${instructions ? `<p style="margin:6px 0;"><strong style="color:#14b8a6;">Instructions:</strong> ${instructions}</p>` : ''}
+                  ${followUpDate ? `<p style="margin:6px 0;"><strong style="color:#14b8a6;">Follow-up Date:</strong> ${new Date(followUpDate).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })}</p>` : ''}
+                </div>
+
+                <h3 style="color:#14b8a6;margin-bottom:8px;">💊 Medicines</h3>
+                <table style="width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <thead>
+                    <tr style="background:#f0fdfa;">
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Medicine</th>
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Dosage</th>
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Frequency</th>
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Timing</th>
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody>${medicineRows}</tbody>
+                </table>
+
+                <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:14px 18px;border-radius:6px;margin:20px 0;">
+                  <strong style="color:#1d4ed8;">📌 Reminder:</strong>
+                  <p style="margin:6px 0 0;color:#1e40af;font-size:14px;">Take medicines as prescribed. Do not stop without consulting your doctor. You can view and download this prescription from your patient dashboard.</p>
+                </div>
+
+                <p style="color:#6b7280;font-size:12px;margin-top:24px;text-align:center;">© ${new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
+              </div>
+            </div>
           `
-        };
-        await transporter.sendMail(mailOptions);
+        });
+        console.log('✅ Prescription email sent to patient:', appointment.patientId.email);
       } catch (emailErr) {
         console.error('Failed to send prescription email:', emailErr);
       }
@@ -134,41 +162,59 @@ exports.createDirectPrescription = async (req, res) => {
     // Send prescription email to patient
     if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
-        const medicineList = medicines.map(med => {
-          const frequency = [];
-          if (med.frequency.morning) frequency.push('Morning');
-          if (med.frequency.evening) frequency.push('Evening');
-          if (med.frequency.night) frequency.push('Night');
-          
-          return `• ${med.name} - ${med.dosage} (${frequency.join(', ')}) ${med.timing.replace('_', ' ')} for ${med.days} days`;
-        }).join('\n');
+        const medicineRows = medicines.map(med => {
+          const freq = [];
+          if (med.frequency.morning) freq.push('Morning');
+          if (med.frequency.evening) freq.push('Evening');
+          if (med.frequency.night) freq.push('Night');
+          return `
+            <tr style="border-bottom:1px solid #e5e7eb;">
+              <td style="padding:10px 12px;font-weight:600;color:#111827;">${med.name}</td>
+              <td style="padding:10px 12px;color:#374151;">${med.dosage}</td>
+              <td style="padding:10px 12px;color:#374151;">${freq.join(', ')}</td>
+              <td style="padding:10px 12px;color:#374151;">${med.timing.replace('_', ' ')}</td>
+              <td style="padding:10px 12px;color:#374151;">${med.days} day${med.days > 1 ? 's' : ''}</td>
+            </tr>`;
+        }).join('');
 
-        const mailOptions = {
+        await transporter.sendMail({
           from: process.env.MAIL_USER,
           to: patient.email,
           subject: 'New Prescription - AarogyaCare',
           html: `
-            <h2>Prescription from Dr. ${req.user.name}</h2>
-            <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-            <p><strong>Patient:</strong> ${patient.name}</p>
-            
-            <h3>Diagnosis:</h3>
-            <p>${diagnosis}</p>
-            
-            ${notes ? `<h3>Notes:</h3><p>${notes}</p>` : ''}
-            
-            <h3>Medicines:</h3>
-            <pre>${medicineList}</pre>
-            
-            ${instructions ? `<h3>Instructions:</h3><p>${instructions}</p>` : ''}
-            
-            ${followUpDate ? `<p><strong>Follow-up Date:</strong> ${new Date(followUpDate).toLocaleDateString()}</p>` : ''}
-            
-            <p>You can view and download this prescription from your dashboard.</p>
-            <p>Thank you for choosing AarogyaCare!</p>
+            <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#14b8a6,#0d9488);padding:30px;text-align:center;border-radius:10px 10px 0 0;">
+                <h1 style="color:white;margin:0;">🏥 AarogyaCare</h1>
+                <p style="color:#e0f2fe;margin:8px 0 0;">Prescription from Dr. ${req.user.name}</p>
+              </div>
+              <div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
+                <p>Dear <strong>${patient.name}</strong>,</p>
+                <p>Your doctor has issued a prescription for you.</p>
+                <div style="background:white;border-left:4px solid #14b8a6;padding:16px 20px;border-radius:6px;margin:16px 0;">
+                  <p style="margin:0 0 6px;"><strong style="color:#14b8a6;">Diagnosis:</strong> ${diagnosis}</p>
+                  ${notes ? `<p style="margin:6px 0;"><strong style="color:#14b8a6;">Notes:</strong> ${notes}</p>` : ''}
+                  ${instructions ? `<p style="margin:6px 0;"><strong style="color:#14b8a6;">Instructions:</strong> ${instructions}</p>` : ''}
+                  ${followUpDate ? `<p style="margin:6px 0;"><strong style="color:#14b8a6;">Follow-up:</strong> ${new Date(followUpDate).toLocaleDateString('en-IN', { day:'2-digit', month:'long', year:'numeric' })}</p>` : ''}
+                </div>
+                <h3 style="color:#14b8a6;">💊 Medicines</h3>
+                <table style="width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
+                  <thead>
+                    <tr style="background:#f0fdfa;">
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Medicine</th>
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Dosage</th>
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Frequency</th>
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Timing</th>
+                      <th style="padding:10px 12px;text-align:left;color:#14b8a6;font-size:13px;">Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody>${medicineRows}</tbody>
+                </table>
+                <p style="color:#6b7280;font-size:12px;margin-top:24px;text-align:center;">© ${new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
+              </div>
+            </div>
           `
-        };
-        await transporter.sendMail(mailOptions);
+        });
+        console.log('✅ Prescription email sent to patient:', patient.email);
       } catch (emailErr) {
         console.error('Failed to send prescription email:', emailErr);
       }

@@ -124,8 +124,8 @@ exports.createAppointment = async (req, res) => {
       });
     }
 
-    // Send confirmation email with PDF receipt to patient
-    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+    // Send confirmation email to patient
+    if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
         // Populate patient and doctor details for PDF
         const populatedAppointment = await Appointment.findById(appointment._id)
@@ -315,25 +315,33 @@ exports.approveAppointment = async (req, res) => {
       // The automatic chat access in chatController will handle it later
     }
 
-    // Send email notification (if email is configured)
-    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+    // Send email notification
+    if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
         const mailOptions = {
           from: process.env.MAIL_USER,
           to: appointment.patientId.email,
-          subject: 'Appointment Approved',
+          subject: 'Appointment Approved - AarogyaCare',
           html: `
-            <p>Dear ${appointment.patientId.name},</p>
-            <p>Your appointment on <strong>${appointment.date.toDateString()}</strong> at <strong>${appointment.time}</strong> has been <strong>approved</strong>.</p>
-            <p>You can now chat with your doctor to discuss your appointment details.</p>
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#14b8a6,#0d9488);padding:30px;text-align:center;border-radius:10px 10px 0 0;">
+                <h1 style="color:white;margin:0;">🏥 AarogyaCare</h1>
+              </div>
+              <div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
+                <h2 style="color:#14b8a6;">✅ Appointment Approved!</h2>
+                <p>Dear <strong>${appointment.patientId.name}</strong>,</p>
+                <p>Your appointment on <strong>${appointment.date.toDateString()}</strong> at <strong>${appointment.time}</strong> has been <strong>approved</strong>.</p>
+                <p>You can now chat with your doctor through your patient dashboard.</p>
+                <p style="color:#6b7280;font-size:12px;margin-top:20px;">© ${new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
+              </div>
+            </div>
           `
         };
         await transporter.sendMail(mailOptions);
+        console.log('✅ Approval email sent to patient');
       } catch (emailErr) {
         console.error('Failed to send approval email:', emailErr);
       }
-    } else {
-      console.log('Email not configured, skipping approval email notification');
     }
 
     res.json({ 
@@ -360,24 +368,33 @@ exports.rejectAppointment = async (req, res) => {
     appointment.status = 'rejected';
     await appointment.save();
 
-    // Send email notification (if email is configured)
-    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+    // Send email notification
+    if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
         const mailOptions = {
           from: process.env.MAIL_USER,
           to: appointment.patientId.email,
-          subject: 'Appointment Rejected',
+          subject: 'Appointment Rejected - AarogyaCare',
           html: `
-            <p>Dear ${appointment.patientId.name},</p>
-            <p>We regret to inform you that your appointment on <strong>${appointment.date.toDateString()}</strong> at <strong>${appointment.time}</strong> has been <strong>rejected</strong>.</p>
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#14b8a6,#0d9488);padding:30px;text-align:center;border-radius:10px 10px 0 0;">
+                <h1 style="color:white;margin:0;">🏥 AarogyaCare</h1>
+              </div>
+              <div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
+                <h2 style="color:#ef4444;">❌ Appointment Not Approved</h2>
+                <p>Dear <strong>${appointment.patientId.name}</strong>,</p>
+                <p>We regret to inform you that your appointment on <strong>${appointment.date.toDateString()}</strong> at <strong>${appointment.time}</strong> could not be approved.</p>
+                <p>Please book another slot or contact us for assistance.</p>
+                <p style="color:#6b7280;font-size:12px;margin-top:20px;">© ${new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
+              </div>
+            </div>
           `
         };
         await transporter.sendMail(mailOptions);
+        console.log('✅ Rejection email sent to patient');
       } catch (emailErr) {
         console.error('Failed to send rejection email:', emailErr);
       }
-    } else {
-      console.log('Email not configured, skipping rejection email notification');
     }
 
     res.json({ msg: 'Appointment Rejected & Mail Sent' });
@@ -698,45 +715,62 @@ exports.cancelAppointment = async (req, res) => {
       message: `Appointment cancelled by ${appointment.patientId.name} for ${appointment.date.toDateString()} at ${appointment.time}`
     });
 
-    // Send email notification to doctor (if email is configured)
-    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+    // Send email notification to doctor
+    if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
         const doctorMailOptions = {
           from: process.env.MAIL_USER,
           to: appointment.doctorId.email,
-          subject: 'Appointment Cancelled',
+          subject: 'Appointment Cancelled by Patient - AarogyaCare',
           html: `
-            <p>Dear Dr. ${appointment.doctorId.name},</p>
-            <p>The appointment scheduled for <strong>${appointment.date.toDateString()}</strong> at <strong>${appointment.time}</strong> has been <strong>cancelled</strong> by the patient.</p>
-            <p>Patient: ${appointment.patientId.name}</p>
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#14b8a6,#0d9488);padding:30px;text-align:center;border-radius:10px 10px 0 0;">
+                <h1 style="color:white;margin:0;">🏥 AarogyaCare</h1>
+              </div>
+              <div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
+                <h2 style="color:#f59e0b;">⚠️ Appointment Cancelled</h2>
+                <p>Dear <strong>${appointment.doctorId.name}</strong>,</p>
+                <p>The appointment scheduled for <strong>${appointment.date.toDateString()}</strong> at <strong>${appointment.time}</strong> has been cancelled by the patient.</p>
+                <p><strong>Patient:</strong> ${appointment.patientId.name}</p>
+                <p style="color:#6b7280;font-size:12px;margin-top:20px;">© ${new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
+              </div>
+            </div>
           `
         };
         await transporter.sendMail(doctorMailOptions);
+        console.log('✅ Cancellation email sent to doctor');
       } catch (emailErr) {
         console.error('Failed to send email to doctor:', emailErr);
       }
-    } else {
-      console.log('Email not configured, skipping email notification to doctor');
     }
 
-    // Send email confirmation to patient (if email is configured)
-    if (process.env.MAIL_USER && process.env.MAIL_PASS) {
+    // Send email confirmation to patient
+    if (process.env.MAIL_USER && process.env.MAILJET_API_KEY) {
       try {
         const patientMailOptions = {
           from: process.env.MAIL_USER,
           to: appointment.patientId.email,
-          subject: 'Appointment Cancelled',
+          subject: 'Appointment Cancelled - AarogyaCare',
           html: `
-            <p>Dear ${appointment.patientId.name},</p>
-            <p>Your appointment with Dr. ${appointment.doctorId.name} on <strong>${appointment.date.toDateString()}</strong> at <strong>${appointment.time}</strong> has been successfully <strong>cancelled</strong>.</p>
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+              <div style="background:linear-gradient(135deg,#14b8a6,#0d9488);padding:30px;text-align:center;border-radius:10px 10px 0 0;">
+                <h1 style="color:white;margin:0;">🏥 AarogyaCare</h1>
+              </div>
+              <div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
+                <h2 style="color:#f59e0b;">⚠️ Appointment Cancelled</h2>
+                <p>Dear <strong>${appointment.patientId.name}</strong>,</p>
+                <p>Your appointment with <strong>${appointment.doctorId.name}</strong> on <strong>${appointment.date.toDateString()}</strong> at <strong>${appointment.time}</strong> has been successfully cancelled.</p>
+                <p>If you need to rebook, please visit your dashboard.</p>
+                <p style="color:#6b7280;font-size:12px;margin-top:20px;">© ${new Date().getFullYear()} AarogyaCare. All rights reserved.</p>
+              </div>
+            </div>
           `
         };
         await transporter.sendMail(patientMailOptions);
+        console.log('✅ Cancellation email sent to patient');
       } catch (emailErr) {
         console.error('Failed to send email to patient:', emailErr);
       }
-    } else {
-      console.log('Email not configured, skipping email notification to patient');
     }
 
     res.json({ msg: 'Appointment cancelled successfully', appointment });

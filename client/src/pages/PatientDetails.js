@@ -134,7 +134,7 @@ const PatientDetails = () => {
   const { patient, appointments, prescriptions } = data;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
       <div className="flex items-center gap-4">
         <button onClick={() => navigate('/doctor/patients')} className="p-2 rounded-full bg-teal-100 text-teal-600 hover:bg-teal-200">
           <ArrowLeft size={20} />

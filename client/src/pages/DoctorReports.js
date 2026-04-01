@@ -25,7 +25,7 @@ const DoctorReports = () => {
   if (loading) return <div className="text-center p-8">Loading reports...</div>;
 
   return (
-    <div className="space-y-4 sm:space-y-6 md:space-y-8 px-3 sm:px-4 md:px-6">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8 px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
       <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-health-text-h">Uploaded Medical Reports</h1>
       
       <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border">

@@ -52,7 +52,7 @@ const About = () => {
   );
 
   return (
-    <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
       {/* Back to Dashboard Button */}
       {user && (
         <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-5 md:mb-6">
