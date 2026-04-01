@@ -150,93 +150,98 @@ const DoctorDashboard = () => {
           <StatCard title="Total Patients" value={stats.totalPatients} icon={<Users size={20} className="sm:w-6 sm:h-6" />} color="green" />
         </div>
 
-        <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 mb-6 sm:mb-8">
-          <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h p-3 sm:p-4 md:p-6">Recent Appointment Requests</h2>
-          <div className="overflow-x-auto">
-            {appointments.filter(a => a.status === 'pending' && (!a.paymentInfo || a.paymentInfo.status !== 'completed')).length > 0 ? (
-              <table className="w-full text-xs sm:text-sm text-left text-health-text-p">
-                <thead className="text-[10px] sm:text-xs text-health-text-p uppercase bg-slate-50">
-                  <tr>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Patient</th>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Date & Time</th>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Reason</th>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {appointments.filter(app => app.status === 'pending' && (!app.paymentInfo || app.paymentInfo.status !== 'completed')).map(app => (
-                    <tr key={app._id} className="bg-white border-b hover:bg-slate-50">
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-health-text-h text-[10px] sm:text-xs md:text-sm">{app.patientId?.name}</td>
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{new Date(app.date).toLocaleDateString()} at {app.time}</td>
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{app.reason}</td>
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
-                        <div className="flex gap-1 sm:gap-2 justify-center">
-                          <button onClick={() => handleStatus(app._id, 'approve')} className="bg-green-100 text-green-600 p-1 sm:p-2 rounded-full hover:bg-green-200 transition-all">
-                            <Check size={14} className="sm:w-4 sm:h-4" />
-                          </button>
-                          <button onClick={() => handleStatus(app._id, 'reject')} className="bg-red-100 text-red-600 p-1 sm:p-2 rounded-full hover:bg-red-200 transition-all">
-                            <X size={14} className="sm:w-4 sm:h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="text-center py-8 sm:py-12 text-health-text-p text-sm sm:text-base px-3">
-                <p>No pending appointment requests.</p>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Recent Appointments — last 4 days */}
+        {(() => {
+          const cutoff = new Date();
+          cutoff.setDate(cutoff.getDate() - 4);
+          cutoff.setHours(0, 0, 0, 0);
+          const recent = appointments
+            .filter(a => new Date(a.date) >= cutoff)
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 10);
 
-        <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100">
-          <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h p-3 sm:p-4 md:p-6">Approved Appointments</h2>
-          <div className="overflow-x-auto">
-            {appointments.filter(a => a.status === 'approved').length > 0 ? (
-              <table className="w-full text-xs sm:text-sm text-left text-health-text-p">
-                <thead className="text-[10px] sm:text-xs text-health-text-p uppercase bg-slate-50">
-                  <tr>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Patient</th>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Date & Time</th>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Reason</th>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Payment</th>
-                    <th scope="col" className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {appointments.filter(app => app.status === 'approved').map(app => (
-                    <tr key={app._id} className="bg-white border-b hover:bg-slate-50">
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-health-text-h text-[10px] sm:text-xs md:text-sm">{app.patientId?.name}</td>
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{new Date(app.date).toLocaleDateString()} at {app.time}</td>
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm">{app.reason}</td>
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
-                        {app.paymentInfo?.status === 'completed' ? (
-                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 text-green-800 rounded-full text-[10px] sm:text-xs">Paid</span>
-                        ) : (
-                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-yellow-100 text-yellow-800 rounded-full text-[10px] sm:text-xs">Pending</span>
-                        )}
-                      </td>
-                      <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
-                        <button 
-                          onClick={() => handlePatientVisited(app._id)} 
-                          className="bg-blue-100 text-blue-600 px-2 sm:px-3 py-1 rounded-full hover:bg-blue-200 transition-all text-[10px] sm:text-xs"
-                        >
-                          Patient Visited
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="text-center py-8 sm:py-12 text-health-text-p text-sm sm:text-base px-3">
-                <p>No approved appointments.</p>
+          const statusBadge = (status) => {
+            const map = {
+              approved:  'bg-green-100 text-green-700',
+              pending:   'bg-yellow-100 text-yellow-700',
+              completed: 'bg-blue-100 text-blue-700',
+              rejected:  'bg-red-100 text-red-700',
+              cancelled: 'bg-slate-100 text-slate-500',
+              'cancelled-by-patient': 'bg-slate-100 text-slate-500',
+              visited:   'bg-purple-100 text-purple-700',
+            };
+            return map[status] || 'bg-slate-100 text-slate-500';
+          };
+
+          return (
+            <div className="bg-health-surface rounded-lg sm:rounded-xl shadow-sm border border-slate-100 mb-6 sm:mb-8">
+              <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-slate-100">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold text-health-text-h">Recent Appointments</h2>
+                <span className="text-xs text-slate-400">Last 4 days</span>
               </div>
-            )}
-          </div>
-        </div>
+              <div className="overflow-x-auto">
+                {recent.length > 0 ? (
+                  <table className="w-full text-xs sm:text-sm text-left text-health-text-p">
+                    <thead className="text-[10px] sm:text-xs text-health-text-p uppercase bg-slate-50">
+                      <tr>
+                        <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Patient</th>
+                        <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Date & Time</th>
+                        <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Reason</th>
+                        <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Status</th>
+                        <th className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-center">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recent.map(app => (
+                        <tr key={app._id} className="bg-white border-b hover:bg-slate-50">
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium text-health-text-h text-[10px] sm:text-xs md:text-sm">
+                            {app.patientId?.name || app.name}
+                          </td>
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm whitespace-nowrap">
+                            {new Date(app.date).toLocaleDateString()} at {app.time}
+                          </td>
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-[10px] sm:text-xs md:text-sm max-w-[140px] truncate">
+                            {app.reason}
+                          </td>
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium capitalize ${statusBadge(app.status)}`}>
+                              {app.status.replace('cancelled-by-patient', 'cancelled')}
+                            </span>
+                          </td>
+                          <td className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-center">
+                            {app.status === 'approved' && (
+                              <button
+                                onClick={() => handlePatientVisited(app._id)}
+                                className="bg-blue-100 text-blue-600 px-2 sm:px-3 py-1 rounded-full hover:bg-blue-200 transition-all text-[10px] sm:text-xs whitespace-nowrap"
+                              >
+                                Patient Visited
+                              </button>
+                            )}
+                            {app.status === 'pending' && (
+                              <div className="flex gap-1 sm:gap-2 justify-center">
+                                <button onClick={() => handleStatus(app._id, 'approve')} className="bg-green-100 text-green-600 p-1 sm:p-2 rounded-full hover:bg-green-200 transition-all">
+                                  <Check size={13} className="sm:w-4 sm:h-4" />
+                                </button>
+                                <button onClick={() => handleStatus(app._id, 'reject')} className="bg-red-100 text-red-600 p-1 sm:p-2 rounded-full hover:bg-red-200 transition-all">
+                                  <X size={13} className="sm:w-4 sm:h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="text-center py-8 sm:py-12 text-health-text-p text-sm sm:text-base px-3">
+                    <p>No appointments in the last 4 days.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
       </main>
     </div>
   );

@@ -102,7 +102,7 @@ const DoctorAnalytics = () => {
         </button>
         <div className="p-6 border-b border-slate-100">
           <h2 className="text-2xl font-bold text-health-text-h">Doctor Panel</h2>
-          <p className="text-health-text-p mt-2">Welcome, Dr. {user.name}!</p>
+          <p className="text-health-text-p mt-2">Welcome, {user.name}!</p>
         </div>
 
         <nav className={`${isSidebarOpen ? "flex" : "hidden md:flex"} flex-1 p-4 space-y-1 flex-col`}>
