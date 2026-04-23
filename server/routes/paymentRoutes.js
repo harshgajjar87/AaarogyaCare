@@ -405,7 +405,7 @@ router.post('/verify-and-book', protect, async (req, res) => {
                     <ul style="margin: 10px 0; padding-left: 20px;">
                       <li>Please arrive 10 minutes before your scheduled appointment time</li>
                       <li>Bring a valid ID and your payment receipt (attached/downloaded)</li>
-                      <li>You can now chat with Dr. ${escapeHtml(doctor.name)} through your patient dashboard</li>
+                      <li>You can now chat with ${escapeHtml(doctor.name)} through your patient dashboard</li>
                       <li>Your chat access will remain active for 5 days</li>
                     </ul>
                   </div>
@@ -518,7 +518,7 @@ router.post('/verify-and-book', protect, async (req, res) => {
                     </div>
                     <div class="info-row">
                       <span class="info-label">Amount Paid:</span>
-                      <span class="info-value">₹ ${revenueBreakdown.totalAmount.toFixed(2)}</span>
+                      <span class="info-value">Rs.${revenueBreakdown.totalAmount.toFixed(2)}</span>
                     </div>
                   </div>
                   

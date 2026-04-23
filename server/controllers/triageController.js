@@ -144,10 +144,19 @@ exports.triageChat = async (req, res) => {
     // Merge server-parsed facts with client-persisted storage facts
     const collectedInfo = extractCollectedInfo(history, message, clientCollected);
 
-    const systemPrompt = `You are Dr. Aarogya, a senior medical triage officer. ${languageInstructions[language] || languageInstructions.english}
+    const systemPrompt = `You are Dr. Aarogya, a friendly and caring AI doctor. ${languageInstructions[language] || languageInstructions.english}
 
 WHAT YOU ALREADY KNOW ABOUT THIS PATIENT:
 ${collectedInfo.display}
+
+MEDICINE QUESTIONS — HIGHEST PRIORITY:
+If the patient asks about a medicine (e.g. "what is Paracetamol?", "what is this tablet for?", "why is Metformin given?", "what does Amoxicillin do?"):
+- Answer IMMEDIATELY in very simple, everyday language — like explaining to a family member.
+- Structure your answer as: what it is → what it is used for → one common side effect to watch for.
+- Example: "Paracetamol is a common painkiller. Doctors give it to reduce fever and relieve mild pain like headaches or body aches. It is very safe, but avoid taking it on an empty stomach."
+- Keep it under 60 words. Warm and reassuring tone.
+- Do NOT ask follow-up triage questions after a medicine answer.
+- Do NOT say "consult a doctor" as the only answer — give the actual explanation first.
 
 CLINICAL PROTOCOLS:
 1. RED FLAGS FIRST: If the user mentions "chest pain," "difficulty breathing," "sudden weakness," "fainting," or "severe bleeding," immediately ask about associated emergency symptoms (e.g., cold sweats, loss of consciousness) before anything else.
@@ -168,8 +177,8 @@ CLINICAL PROTOCOLS:
    - NEVER ask about something already listed in WHAT YOU ALREADY KNOW.
    - NEVER ask location for nausea/vomiting.
    - If the user's reply is unclear or a typo (e.g. "shark" instead of "sharp"), interpret it charitably and move forward.
-   - Keep responses under 45 words.
-   - NO medical advice or diagnosis. Only triage to a specialist.
+   - Keep responses under 45 words (60 words for medicine questions).
+   - NO diagnosis. Only triage to a specialist for symptom questions.
    - Respond warmly to greetings, then ask about symptoms.
 
 Once you have: symptom + character + duration → provide recommendation using [SPECIALIST:Name].
@@ -203,7 +212,7 @@ Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatr
             model: 'llama-3.3-70b-versatile',
             messages,
             temperature: 0.4,
-            max_tokens: 150
+            max_tokens: 200
           },
           {
             headers: {
@@ -231,7 +240,7 @@ Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatr
               parts: [{ text: m.content }]
             })),
             systemInstruction: { parts: [{ text: systemPrompt }] },
-            generationConfig: { temperature: 0.4, maxOutputTokens: 150 }
+            generationConfig: { temperature: 0.4, maxOutputTokens: 200 }
           },
           { headers: { 'Content-Type': 'application/json' } }
         );

@@ -1,4 +1,6 @@
 const axios = require('axios');
+const fs = require('fs').promises;
+const path = require('path');
 
 const generalPrediction = async (req, res) => {
   try {
@@ -652,7 +654,87 @@ Format as valid JSON only, no markdown code blocks.`;
   }
 };
 
+// Handler for file-upload based report analysis
+const analyzeReportWithFile = async (req, res) => {
+  const filePath = req.file?.path;
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: 'No file uploaded' });
+    }
+
+    const { reportType, reportData } = req.body;
+    if (!reportType) {
+      return res.status(400).json({ msg: 'Report type is required' });
+    }
+
+    const fileType = req.file.mimetype;
+    const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
+    let fullReportText = '';
+
+    if (fileType === 'application/pdf') {
+      const pdfParse = require('pdf-parse');
+      const dataBuffer = await fs.readFile(filePath);
+      const data = await pdfParse(dataBuffer);
+      fullReportText = data.text;
+    } else if (fileType.startsWith('image/')) {
+      // Use Gemini or Groq vision to extract text from image
+      const imageBuffer = await fs.readFile(filePath);
+      const base64Image = imageBuffer.toString('base64');
+
+      try {
+        const geminiResponse = await axios.post(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_API_KEY}`,
+          {
+            contents: [{ parts: [
+              { text: 'Extract all text from this medical report image. Return only the raw text content.' },
+              { inline_data: { mime_type: fileType, data: base64Image } }
+            ]}],
+            generationConfig: { temperature: 0.1, maxOutputTokens: 2000 }
+          },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+        fullReportText = geminiResponse.data.candidates[0].content.parts[0].text;
+      } catch {
+        const imageUrl = `data:${fileType};base64,${base64Image}`;
+        const groqResponse = await axios.post(
+          'https://api.groq.com/openai/v1/chat/completions',
+          {
+            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+            messages: [{ role: 'user', content: [
+              { type: 'text', text: 'Extract all text from this medical report image. Return only the raw text.' },
+              { type: 'image_url', image_url: { url: imageUrl } }
+            ]}],
+            temperature: 0.1,
+            max_completion_tokens: 2000
+          },
+          { headers: { 'Authorization': `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' } }
+        );
+        fullReportText = groqResponse.data.choices[0].message.content;
+      }
+    } else {
+      await fs.unlink(filePath);
+      return res.status(400).json({ msg: 'Unsupported file type. Use PDF or image.' });
+    }
+
+    await fs.unlink(filePath);
+
+    // Delegate to the existing analyzeReport logic by mutating req.body
+    req.body = { reportType, reportData, fullReportText, hasUploadedReport: true };
+    return analyzeReport(req, res);
+
+  } catch (error) {
+    console.error('analyzeReportWithFile error:', error.message);
+    if (filePath) {
+      try { await fs.unlink(filePath); } catch {}
+    }
+    res.status(500).json({ msg: error.message || 'Failed to analyze report file' });
+  }
+};
+
 module.exports = {
   generalPrediction,
-  analyzeReport
+  analyzeReport,
+  analyzeReportWithFile
 };
