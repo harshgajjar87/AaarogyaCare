@@ -178,13 +178,21 @@ const AITriageChat = ({ isOpen, onClose }) => {
   const findDoctors = async (specialization) => {
     try {
       const res = await axios.post('/triage/find-doctors', { specialization });
+      const doctors = res.data.doctors || [];
       setMessages(prev => [...prev, {
-        text: (recommendText[language] || recommendText.english)(specialization),
+        text: doctors.length > 0
+          ? (recommendText[language] || recommendText.english)(specialization)
+          : `I recommend seeing a ${specialization}. No doctors are currently listed — please use the Book Appointment page to find one.`,
         sender: 'ai',
-        doctors: res.data.doctors
+        doctors
       }]);
     } catch (error) {
       console.error('Error finding doctors:', error);
+      setMessages(prev => [...prev, {
+        text: `I recommend seeing a ${specialization}. Please use the Book Appointment page to find available doctors.`,
+        sender: 'ai',
+        doctors: []
+      }]);
     }
   };
 

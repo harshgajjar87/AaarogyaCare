@@ -103,8 +103,33 @@ if (process.env.NODE_ENV === 'production' && process.env.SERVER_URL) {
 
 // DB & Start
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('✅ MongoDB Connected');
+
+    // Auto-normalize specialization spellings in DB on every startup
+    try {
+      const User = require('./models/User');
+      const { SPEC_CORRECTIONS } = require('./utils/normalizeSpecialization');
+      const doctors = await User.find({ role: 'doctor', 'doctorDetails.specialization': { $exists: true } })
+        .select('_id name doctorDetails.specialization').lean();
+      let fixed = 0;
+      for (const doc of doctors) {
+        const current = doc.doctorDetails?.specialization;
+        if (!current) continue;
+        for (const { pattern, canonical } of SPEC_CORRECTIONS) {
+          if (pattern.test(current) && current !== canonical) {
+            await User.updateOne({ _id: doc._id }, { $set: { 'doctorDetails.specialization': canonical } });
+            console.log(`  Normalized: "${current}" → "${canonical}" (${doc.name})`);
+            fixed++;
+            break;
+          }
+        }
+      }
+      if (fixed > 0) console.log(`✅ Normalized ${fixed} specialization(s) in DB`);
+    } catch (e) {
+      console.error('⚠️  Specialization normalization failed:', e.message);
+    }
+
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);

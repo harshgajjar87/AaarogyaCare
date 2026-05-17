@@ -86,7 +86,7 @@ exports.createPrescription = async (req, res) => {
             <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;">
               <div style="background:linear-gradient(135deg,#14b8a6,#0d9488);padding:30px;text-align:center;border-radius:10px 10px 0 0;">
                 <h1 style="color:white;margin:0;">🏥 AarogyaCare</h1>
-                <p style="color:#e0f2fe;margin:8px 0 0;">Prescription from Dr. ${doctor.name}</p>
+                <p style="color:#e0f2fe;margin:8px 0 0;">Prescription from ${doctor.name}</p>
               </div>
               <div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
                 <p>Dear <strong>${appointment.patientId.name}</strong>,</p>

@@ -419,28 +419,46 @@ const AppointmentForm = () => {
             </div>
 
             {selectedDoctor && (
-              <div className="mt-2 p-2 sm:p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs sm:text-sm font-medium text-blue-800">Consultation Fee:</span>
-                  <span className="text-base sm:text-lg font-bold text-blue-900">₹{selectedDoctor.doctorDetails?.consultationFee || 500}</span>
+              <div className="mt-3 rounded-xl border border-teal-200 bg-teal-50 overflow-hidden">
+                {/* Header */}
+                <div className="bg-teal-600 px-4 py-2.5 flex items-center justify-between">
+                  <span className="text-white font-semibold text-sm flex items-center gap-2">
+                    <CreditCard size={15} />
+                    Price Summary
+                  </span>
+                  <span className="text-teal-100 text-xs">Secured by Razorpay</span>
                 </div>
+
                 {feePreview ? (
-                  <div className="mt-2 space-y-1 text-xs text-blue-700 border-t border-blue-200 pt-2">
-                    <div className="flex justify-between">
-                      <span>Doctor consultation fee</span>
-                      <span>₹{feePreview.doctorFees}</span>
+                  <div className="px-4 py-3 space-y-2 text-sm">
+                    {/* Line items */}
+                    <div className="flex justify-between text-slate-600">
+                      <span>Consultation fee</span>
+                      <span className="font-medium text-slate-800">₹{feePreview.doctorFees}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Platform service fee</span>
-                      <span>₹{feePreview.platformServiceFee}</span>
+                    <div className="flex justify-between text-slate-600">
+                      <span className="flex items-center gap-1">
+                        Platform service fee
+                        <span className="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">one-time</span>
+                      </span>
+                      <span className="font-medium text-slate-800">₹{feePreview.platformServiceFee}</span>
                     </div>
-                    <div className="flex justify-between font-semibold text-blue-900 border-t border-blue-300 pt-1 mt-1 text-sm">
-                      <span>Total payable</span>
-                      <span>₹{feePreview.totalAmount}</span>
+
+                    {/* Divider + Total */}
+                    <div className="border-t border-teal-200 pt-2 flex justify-between items-center">
+                      <span className="font-semibold text-slate-800">Total payable</span>
+                      <span className="text-lg font-bold text-teal-700">₹{feePreview.totalAmount}</span>
                     </div>
+
+                    <p className="text-xs text-slate-400 pt-0.5">
+                      No hidden charges. Amount shown is final.
+                    </p>
                   </div>
                 ) : (
-                  <p className="text-xs text-blue-600 mt-1">Payment will be processed via Razorpay</p>
+                  <div className="px-4 py-3 flex items-center gap-2 text-sm text-slate-500">
+                    <Loader2 size={14} className="animate-spin text-teal-500" />
+                    Calculating fee breakdown...
+                  </div>
                 )}
               </div>
             )}
@@ -542,6 +560,11 @@ const AppointmentForm = () => {
           </FormSection>
 
           <div className="text-center pt-2 sm:pt-4">
+            {feePreview && (
+              <p className="text-sm text-slate-500 mb-2">
+                You will be charged <span className="font-bold text-teal-700">₹{feePreview.totalAmount}</span>
+              </p>
+            )}
             <button
               type="submit"
               className="w-full sm:w-auto bg-teal-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-full hover:bg-teal-700 transition-all font-medium flex items-center justify-center gap-2 mx-auto disabled:opacity-50 text-sm sm:text-base"
@@ -555,7 +578,7 @@ const AppointmentForm = () => {
               ) : (
                 <>
                   <CreditCard size={18} className="sm:w-5 sm:h-5" />
-                  <span>Pay & Book Appointment</span>
+                  <span>Pay {feePreview ? `₹${feePreview.totalAmount} & ` : '& '}Book Appointment</span>
                 </>
               )}
             </button>

@@ -55,7 +55,7 @@ const PaymentHistory = () => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('🩺 AarogyaCare', pageWidth / 2, 20, { align: 'center' });
+    doc.text('AarogyaCare', pageWidth / 2, 20, { align: 'center' });
     doc.setFontSize(14);
     doc.text('Payment Receipt', pageWidth / 2, 32, { align: 'center' });
     
@@ -99,7 +99,7 @@ const PaymentHistory = () => {
     doc.text('Amount Paid:', 20, yPos + 12);
     doc.setFontSize(18);
     doc.setTextColor(22, 163, 74); // Green color
-    doc.text(`₹${payment.paymentInfo.amount}`, 70, yPos + 12);
+    doc.text(`Rs. ${payment.paymentInfo.amount}`, 70, yPos + 12);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);

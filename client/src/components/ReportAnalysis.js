@@ -271,22 +271,40 @@ const ReportAnalysis = ({ onBack }) => {
     const maxWidth = pageWidth - 2 * margin;
     let yPosition = margin;
 
-    // Helper function to add text with word wrap and proper spacing
-    const addText = (text, fontSize = 10, isBold = false, spacing = 5) => {
+    // Line height: fontSize * 0.35 in mm (jsPDF uses mm internally, 1pt ≈ 0.353mm)
+    const lineH = (fontSize) => fontSize * 0.38;
+
+    const addText = (text, fontSize = 10, isBold = false, spacing = 4) => {
       doc.setFontSize(fontSize);
       doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-      const lines = doc.splitTextToSize(text, maxWidth);
-      
-      lines.forEach((line, index) => {
-        // Check if we need a new page
-        if (yPosition + fontSize * 0.4 > pageHeight - margin - 10) {
+      const lines = doc.splitTextToSize(String(text), maxWidth);
+      lines.forEach((line) => {
+        if (yPosition + lineH(fontSize) > pageHeight - margin - 10) {
           doc.addPage();
-          yPosition = margin;
+          yPosition = margin + lineH(fontSize);
         }
-        doc.text(line, margin, yPosition);
-        yPosition += fontSize * 0.4; // Consistent line height
+        doc.text(line, margin, yPosition, { maxWidth });
+        yPosition += lineH(fontSize);
       });
-      yPosition += spacing; // Add spacing after text block
+      yPosition += spacing;
+    };
+
+    // Helper to extract plain text from concern/recommendation (may be object or string)
+    const concernText = (c) => {
+      if (typeof c === 'string') return c;
+      const parts = [];
+      if (c.issue) parts.push(c.issue);
+      if (c.explanation) parts.push(c.explanation);
+      if (c.severity) parts.push(`Severity: ${c.severity}`);
+      return parts.join(' — ') || JSON.stringify(c);
+    };
+    const recText = (r) => {
+      if (typeof r === 'string') return r;
+      const parts = [];
+      if (r.action) parts.push(r.action);
+      if (r.explanation) parts.push(r.explanation);
+      if (r.timeline) parts.push(`Timeline: ${r.timeline}`);
+      return parts.join(' — ') || JSON.stringify(r);
     };
 
     // Header
@@ -335,8 +353,8 @@ const ReportAnalysis = ({ onBack }) => {
       doc.setTextColor(34, 197, 94);
       addText('POSITIVE FINDINGS', 14, true, 3);
       doc.setTextColor(0, 0, 0);
-      analysis.goodPoints.forEach((point, idx) => {
-        addText(`✓ ${point}`, 10, false, 3);
+      analysis.goodPoints.forEach((point) => {
+        addText(`+ ${typeof point === 'string' ? point : point.point || JSON.stringify(point)}`, 10, false, 3);
       });
       yPosition += 3;
     }
@@ -346,8 +364,8 @@ const ReportAnalysis = ({ onBack }) => {
       doc.setTextColor(249, 115, 22);
       addText('AREAS OF CONCERN', 14, true, 3);
       doc.setTextColor(0, 0, 0);
-      analysis.concerns.forEach((concern, idx) => {
-        addText(`⚠ ${concern}`, 10, false, 3);
+      analysis.concerns.forEach((concern) => {
+        addText(`- ${concernText(concern)}`, 10, false, 3);
       });
       yPosition += 3;
     }
@@ -357,8 +375,8 @@ const ReportAnalysis = ({ onBack }) => {
       doc.setTextColor(20, 184, 166);
       addText('RECOMMENDATIONS', 14, true, 3);
       doc.setTextColor(0, 0, 0);
-      analysis.recommendations.forEach((rec, idx) => {
-        addText(`→ ${rec}`, 10, false, 3);
+      analysis.recommendations.forEach((rec) => {
+        addText(`> ${recText(rec)}`, 10, false, 3);
       });
       yPosition += 3;
     }

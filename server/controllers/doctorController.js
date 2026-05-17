@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const mongoose = require('mongoose');
+const { normalizeSpecialization, buildSpecRegex } = require('../utils/normalizeSpecialization');
 
 // Get all doctors with filtering
 const getAllDoctors = async (req, res) => {
@@ -16,9 +17,9 @@ const getAllDoctors = async (req, res) => {
 
     let query = { role: 'doctor' };
     
-    // Specialization filter
+    // Specialization filter — matches canonical form and all variants (ology/ologist)
     if (specialization) {
-      query['doctorDetails.specialization'] = { $regex: specialization, $options: 'i' };
+      query['doctorDetails.specialization'] = { $regex: buildSpecRegex(specialization) };
     }
     
     // Rating filter
@@ -202,15 +203,37 @@ const uploadClinicImages = async (req, res) => {
   }
 };
 
-// Get doctor specializations
+// Get doctor specializations — normalizes all DB variants to canonical "ologist" form
+// Also fixes any dirty records in DB on the fly
 const getSpecializations = async (req, res) => {
   try {
-    const specializations = await User.distinct('doctorDetails.specialization', {
+    const { SPEC_CORRECTIONS } = require('../utils/normalizeSpecialization');
+    const raw = await User.distinct('doctorDetails.specialization', {
       role: 'doctor',
       'doctorDetails.specialization': { $exists: true, $ne: '' }
     });
-    
-    res.json(specializations);
+
+    // Fix dirty DB records in background (don't await — don't block the response)
+    const bulkOps = [];
+    for (const spec of raw) {
+      const canonical = normalizeSpecialization(spec);
+      if (canonical !== spec) {
+        bulkOps.push({
+          updateMany: {
+            filter: { role: 'doctor', 'doctorDetails.specialization': spec },
+            update: { $set: { 'doctorDetails.specialization': canonical } }
+          }
+        });
+      }
+    }
+    if (bulkOps.length > 0) {
+      User.bulkWrite(bulkOps).then(r =>
+        console.log(`Normalized ${r.modifiedCount} specialization record(s) in DB`)
+      ).catch(e => console.error('Specialization bulk normalize error:', e.message));
+    }
+
+    const normalized = [...new Set(raw.map(normalizeSpecialization))].sort();
+    res.json(normalized);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

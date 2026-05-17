@@ -30,7 +30,7 @@ const generatePrescriptionPDF = (prescription, patient, doctor) => {
       doc.fontSize(12).fillColor('#14b8a6').text('Doctor Information', { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(10).fillColor('#000');
-      doc.text(`Name: Dr. ${doctor.name}`);
+      doc.text(`Name: Dr. ${doctor.name.replace(/^Dr\.?\s*/i, '')}`);
       doc.text(`Specialization: ${doctor.doctorDetails?.specialization || 'General Physician'}`);
       doc.text(`Qualification: ${doctor.doctorDetails?.qualifications?.join(', ') || 'MBBS'}`);
       doc.text(`Clinic: ${doctor.doctorDetails?.clinicName || 'AarogyaCare Clinic'}`);
@@ -112,7 +112,7 @@ const generatePrescriptionPDF = (prescription, patient, doctor) => {
       // Signature
       doc.moveDown(2);
       doc.fontSize(10).text('_______________________', 450);
-      doc.fontSize(9).text(`Dr. ${doctor.name}`, 450);
+      doc.fontSize(9).text(`Dr. ${doctor.name.replace(/^Dr\.?\s*/i, '')}`, 450);
       doc.fontSize(8).fillColor('#666').text(doctor.doctorDetails?.specialization || '', 450);
 
       doc.end();
@@ -171,7 +171,7 @@ const generatePaymentReceiptPDF = (appointment, patient, doctor) => {
       doc.fontSize(14).fillColor('#14b8a6').text('Doctor Details', 50, doc.y, { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(11).fillColor('#000000');
-      doc.text('Name: Dr. ' + doctor.name, 50);
+      doc.text('Name: Dr. ' + doctor.name.replace(/^Dr\.?\s*/i, ''), 50);
       doc.text('Specialization: ' + (doctor.doctorDetails?.specialization || 'General Physician'), 50);
       doc.text('Qualification: ' + (doctor.doctorDetails?.qualifications?.join(', ') || 'MBBS'), 50);
       doc.text('Clinic: ' + (doctor.doctorDetails?.clinicName || 'AarogyaCare Clinic'), 50);

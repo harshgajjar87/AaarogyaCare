@@ -1,5 +1,6 @@
 const axios = require('axios');
 const User = require('../models/User');
+const { normalizeSpecialization, buildSpecRegex } = require('../utils/normalizeSpecialization');
 
 // Red flag keywords that indicate potential emergencies
 const redFlags = ['chest pain', 'cannot breathe', 'can\'t breathe', 'shortness of breath', 'difficulty breathing', 'fainting', 'fainted', 'heavy bleeding', 'stroke', 'sudden weakness', 'unconscious', 'severe bleeding'];
@@ -183,7 +184,8 @@ CLINICAL PROTOCOLS:
 
 Once you have: symptom + character + duration → provide recommendation using [SPECIALIST:Name].
 
-Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatrician, Psychiatrist, General Physician, ENT Specialist, Gynecologist, Ophthalmologist`;
+Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic Surgeon, Pediatrician, Psychiatrist, General Physician, ENT Specialist, Gynecologist, Ophthalmologist, Gastroenterologist
+IMPORTANT: The tag must be EXACTLY [SPECIALIST:Name] with no translation or extra text inside the brackets. Example: [SPECIALIST:Psychiatrist]`;
 
     let aiResponse;
 
@@ -258,15 +260,14 @@ Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatr
     // Extract specialist tag and clean response
     let specialization = null;
     let cleanResponse = aiResponse.trim();
-    
-    // Check for [SPECIALIST:Name] tag first
-    const specialistMatch = aiResponse.match(/\[SPECIALIST:([^\]]+)\]/);
+
+    // Match [SPECIALIST:Name], [SPECIALIST:Name:translation], or [Name:translation] formats
+    const specialistMatch = aiResponse.match(/\[(?:SPECIALIST:)?([A-Za-z\s]+?)(?::[^\]]+)?\]/);
     if (specialistMatch) {
-      specialization = specialistMatch[1];
-      // Remove the tag from response
-      cleanResponse = aiResponse.replace(/\[SPECIALIST:[^\]]+\]/g, '').trim();
+      specialization = specialistMatch[1].trim();
+      cleanResponse = aiResponse.replace(/\[(?:SPECIALIST:)?[^\]]+\]/g, '').trim();
     }
-    
+
     // Fallback: Check for JSON format (hide it from user)
     if (!specialization && aiResponse.includes('"specialization"')) {
       const jsonMatch = aiResponse.match(/\{[^}]*"specialization"[^}]*\}/);
@@ -274,23 +275,42 @@ Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatr
         try {
           const parsed = JSON.parse(jsonMatch[0]);
           specialization = parsed.specialization;
-          // Remove JSON from response
           cleanResponse = aiResponse.replace(/\{[^}]*"specialization"[^}]*\}/g, '').trim();
         } catch (e) {}
       }
     }
-    
-    // Fallback: Natural language detection
+
+    // Fallback: English natural language detection
     if (!specialization) {
-      const specialists = ['Cardiologist', 'Dermatologist', 'Neurologist', 'Orthopedic', 'Pediatrician', 'Psychiatrist', 'General Physician', 'ENT Specialist', 'Gynecologist', 'Ophthalmologist'];
+      const specialists = ['Cardiologist', 'Dermatologist', 'Neurologist', 'Orthopedic Surgeon', 'Pediatrician', 'Psychiatrist', 'General Physician', 'ENT Specialist', 'Gynecologist', 'Ophthalmologist', 'Gastroenterologist'];
       const lowerResponse = aiResponse.toLowerCase();
-      
-      if (lowerResponse.includes('recommend') || lowerResponse.includes('consult') || lowerResponse.includes('see a')) {
-        for (const spec of specialists) {
-          if (lowerResponse.includes(spec.toLowerCase())) {
-            specialization = spec;
-            break;
-          }
+      for (const spec of specialists) {
+        if (lowerResponse.includes(spec.toLowerCase())) {
+          specialization = spec;
+          break;
+        }
+      }
+    }
+
+    // Fallback: Hindi/Gujarati keyword detection
+    if (!specialization) {
+      const multilingualMap = [
+        { keywords: ['मनोचिकित्सक', 'मानसिक', 'psychiatrist', 'मनोविज्ञान'], spec: 'Psychiatrist' },
+        { keywords: ['हृदय', 'cardiologist', 'कार्डियो'], spec: 'Cardiologist' },
+        { keywords: ['त्वचा', 'dermatologist', 'चर्म'], spec: 'Dermatologist' },
+        { keywords: ['न्यूरो', 'neurologist', 'मस्तिष्क'], spec: 'Neurologist' },
+        { keywords: ['स्त्री रोग', 'gynecologist', 'प्रसूति'], spec: 'Gynecologist' },
+        { keywords: ['हड्डी', 'orthopedic', 'जोड़'], spec: 'Orthopedic Surgeon' },
+        { keywords: ['बच्चे', 'pediatrician', 'शिशु'], spec: 'Pediatrician' },
+        { keywords: ['आंख', 'ophthalmologist', 'नेत्र'], spec: 'Ophthalmologist' },
+        { keywords: ['कान', 'ent', 'नाक', 'गला'], spec: 'ENT Specialist' },
+        { keywords: ['सामान्य', 'general physician', 'पेट'], spec: 'General Physician' },
+      ];
+      const lower = aiResponse.toLowerCase();
+      for (const { keywords, spec } of multilingualMap) {
+        if (keywords.some(k => lower.includes(k))) {
+          specialization = spec;
+          break;
         }
       }
     }
@@ -310,16 +330,11 @@ Valid Specialists: Cardiologist, Dermatologist, Neurologist, Orthopedic, Pediatr
       }
     }
     
-    // Server-side specialist override — don't trust AI's specialist choice alone
-    if (specialization) {
-      const fullConversation = [
-        ...history.map(h => h.content),
-        message
-      ].join(' ');
-      const detectedSpecialist = detectSpecialistFromSymptoms(fullConversation);
-      if (detectedSpecialist) {
-        specialization = detectedSpecialist; // Use our mapping, not AI's guess
-      }
+    // Server-side specialist detection — use symptom map as override or last resort
+    const fullConversation = [...history.map(h => h.content), message].join(' ');
+    const detectedSpecialist = detectSpecialistFromSymptoms(fullConversation);
+    if (detectedSpecialist) {
+      specialization = detectedSpecialist; // Always trust our keyword map over AI
     }
 
     console.log('AI Response:', cleanResponse);
@@ -348,27 +363,43 @@ exports.findDoctors = async (req, res) => {
   try {
     const { specialization, latitude, longitude } = req.body;
 
+    if (!specialization) {
+      return res.status(400).json({ error: 'Specialization is required' });
+    }
+
+    const specRegex = buildSpecRegex(specialization);
+    const canonicalSpec = normalizeSpecialization(specialization);
+
     const query = {
       role: 'doctor',
-      isActive: true,
-      'doctorDetails.specialization': new RegExp(specialization, 'i')
+      'doctorDetails.specialization': { $regex: specRegex }
     };
+
+    // Use $near operator (GeoJSON format) if coordinates provided
+    if (latitude && longitude) {
+      query.location = {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [parseFloat(longitude), parseFloat(latitude)] },
+          $maxDistance: 50000 // 50km
+        }
+      };
+    }
 
     let doctors = await User.find(query)
       .select('name email profileImage doctorDetails location')
-      .limit(10);
+      .sort({ 'doctorDetails.rating': -1 })
+      .limit(5);
 
-    // Sort by location if coordinates provided
-    if (latitude && longitude) {
-      doctors = await User.find(query)
+    // Last resort: return any doctors if still empty
+    if (doctors.length === 0) {
+      doctors = await User.find({ role: 'doctor' })
         .select('name email profileImage doctorDetails location')
-        .near('location', {
-          center: [longitude, latitude],
-          maxDistance: 50000 // 50km
-        })
-        .limit(10);
+        .sort({ 'doctorDetails.rating': -1 })
+        .limit(5);
+      console.log(`findDoctors last-resort: found ${doctors.length} doctors`);
     }
 
+    console.log(`findDoctors: "${specialization}" → canonical "${canonicalSpec}", regex=${specRegex}, found ${doctors.length} doctors`);
     res.json({ doctors });
   } catch (error) {
     console.error('Find doctors error:', error);

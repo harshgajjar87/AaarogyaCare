@@ -81,19 +81,20 @@ const GeneralPrediction = ({ onBack }) => {
     const maxWidth = pageWidth - 2 * margin;
     let yPosition = margin;
 
+    const lineH = (fontSize) => fontSize * 0.38;
+
     // Helper function to add text with word wrap
-    const addText = (text, fontSize = 10, isBold = false, spacing = 5) => {
+    const addText = (text, fontSize = 10, isBold = false, spacing = 4) => {
       doc.setFontSize(fontSize);
       doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-      const lines = doc.splitTextToSize(text, maxWidth);
-      
+      const lines = doc.splitTextToSize(String(text), maxWidth);
       lines.forEach((line) => {
-        if (yPosition + fontSize * 0.4 > pageHeight - margin - 10) {
+        if (yPosition + lineH(fontSize) > pageHeight - margin - 10) {
           doc.addPage();
-          yPosition = margin;
+          yPosition = margin + lineH(fontSize);
         }
-        doc.text(line, margin, yPosition);
-        yPosition += fontSize * 0.4;
+        doc.text(line, margin, yPosition, { maxWidth });
+        yPosition += lineH(fontSize);
       });
       yPosition += spacing;
     };
